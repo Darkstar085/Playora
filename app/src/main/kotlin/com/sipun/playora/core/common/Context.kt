@@ -1,0 +1,427 @@
+package com.sipun.playora.core.common.extensions
+
+import android.content.ContentResolver
+import android.content.ContentUris
+import android.content.ContentValues
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.media.MediaScannerConnection
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.DocumentsContract
+import android.provider.MediaStore
+import android.provider.OpenableColumns
+import android.util.Log
+import android.util.TypedValue
+import androidx.core.graphics.drawable.toBitmapOrNull
+import androidx.core.text.isDigitsOnly
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import org.mozilla.universalchardet.UniversalDetector
+import java.io.BufferedInputStream
+import java.io.File
+import java.io.InputStream
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicInteger
+
+val VIDEO_COLLECTION_URI: Uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+
+fun Context.getPath(uri: Uri): String? {
+    if (DocumentsContract.isDocumentUri(
+            this,
+            uri,
+        )
+    ) {
+        when {
+            uri.isExternalStorageDocument -> {
+                val docId = DocumentsContract.getDocumentId(uri)
+                val split = docId
+                    .split(":".toRegex())
+                    .dropLastWhile { it.isEmpty() }
+                    .toTypedArray()
+                val type = split[0]
+                if ("primary".equals(
+                        other = type,
+                        ignoreCase = true,
+                    )
+                ) {
+                    return Environment.getExternalStorageDirectory().path + "/" + split[1]
+                }
+
+            }
+
+            uri.isDownloadsDocument -> {
+                val docId = DocumentsContract.getDocumentId(uri)
+                if (docId.isDigitsOnly()) {
+                    return try {
+                        val contentUri = ContentUris.withAppendedId(
+                            Uri.parse("content://downloads/public_downloads"),
+                            docId.toLong(),
+                        )
+                        getDataColumn(
+                            uri = contentUri,
+                            selection = null,
+                            selectionArgs = null,
+                        )
+                    } catch (e: Exception) {
+                        null
+                    }
+                }
+            }
+
+            uri.isMediaDocument -> {
+                val docId = DocumentsContract.getDocumentId(uri)
+                val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }
+                    .toTypedArray()
+                val type = split[0]
+                var contentUri: Uri? = null
+                when (type) {
+                    "image" -> contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                    "video" -> contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    "audio" -> contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                }
+                val selection = "_id=?"
+                val selectionArgs = arrayOf(
+                    split[1],
+                )
+                return contentUri?.let {
+                    getDataColumn(
+                        uri = it,
+                        selection = selection,
+                        selectionArgs = selectionArgs,
+                    )
+                }
+            }
+        }
+    } else if (ContentResolver.SCHEME_CONTENT.equals(
+            uri.scheme,
+            ignoreCase = true,
+        )
+    ) {
+        if (uri.isLocalPhotoPickerUri) return null
+        if (uri.isCloudPhotoPickerUri) return null
+
+        return if (uri.isGooglePhotosUri) {
+            uri.lastPathSegment
+        } else {
+            getDataColumn(
+                uri = uri,
+                selection = null,
+                selectionArgs = null,
+            )
+        }
+    } else if (ContentResolver.SCHEME_FILE.equals(
+            uri.scheme,
+            ignoreCase = true,
+        )
+    ) {
+        return uri.path
+    }
+    return null
+}
+
+fun Context.getInitialDirectoryUri(fileUri: Uri): Uri? {
+    val path = getPath(uri = fileUri) ?: return null
+    val parent = File(path).parent ?: return null
+    val externalRoot = Environment.getExternalStorageDirectory().path
+    if (parent != externalRoot && !parent.startsWith(prefix = "$externalRoot/")) return null
+    val relativePath = parent.removePrefix(prefix = externalRoot).trim('/')
+    return DocumentsContract.buildDocumentUri(
+        "com.android.externalstorage.documents",
+        "primary:$relativePath",
+    )
+}
+
+private fun Context.getDataColumn(
+    uri: Uri,
+    selection: String? = null,
+    selectionArgs: Array<String>? = null,
+): String? {
+    val column = MediaStore.Images.Media.DATA
+    val projection = arrayOf(column)
+    try {
+        contentResolver.query(
+            uri,
+            projection,
+            selection,
+            selectionArgs,
+            null,
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val index = cursor.getColumnIndexOrThrow(column)
+                return cursor.getString(index)
+            }
+        }
+    } catch (e: Exception) {
+        return null
+    }
+    return null
+}
+
+fun Context.getFilenameFromUri(uri: Uri): String = if (ContentResolver.SCHEME_FILE.equals(
+        uri.scheme,
+        ignoreCase = true,
+    )
+) {
+    File(uri.toString()).name
+} else {
+    getFilenameFromContentUri(uri = uri) ?: uri.lastPathSegment ?: ""
+}
+
+fun Context.getFilenameFromContentUri(uri: Uri): String? {
+    val projection = arrayOf(
+        OpenableColumns.DISPLAY_NAME,
+    )
+
+    try {
+        val cursor = contentResolver.query(
+            uri,
+            projection,
+            null,
+            null,
+            null,
+        )
+        cursor?.use {
+            if (cursor.moveToFirst()) {
+                return cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+            }
+        }
+    } catch (e: Exception) {
+        return null
+    }
+    return null
+}
+
+fun Context.getMediaContentUri(uri: Uri): Uri? {
+    val path = getPath(uri = uri) ?: return null
+
+    val column = MediaStore.Video.Media._ID
+    val projection = arrayOf(column)
+    try {
+        contentResolver.query(
+            VIDEO_COLLECTION_URI,
+            projection,
+            "${MediaStore.Images.Media.DATA} = ?",
+            arrayOf(path),
+            null,
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val index = cursor.getColumnIndexOrThrow(column)
+                val id = cursor.getLong(index)
+                return ContentUris.withAppendedId(
+                    VIDEO_COLLECTION_URI,
+                    id,
+                )
+            }
+        }
+    } catch (e: Exception) {
+        return null
+    }
+    return null
+}
+
+suspend fun Context.scanPaths(paths: List<String>): Boolean =
+    suspendCancellableCoroutine { continuation ->
+        if (paths.isEmpty()) {
+            continuation.resumeWith(Result.success(value = true))
+            return@suspendCancellableCoroutine
+        }
+
+        val remaining = AtomicInteger(paths.size)
+        try {
+            MediaScannerConnection.scanFile(
+                this@scanPaths,
+                paths.toTypedArray(),
+                null,
+            ) { path, uri ->
+                Log.d(
+                    "ScanPath",
+                    "scanPaths: path=$path, uri=$uri",
+                )
+                if (remaining.decrementAndGet() == 0) {
+                    continuation.resumeWith(Result.success(value = true))
+                }
+            }
+        } catch (e: Exception) {
+            continuation.resumeWith(Result.failure(exception = e))
+        }
+    }
+
+suspend fun Context.scanPath(file: File): Boolean = if (file.isDirectory) {
+    file.listFiles()?.all { scanPath(file = it) } ?: true
+} else {
+    scanPaths(paths = listOf(file.path))
+}
+
+suspend fun Context.scanStorage(
+    storagePath: String? = Environment.getExternalStorageDirectory()?.path,
+): Boolean = withContext(Dispatchers.IO) {
+    if (storagePath != null) {
+        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            scanPaths(paths = listOf(element = storagePath))
+        } else {
+            scanPath(file = File(storagePath))
+        }
+    } else {
+        false
+    }
+}
+
+suspend fun Context.convertToUTF8(uri: Uri, charset: Charset? = null): Uri =
+    withContext(Dispatchers.IO) {
+        try {
+            val detectedCharset = charset ?: detectCharset(
+                uri = uri,
+                context = this@convertToUTF8,
+            )
+            if (detectedCharset == StandardCharsets.UTF_8) {
+                uri
+            } else {
+                convertLocalUriToUTF8(
+                    uri = uri,
+                    sourceCharset = detectedCharset,
+                )
+            }
+        } catch (exception: Exception) {
+            exception.printStackTrace()
+            uri
+        }
+    }
+
+private fun detectCharset(uri: Uri, context: Context): Charset =
+    context.contentResolver.openInputStream(uri)?.use { inputStream ->
+        detectCharsetFromStream(inputStream = inputStream)
+    } ?: StandardCharsets.UTF_8
+
+private fun detectCharsetFromStream(inputStream: InputStream): Charset {
+    return BufferedInputStream(inputStream).use { bufferedStream ->
+        val maxBytes = 1024 * 100
+        val data = ByteArray(size = maxBytes)
+        val bytesRead = bufferedStream.read(
+            data,
+            0,
+            maxBytes,
+        )
+
+        if (bytesRead <= 0) {
+            return@use Charset.forName(StandardCharsets.UTF_8.name())
+        }
+
+        UniversalDetector(null).run {
+            handleData(
+                data,
+                0,
+                data.size,
+            )
+            dataEnd()
+            Charset.forName(detectedCharset ?: StandardCharsets.UTF_8.name())
+        }
+    }
+}
+
+private fun Context.convertLocalUriToUTF8(uri: Uri, sourceCharset: Charset): Uri {
+    val fileName = getFilenameFromUri(uri = uri)
+    val file = File(
+        subtitleCacheDir,
+        fileName,
+    )
+
+    contentResolver.openInputStream(uri)?.use { inputStream ->
+        inputStream.reader(charset = sourceCharset).buffered().use { reader ->
+            file.outputStream().writer(StandardCharsets.UTF_8).buffered().use { writer ->
+                reader.copyTo(out = writer)
+            }
+        }
+    }
+
+    return Uri.fromFile(file)
+}
+
+fun Context.hasStorageAccessFrameworkChooser(): Boolean {
+    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+    intent.addCategory(Intent.CATEGORY_OPENABLE)
+    intent.type = "video/*"
+    return intent.resolveActivity(packageManager) != null
+}
+
+fun Context.pxToDp(px: Float) = TypedValue.applyDimension(
+    TypedValue.COMPLEX_UNIT_PX,
+    px,
+    resources.displayMetrics,
+)
+
+fun Context.dpToPx(dp: Float) = TypedValue.applyDimension(
+    TypedValue.COMPLEX_UNIT_DIP,
+    dp,
+    resources.displayMetrics,
+)
+
+val Context.subtitleCacheDir: File
+    get() {
+        val dir = File(
+            cacheDir,
+            "subtitles",
+        )
+        if (!dir.exists()) dir.mkdir()
+        return dir
+    }
+
+val Context.thumbnailCacheDir: File
+    get() {
+        val dir = File(
+            cacheDir,
+            "thumbnails",
+        )
+        if (!dir.exists()) dir.mkdir()
+        return dir
+    }
+
+suspend fun ContentResolver.updateMedia(uri: Uri, contentValues: ContentValues): Boolean =
+    withContext(Dispatchers.IO) {
+        return@withContext try {
+            update(
+                uri,
+                contentValues,
+                null,
+                null,
+            ) > 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+suspend fun ContentResolver.deleteMedia(uri: Uri): Boolean = withContext(Dispatchers.IO) {
+    return@withContext try {
+        delete(
+            uri,
+            null,
+            null,
+        ) > 0
+    } catch (e: Exception) {
+        e.printStackTrace()
+        false
+    }
+}
+
+fun Context.getStorageVolumes() = try {
+    getExternalFilesDirs(null)?.mapNotNull {
+        File(it.path.substringBefore(delimiter = "/Android")).takeIf { file -> file.exists() }
+    } ?: listOf(Environment.getExternalStorageDirectory())
+} catch (e: Exception) {
+    listOf(Environment.getExternalStorageDirectory())
+}
+
+fun Context.appIcon(): Bitmap? = packageManager.getApplicationInfo(
+    packageName,
+    0,
+).loadIcon(packageManager)?.toBitmapOrNull()
+
+val Context.isPipFeatureSupported: Boolean
+    get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)

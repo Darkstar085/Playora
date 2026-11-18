@@ -1,0 +1,67 @@
+package com.sipun.playora.core.data.repository
+
+import com.sipun.playora.core.common.di.DiQualifiers
+import com.sipun.playora.core.datastore.datasource.AppPreferencesDataSource
+import com.sipun.playora.core.datastore.datasource.PlayerPreferencesDataSource
+import com.sipun.playora.core.model.ApplicationPreferences
+import com.sipun.playora.core.model.PlayerPreferences
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Single
+
+interface PreferencesRepository {
+
+    val applicationPreferences: StateFlow<ApplicationPreferences>
+
+    val playerPreferences: StateFlow<PlayerPreferences>
+
+    suspend fun updateApplicationPreferences(
+        transform: suspend (ApplicationPreferences) -> ApplicationPreferences,
+    )
+
+    suspend fun updatePlayerPreferences(transform: suspend (PlayerPreferences) -> PlayerPreferences)
+
+    suspend fun resetPreferences()
+}
+
+@Single
+class LocalPreferencesRepository(
+    private val appPreferencesDataSource: AppPreferencesDataSource,
+    private val playerPreferencesDataSource: PlayerPreferencesDataSource,
+    @Named(DiQualifiers.APPLICATION_SCOPE) private val applicationScope: CoroutineScope,
+) : PreferencesRepository {
+
+    override val applicationPreferences: StateFlow<ApplicationPreferences> =
+        appPreferencesDataSource.preferences.stateIn(
+            scope = applicationScope,
+            started = SharingStarted.Eagerly,
+            initialValue = ApplicationPreferences(),
+        )
+
+    override val playerPreferences: StateFlow<PlayerPreferences> =
+        playerPreferencesDataSource.preferences.stateIn(
+            scope = applicationScope,
+            started = SharingStarted.Eagerly,
+            initialValue = PlayerPreferences(),
+        )
+
+    override suspend fun updateApplicationPreferences(
+        transform: suspend (ApplicationPreferences) -> ApplicationPreferences,
+    ) {
+        appPreferencesDataSource.update(transform = transform)
+    }
+
+    override suspend fun updatePlayerPreferences(
+        transform: suspend (PlayerPreferences) -> PlayerPreferences,
+    ) {
+        playerPreferencesDataSource.update(transform = transform)
+    }
+
+    override suspend fun resetPreferences() {
+        appPreferencesDataSource.update { ApplicationPreferences() }
+        playerPreferencesDataSource.update { PlayerPreferences() }
+    }
+}
