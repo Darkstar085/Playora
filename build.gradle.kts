@@ -1,0 +1,29 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
+plugins {
+    alias(libs.plugins.androidApplication) apply false
+    alias(libs.plugins.androidLibrary) apply false
+    alias(libs.plugins.composeCompiler) apply false
+    alias(libs.plugins.kotlinJvm) apply false
+    alias(libs.plugins.ksp) apply false
+}
+
+allprojects {
+    tasks.withType<Test>().configureEach {
+        testLogging {
+            events = setOf(
+                TestLogEvent.PASSED,
+                TestLogEvent.FAILED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_OUT,
+                TestLogEvent.STANDARD_ERROR,
+            )
+
+            exceptionFormat = TestExceptionFormat.FULL
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
+        }
+    }
+}
