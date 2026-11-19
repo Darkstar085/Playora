@@ -18,10 +18,10 @@ data class ApplicationPreferences(
     val mediaLayoutMode: MediaLayoutMode = MediaLayoutMode.LIST,
 
     val showDurationField: Boolean = true,
-    val showFolderDurationField: Boolean = true,
+    val showFolderDurationField: Boolean = false,
     val showExtensionField: Boolean = false,
-    val showPathField: Boolean = true,
-    val showResolutionField: Boolean = false,
+    val showPathField: Boolean = false,
+    val showResolutionField: Boolean = true,
     val showSizeField: Boolean = false,
     val showThumbnailField: Boolean = true,
     val showPlayedProgress: Boolean = true,

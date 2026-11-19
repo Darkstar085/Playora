@@ -107,6 +107,8 @@ import com.sipun.playora.feature.videopicker.composables.MediaView
 import com.sipun.playora.feature.videopicker.composables.NoVideosFound
 import com.sipun.playora.feature.videopicker.composables.QuickSettingsDialog
 import com.sipun.playora.feature.videopicker.composables.RenameDialog
+import com.sipun.playora.core.model.MarkType
+import com.sipun.playora.feature.videopicker.composables.MarkAsDialog
 import com.sipun.playora.feature.videopicker.composables.SelectionAction
 import com.sipun.playora.feature.videopicker.composables.privacy.PinDotsIndicator
 import com.sipun.playora.feature.videopicker.composables.privacy.PinKeypad
@@ -161,6 +163,7 @@ internal fun MediaPickerScreenContent(
     var showQuickSettingsDialog by rememberSaveable { mutableStateOf(value = false) }
     var showRenameActionFor: Video? by rememberSaveable { mutableStateOf(value = null) }
     var showDeleteVideosConfirmation by rememberSaveable { mutableStateOf(value = false) }
+    var showMarkDialog by rememberSaveable { mutableStateOf(value = false) }
 
     val mediaHolder = (state.mediaDataState as? DataState.Success)?.value
     val onFabClick = {
@@ -350,6 +353,7 @@ internal fun MediaPickerScreenContent(
                     )
                     selectionManager.exitSelectionMode()
                 },
+                onMarkAction = { showMarkDialog = true },
                 onDeleteAction = { showDeleteVideosConfirmation = true },
             )
         },
@@ -445,9 +449,21 @@ internal fun MediaPickerScreenContent(
             applicationPreferences = state.preferences,
             onDismiss = { showQuickSettingsDialog = false },
             updatePreferences = { onAction(MediaPickerAction.UpdateMenu(preferences = it)) },
-            onSettingsClick = {
-                showQuickSettingsDialog = false
-                onAction(MediaPickerAction.OnSettingsClick)
+        )
+    }
+
+    if (showMarkDialog) {
+        MarkAsDialog(
+            onDismiss = { showMarkDialog = false },
+            onConfirm = { markType ->
+                onAction(
+                    MediaPickerAction.MarkSelectedItems(
+                        selectionManager.selectionItems,
+                        markType,
+                    ),
+                )
+                selectionManager.exitSelectionMode()
+                showMarkDialog = false
             },
         )
     }
@@ -899,6 +915,7 @@ private fun SelectionActionsSheet(
     onMoveAction: () -> Unit,
     onInfoAction: () -> Unit,
     onHideAction: () -> Unit,
+    onMarkAction: () -> Unit,
     onDeleteAction: () -> Unit,
 ) {
     AnimatedVisibility(
@@ -923,47 +940,58 @@ private fun SelectionActionsSheet(
                         shape = shape,
                     )
                     .clip(shape = shape)
-                    .horizontalScroll(state = rememberScrollState())
                     .navigationBarsPadding()
                     .padding(
-                        horizontal = 8.dp,
+                        horizontal = 4.dp,
                         vertical = 12.dp,
                     ),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 SelectionAction(
                     imageVector = AppIcons.Play,
                     title = stringResource(R.string.play),
                     onClick = onPlayAction,
+                    modifier = Modifier.weight(1f),
                 )
                 if (showRenameAction) {
                     SelectionAction(
                         imageVector = AppIcons.Edit,
                         title = stringResource(R.string.rename),
                         onClick = onRenameAction,
+                        modifier = Modifier.weight(1f),
                     )
                 }
                 SelectionAction(
                     imageVector = AppIcons.Share,
                     title = stringResource(R.string.share),
                     onClick = onShareAction,
+                    modifier = Modifier.weight(1f),
                 )
                 SelectionAction(
                     imageVector = AppIcons.Copy,
                     title = stringResource(R.string.copy),
                     onClick = onCopyAction,
+                    modifier = Modifier.weight(1f),
                 )
                 SelectionAction(
                     imageVector = AppIcons.Move,
                     title = stringResource(R.string.move),
                     onClick = onMoveAction,
+                    modifier = Modifier.weight(1f),
+                )
+                SelectionAction(
+                    imageVector = AppIcons.Check,
+                    title = stringResource(R.string.mark),
+                    onClick = onMarkAction,
+                    modifier = Modifier.weight(1f),
                 )
                 if (showInfoAction) {
                     SelectionAction(
                         imageVector = AppIcons.Info,
                         title = stringResource(id = R.string.info),
                         onClick = onInfoAction,
+                        modifier = Modifier.weight(1f),
                     )
                 }
                 if (showHideAction) {
@@ -971,6 +999,7 @@ private fun SelectionActionsSheet(
                         imageVector = AppIcons.HideSource,
                         title = stringResource(id = R.string.hide),
                         onClick = onHideAction,
+                        modifier = Modifier.weight(1f),
                     )
                 }
                 SelectionAction(
@@ -978,6 +1007,7 @@ private fun SelectionActionsSheet(
                     title = stringResource(id = R.string.delete),
                     tint = DestructiveRed,
                     onClick = onDeleteAction,
+                    modifier = Modifier.weight(1f),
                 )
             }
         }

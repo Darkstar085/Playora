@@ -90,7 +90,6 @@ fun QuickSettingsDialog(
     applicationPreferences: ApplicationPreferences,
     onDismiss: () -> Unit,
     updatePreferences: (ApplicationPreferences) -> Unit,
-    onSettingsClick: (() -> Unit)? = null,
 ) {
     var preferences by remember { mutableStateOf(value = applicationPreferences) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -114,7 +113,7 @@ fun QuickSettingsDialog(
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
         ) {
-            // Header: Title & Optional Settings Action
+            // Header: Title
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -130,24 +129,6 @@ fun QuickSettingsDialog(
                     ),
                     color = Color.White,
                 )
-                if (onSettingsClick != null) {
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(CircleShape)
-                            .background(InactiveButtonBackground)
-                            .border(width = 1.dp, color = InactiveButtonBorder, shape = CircleShape)
-                            .clickable(onClick = onSettingsClick),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Settings,
-                            contentDescription = stringResource(R.string.settings),
-                            tint = Color.White,
-                            modifier = Modifier.size(19.dp),
-                        )
-                    }
-                }
             }
 
             // 1. Media view mode

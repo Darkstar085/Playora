@@ -335,5 +335,9 @@
         <item quantity="one">Copied 1 video</item>
         <item quantity="other">Copied %1$d videos</item>
     </plurals>
+    <string name="mark">Mark</string>
+    <string name="mark_as">Mark as</string>
+    <string name="last_played">Last played</string>
+    <string name="finished">Finished</string>
 </resources>
 

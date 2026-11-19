@@ -18,6 +18,7 @@ import com.sipun.playora.core.database.entities.MediumStateEntity
 import com.sipun.playora.core.datastore.datasource.AppPreferencesDataSource
 import com.sipun.playora.core.media.services.MediaService
 import com.sipun.playora.core.model.Folder
+import com.sipun.playora.core.model.MarkType
 import com.sipun.playora.core.model.MediaInfo
 import com.sipun.playora.core.model.Video
 import com.sipun.nextlib.mediainfo.MediaInfoBuilder
@@ -64,6 +65,7 @@ interface MediaRepository {
     suspend fun addExternalSubtitleToMedium(uri: String, subtitleUri: Uri)
     suspend fun updateSubtitleDelay(uri: String, delay: Long)
     suspend fun updateSubtitleSpeed(uri: String, speed: Float)
+    suspend fun markVideos(uris: List<String>, markType: MarkType)
 }
 
 @Factory
@@ -177,6 +179,31 @@ class LocalMediaRepository(
 
     override suspend fun updateMediumPosition(uri: String, position: Long) {
         mediumStateDao.update(uri = uri) { it.copy(playbackPosition = position) }
+    }
+
+    override suspend fun markVideos(uris: List<String>, markType: MarkType) {
+        val now = System.currentTimeMillis()
+        uris.forEach { uri ->
+            mediumStateDao.update(uri = uri) { state ->
+                when (markType) {
+                    MarkType.LAST_PLAYED -> state.copy(
+                        lastPlayedTime = now,
+                    )
+                    MarkType.NEW -> state.copy(
+                        lastPlayedTime = null,
+                        playbackPosition = 0L,
+                    )
+                    MarkType.FINISHED -> state.copy(
+                        lastPlayedTime = now,
+                        playbackPosition = state.duration ?: 0L,
+                    )
+                    MarkType.NONE -> state.copy(
+                        lastPlayedTime = null,
+                        playbackPosition = 0L,
+                    )
+                }
+            }
+        }
     }
 
     override suspend fun updateMediumAudioTrack(uri: String, audioTrackIndex: Int) {

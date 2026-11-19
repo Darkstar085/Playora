@@ -26,6 +26,7 @@ import com.sipun.playora.core.media.services.TransferMode
 import com.sipun.playora.core.media.services.TransferProgress
 import com.sipun.playora.core.media.services.TransferResult
 import com.sipun.playora.core.media.sync.MediaSynchronizer
+import com.sipun.playora.core.model.MarkType
 import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.Folder
 import com.sipun.playora.core.model.MediaViewMode
@@ -167,6 +168,20 @@ class MediaPickerViewModel(
 
             is MediaPickerAction.DismissHideFlow -> stateInternal.update {
                 it.copy(hideFlow = HideFlowState.Idle)
+            }
+
+            is MediaPickerAction.MarkSelectedItems -> markSelectedItems(
+                action.selectionItems,
+                action.markType,
+            )
+        }
+    }
+
+    private fun markSelectedItems(selectionItems: Set<SelectionItem>, markType: MarkType) {
+        viewModelScope.launch {
+            val videos = selectionItems.toVideos()
+            if (videos.isNotEmpty()) {
+                mediaRepository.markVideos(uris = videos.map { it.uriString }, markType = markType)
             }
         }
     }
@@ -501,4 +516,8 @@ sealed interface MediaPickerAction {
     data class CompleteBiometricSetup(val enabled: Boolean) : MediaPickerAction
     data object ConfirmHidePendingItems : MediaPickerAction
     data object DismissHideFlow : MediaPickerAction
+    data class MarkSelectedItems(
+        val selectionItems: Set<SelectionItem>,
+        val markType: MarkType,
+    ) : MediaPickerAction
 }
