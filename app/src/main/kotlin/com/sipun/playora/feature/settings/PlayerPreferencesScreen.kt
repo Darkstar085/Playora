@@ -86,52 +86,6 @@ private fun PlayerPreferencesScreenContent(
                 .padding(paddingValues = innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
-            ListSectionTitle(text = stringResource(id = R.string.interface_name))
-            Column(
-                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
-            ) {
-                PreferenceSlider(
-                    title = stringResource(R.string.controller_timeout),
-                    description = if (state.preferences.controllerAutoHideTimeout == 0) {
-                        stringResource(R.string.off)
-                    } else {
-                        stringResource(
-                            R.string.seconds,
-                            state.preferences.controllerAutoHideTimeout,
-                        )
-                    },
-                    icon = AppIcons.Timer,
-                    value = state.preferences.controllerAutoHideTimeout.toFloat(),
-                    valueRange = 0.0f..600.0f,
-                    onValueChange = {
-                        onAction(PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(it.toInt()))
-                    },
-                    onReset = {
-                        onAction(
-                            PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(
-                                PlayerPreferences.DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT,
-                            ),
-                        )
-                    },
-                    isFirstItem = true,
-                    isLastItem = true,
-                    trailingContent = {
-                        ResetIconButton(
-                            onClick = {
-                                onAction(
-                                    PlayerPreferencesUiEvent.UpdateControlAutoHideTimeout(
-                                        PlayerPreferences.DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT,
-                                    ),
-                                )
-                            },
-                            contentDescription = stringResource(
-                                id = R.string.reset_controller_timeout,
-                            ),
-                        )
-                    },
-                )
-            }
-
             ListSectionTitle(text = stringResource(id = R.string.playback))
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
@@ -149,31 +103,6 @@ private fun PlayerPreferencesScreenContent(
                     },
                     isFirstItem = true,
                 )
-                PreferenceSlider(
-                    title = stringResource(id = R.string.default_playback_speed),
-                    description = state.preferences.defaultPlaybackSpeed.toString(),
-                    icon = AppIcons.Speed,
-                    value = state.preferences.defaultPlaybackSpeed,
-                    valueRange = 0.2f..4.0f,
-                    onValueChange = {
-                        onAction(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(value = it))
-                    },
-                    onReset = {
-                        onAction(PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(value = 1f))
-                    },
-                    trailingContent = {
-                        ResetIconButton(
-                            onClick = {
-                                onAction(
-                                    PlayerPreferencesUiEvent.UpdateDefaultPlaybackSpeed(value = 1f),
-                                )
-                            },
-                            contentDescription = stringResource(
-                                id = R.string.reset_default_playback_speed,
-                            ),
-                        )
-                    },
-                )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.autoplay_settings),
                     description = stringResource(
@@ -182,13 +111,6 @@ private fun PlayerPreferencesScreenContent(
                     icon = AppIcons.Player,
                     isChecked = state.preferences.autoplay,
                     onClick = { onAction(PlayerPreferencesUiEvent.ToggleAutoplay) },
-                )
-                PreferenceSwitch(
-                    title = stringResource(id = R.string.tunneled_playback),
-                    description = stringResource(id = R.string.tunneled_playback_description),
-                    icon = AppIcons.Decoder,
-                    isChecked = state.preferences.enableTunneledPlayback,
-                    onClick = { onAction(PlayerPreferencesUiEvent.ToggleTunneledPlayback) },
                 )
                 if (LocalContext.current.isPipFeatureSupported) {
                     PreferenceSwitch(
@@ -209,22 +131,6 @@ private fun PlayerPreferencesScreenContent(
                     icon = AppIcons.Headset,
                     isChecked = state.preferences.autoBackgroundPlay,
                     onClick = { onAction(PlayerPreferencesUiEvent.ToggleAutoBackgroundPlay) },
-                )
-                PreferenceSwitch(
-                    title = stringResource(id = R.string.remember_brightness_level),
-                    description = stringResource(
-                        id = R.string.remember_brightness_level_description,
-                    ),
-                    icon = AppIcons.Brightness,
-                    isChecked = state.preferences.rememberPlayerBrightness,
-                    onClick = { onAction(PlayerPreferencesUiEvent.ToggleRememberBrightnessLevel) },
-                )
-                PreferenceSwitch(
-                    title = stringResource(id = R.string.remember_selections),
-                    description = stringResource(id = R.string.remember_selections_description),
-                    icon = AppIcons.Selection,
-                    isChecked = state.preferences.rememberSelections,
-                    onClick = { onAction(PlayerPreferencesUiEvent.ToggleRememberSelections) },
                     isLastItem = true,
                 )
             }

@@ -104,32 +104,6 @@ private fun GesturePreferencesScreenContent(
                     onClick = { onAction(GesturePreferencesUiEvent.ToggleUseSeekControls) },
                     isFirstItem = true,
                 )
-                PreferenceSlider(
-                    title = stringResource(R.string.seek_gesture_sensitivity),
-                    description = state.preferences.seekSensitivity.toString(decimalPlaces = 2),
-                    icon = AppIcons.Sensitivity,
-                    enabled = state.preferences.useSeekControls,
-                    value = state.preferences.seekSensitivity,
-                    valueRange = 0.1f..2.0f,
-                    onValueChange = {
-                        onAction(GesturePreferencesUiEvent.UpdateSeekSensitivity(value = it))
-                    },
-                    trailingContent = {
-                        ResetIconButton(
-                            enabled = state.preferences.useSeekControls,
-                            onClick = {
-                                onAction(
-                                    GesturePreferencesUiEvent.UpdateSeekSensitivity(
-                                        PlayerPreferences.DEFAULT_SEEK_SENSITIVITY,
-                                    ),
-                                )
-                            },
-                            contentDescription = stringResource(
-                                id = R.string.reset_seek_sensitivity,
-                            ),
-                        )
-                    },
-                )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.brightness_gesture),
                     description = stringResource(id = R.string.brightness_gesture_description),
@@ -137,38 +111,6 @@ private fun GesturePreferencesScreenContent(
                     isChecked = state.preferences.enableBrightnessSwipeGesture,
                     onClick = {
                         onAction(GesturePreferencesUiEvent.ToggleEnableBrightnessSwipeGesture)
-                    },
-                )
-                PreferenceSlider(
-                    title = stringResource(R.string.brightness_gesture_sensitivity),
-                    description = state.preferences.brightnessGestureSensitivity.toString(
-                        decimalPlaces = 2,
-                    ),
-                    icon = AppIcons.Sensitivity,
-                    enabled = state.preferences.enableBrightnessSwipeGesture,
-                    value = state.preferences.brightnessGestureSensitivity,
-                    valueRange = 0.1f..2.0f,
-                    onValueChange = {
-                        onAction(
-                            GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity(
-                                value = it,
-                            ),
-                        )
-                    },
-                    trailingContent = {
-                        ResetIconButton(
-                            enabled = state.preferences.enableBrightnessSwipeGesture,
-                            onClick = {
-                                onAction(
-                                    GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity(
-                                        PlayerPreferences.DEFAULT_BRIGHTNESS_GESTURE_SENSITIVITY,
-                                    ),
-                                )
-                            },
-                            contentDescription = stringResource(
-                                id = R.string.reset_brightness_gesture_sensitivity,
-                            ),
-                        )
                     },
                 )
                 PreferenceSwitch(
@@ -180,50 +122,12 @@ private fun GesturePreferencesScreenContent(
                         onAction(GesturePreferencesUiEvent.ToggleEnableVolumeSwipeGesture)
                     },
                 )
-                PreferenceSlider(
-                    title = stringResource(R.string.volume_gesture_sensitivity),
-                    description = state.preferences.volumeGestureSensitivity.toString(
-                        decimalPlaces = 2,
-                    ),
-                    icon = AppIcons.Sensitivity,
-                    enabled = state.preferences.enableVolumeSwipeGesture,
-                    value = state.preferences.volumeGestureSensitivity,
-                    valueRange = 0.1f..2.0f,
-                    onValueChange = {
-                        onAction(
-                            GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity(value = it),
-                        )
-                    },
-                    trailingContent = {
-                        ResetIconButton(
-                            enabled = state.preferences.enableVolumeSwipeGesture,
-                            onClick = {
-                                onAction(
-                                    GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity(
-                                        PlayerPreferences.DEFAULT_VOLUME_GESTURE_SENSITIVITY,
-                                    ),
-                                )
-                            },
-                            contentDescription = stringResource(
-                                id = R.string.reset_volume_gesture_sensitivity,
-                            ),
-                        )
-                    },
-                )
                 PreferenceSwitch(
                     title = stringResource(id = R.string.zoom_gesture),
                     description = stringResource(id = R.string.zoom_gesture_description),
                     icon = AppIcons.Pinch,
                     isChecked = state.preferences.useZoomControls,
                     onClick = { onAction(GesturePreferencesUiEvent.ToggleUseZoomControls) },
-                )
-                PreferenceSwitch(
-                    title = stringResource(id = R.string.pan_gesture),
-                    description = stringResource(id = R.string.pan_gesture_description),
-                    icon = AppIcons.Pan,
-                    enabled = state.preferences.useZoomControls,
-                    isChecked = state.preferences.enablePanGesture,
-                    onClick = { onAction(GesturePreferencesUiEvent.ToggleEnablePanGesture) },
                 )
                 PreferenceSwitchWithDivider(
                     title = stringResource(id = R.string.double_tap),

@@ -112,27 +112,6 @@ private fun AudioPreferencesScreenContent(
                     isFirstItem = true,
                 )
                 PreferenceSwitch(
-                    title = stringResource(R.string.require_audio_focus),
-                    description = stringResource(R.string.require_audio_focus_desc),
-                    icon = AppIcons.Focus,
-                    isChecked = state.preferences.requireAudioFocus,
-                    onClick = { onAction(AudioPreferencesUiEvent.ToggleRequireAudioFocus) },
-                )
-                PreferenceSwitch(
-                    title = stringResource(id = R.string.pause_on_headset_disconnect),
-                    description = stringResource(id = R.string.pause_on_headset_disconnect_desc),
-                    icon = AppIcons.HeadsetOff,
-                    isChecked = state.preferences.pauseOnHeadsetDisconnect,
-                    onClick = { onAction(AudioPreferencesUiEvent.TogglePauseOnHeadsetDisconnect) },
-                )
-                PreferenceSwitch(
-                    title = stringResource(id = R.string.system_volume_panel),
-                    description = stringResource(id = R.string.system_volume_panel_desc),
-                    icon = AppIcons.Headset,
-                    isChecked = state.preferences.showSystemVolumePanel,
-                    onClick = { onAction(AudioPreferencesUiEvent.ToggleShowSystemVolumePanel) },
-                )
-                PreferenceSwitch(
                     title = stringResource(id = R.string.volume_boost),
                     description = stringResource(id = R.string.volume_boost_desc),
                     icon = AppIcons.VolumeUp,

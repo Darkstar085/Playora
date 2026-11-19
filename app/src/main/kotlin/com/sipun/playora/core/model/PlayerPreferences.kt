@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PlayerPreferences(
     val resume: Resume = Resume.YES,
-    val rememberPlayerBrightness: Boolean = false,
+    val rememberPlayerBrightness: Boolean = true,
     val playerBrightness: Float = 0.5f,
     val minDurationForFastSeek: Long = 120000L,
     val rememberSelections: Boolean = true,
@@ -27,7 +27,7 @@ data class PlayerPreferences(
     val enableBrightnessSwipeGesture: Boolean = true,
     val useSeekControls: Boolean = true,
     val useZoomControls: Boolean = true,
-    val enablePanGesture: Boolean = false,
+    val enablePanGesture: Boolean = true,
     val doubleTapGesture: DoubleTapGesture = DoubleTapGesture.BOTH,
     val useLongPressControls: Boolean = false,
     val longPressControlsSpeed: Float = 2.0f,
@@ -45,12 +45,12 @@ data class PlayerPreferences(
     val preferredAudioLanguage: String = "",
     val pauseOnHeadsetDisconnect: Boolean = true,
     val requireAudioFocus: Boolean = true,
-    val showSystemVolumePanel: Boolean = true,
+    val showSystemVolumePanel: Boolean = false,
     val enableVolumeBoost: Boolean = false,
 
     val useSystemCaptionStyle: Boolean = false,
     val preferredSubtitleLanguage: String = "",
-    val subtitleTextEncoding: String = "",
+    val subtitleTextEncoding: String = "UTF-8",
     val subtitleTextSize: Int = DEFAULT_SUBTITLE_TEXT_SIZE,
     val subtitleBackground: Boolean = false,
     val subtitleFont: Font = Font.DEFAULT,
@@ -62,9 +62,9 @@ data class PlayerPreferences(
 
     companion object {
         const val DEFAULT_SEEK_INCREMENT = 10
-        const val DEFAULT_SEEK_SENSITIVITY = 0.50f
-        const val DEFAULT_VOLUME_GESTURE_SENSITIVITY = 0.50f
-        const val DEFAULT_BRIGHTNESS_GESTURE_SENSITIVITY = 0.50f
+        const val DEFAULT_SEEK_SENSITIVITY = 1.0f
+        const val DEFAULT_VOLUME_GESTURE_SENSITIVITY = 1.0f
+        const val DEFAULT_BRIGHTNESS_GESTURE_SENSITIVITY = 1.0f
         const val DEFAULT_SUBTITLE_TEXT_SIZE = 20
         const val DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT = 4
     }

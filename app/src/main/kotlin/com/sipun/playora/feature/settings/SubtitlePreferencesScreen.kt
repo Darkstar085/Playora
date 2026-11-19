@@ -21,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -42,7 +41,6 @@ import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.settings.composables.OptionsDialog
 import com.sipun.playora.settings.extensions.name
 import com.sipun.playora.settings.utils.LocalesHelper
-import java.nio.charset.Charset
 
 @Composable
 fun SubtitlePreferencesScreen(viewModel: SubtitlePreferencesViewModel) {
@@ -72,7 +70,6 @@ private fun SubtitlePreferencesScreenContent(
         ) +
                 LocalesHelper.getAvailableLocales()
     }
-    val charsetResource = stringArrayResource(id = R.array.charsets_list)
     val context = LocalContext.current
 
     Scaffold(
@@ -123,20 +120,6 @@ private fun SubtitlePreferencesScreenContent(
                         )
                     },
                     isFirstItem = true,
-                )
-                ClickablePreferenceItem(
-                    title = stringResource(R.string.subtitle_text_encoding),
-                    description = charsetResource.first {
-                        it.contains(state.preferences.subtitleTextEncoding)
-                    },
-                    icon = AppIcons.Subtitle,
-                    onClick = {
-                        onAction(
-                            SubtitlePreferencesUiEvent.ShowDialog(
-                                value = SubtitlePreferenceDialog.SubtitleEncodingDialog,
-                            ),
-                        )
-                    },
                     isLastItem = true,
                 )
             }
@@ -212,13 +195,6 @@ private fun SubtitlePreferencesScreenContent(
                     isChecked = state.preferences.subtitleBackground,
                     onClick = { onAction(SubtitlePreferencesUiEvent.ToggleSubtitleBackground) },
                 )
-                PreferenceSwitch(
-                    title = stringResource(R.string.embedded_styles),
-                    description = stringResource(R.string.embedded_styles_desc),
-                    icon = AppIcons.Style,
-                    isChecked = state.preferences.applyEmbeddedStyles,
-                    onClick = { onAction(SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles) },
-                )
                 ClickablePreferenceItem(
                     title = stringResource(id = R.string.reset_subtitle_position),
                     description = stringResource(id = R.string.reset_subtitle_position_desc),
@@ -278,39 +254,7 @@ private fun SubtitlePreferencesScreenContent(
                         }
                     }
                 }
-
-                SubtitlePreferenceDialog.SubtitleEncodingDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.subtitle_text_encoding),
-                        onDismissClick = {
-                            onAction(SubtitlePreferencesUiEvent.ShowDialog(value = null))
-                        },
-                    ) {
-                        items(items = charsetResource) {
-                            val currentCharset = it.substringAfterLast(
-                                delimiter = "(",
-                                missingDelimiterValue = "",
-                            ).removeSuffix(suffix = ")")
-                            if (currentCharset.isEmpty() || Charset.isSupported(currentCharset)) {
-                                RadioTextButton(
-                                    text = it,
-                                    selected =
-                                        currentCharset == state.preferences.subtitleTextEncoding,
-                                    onClick = {
-                                        onAction(
-                                            SubtitlePreferencesUiEvent.UpdateSubtitleEncoding(
-                                                value = currentCharset,
-                                            ),
-                                        )
-                                        onAction(
-                                            SubtitlePreferencesUiEvent.ShowDialog(value = null),
-                                        )
-                                    },
-                                )
-                            }
-                        }
-                    }
-                }
+                else -> {}
             }
         }
     }
