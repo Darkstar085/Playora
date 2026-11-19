@@ -93,8 +93,17 @@ class PlayerViewModel(
     }
 
     suspend fun getPlaylistFromUri(uri: Uri): List<Video> {
-        val video = mediaRepository.getVideoByUri(uri.toString())
-        return listOfNotNull(video)
+        val video = mediaRepository.getVideoByUri(uri.toString()) ?: return emptyList()
+        val folderVideos = if (video.parentPath.isNotEmpty()) {
+            mediaRepository.fetchVideos(folderPath = video.parentPath)
+        } else {
+            emptyList()
+        }
+        return if (folderVideos.isNotEmpty()) {
+            folderVideos
+        } else {
+            listOf(video)
+        }
     }
 
     private fun updateVideoZoom(uri: String, zoom: Float) {

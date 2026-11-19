@@ -172,9 +172,15 @@ internal fun MediaPickerScreenContent(
             ?: mediaHolder?.videos?.firstOrNull()?.toSelectedVideo()
 
         when (selectedItem) {
-            is SelectionItem.Video -> onAction(
-                MediaPickerAction.OnPlayVideo(selectedItem.uriString.toUri()),
-            )
+            is SelectionItem.Video -> {
+                val playlist = mediaHolder?.videos?.map { it.uriString.toUri() }
+                onAction(
+                    MediaPickerAction.OnPlayVideo(
+                        uri = selectedItem.uriString.toUri(),
+                        playlist = playlist,
+                    ),
+                )
+            }
 
             is SelectionItem.Folder -> onAction(
                 MediaPickerAction.PlaySelectedItems(selectionItems = setOf(element = selectedItem)),
@@ -205,6 +211,8 @@ internal fun MediaPickerScreenContent(
                                 .clip(RoundedCornerShape(8.dp))
                                 .clickable { onAction(MediaPickerAction.OnPrivacyClick) }
                                 .padding(horizontal = 4.dp, vertical = 2.dp)
+                        } else if (!isRoot) {
+                            Modifier.padding(start = 12.dp)
                         } else {
                             Modifier
                         },
@@ -238,10 +246,12 @@ internal fun MediaPickerScreenContent(
                     } else if (state.folderName != null) {
                         FilledTonalIconButton(
                             onClick = { onAction(MediaPickerAction.OnNavigateUpClick) },
+                            modifier = Modifier.size(36.dp),
                         ) {
                             Icon(
                                 imageVector = AppIcons.ArrowBack,
                                 contentDescription = stringResource(id = R.string.navigate_up),
+                                modifier = Modifier.size(20.dp),
                             )
                         }
                     }
@@ -426,8 +436,14 @@ internal fun MediaPickerScreenContent(
                                 onFolderClick = {
                                     onAction(MediaPickerAction.OnFolderClick(folderPath = it))
                                 },
-                                onVideoClick = {
-                                    onAction(MediaPickerAction.OnPlayVideo(uri = it))
+                                onVideoClick = { clickedUri ->
+                                    val playlist = mediaHolder.videos.map { it.uriString.toUri() }
+                                    onAction(
+                                        MediaPickerAction.OnPlayVideo(
+                                            uri = clickedUri,
+                                            playlist = playlist,
+                                        ),
+                                    )
                                 },
                                 selectionManager = selectionManager,
                                 lazyGridState = lazyGridState,

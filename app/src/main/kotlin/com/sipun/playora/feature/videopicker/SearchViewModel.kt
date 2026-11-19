@@ -32,7 +32,7 @@ class SearchViewModel(
 
     data class Output(
         val navigateUp: () -> Unit,
-        val playVideo: (Uri) -> Unit,
+        val playVideo: (uri: Uri, playlist: List<Uri>?) -> Unit,
         val openFolder: (String) -> Unit,
     )
 
@@ -86,7 +86,7 @@ class SearchViewModel(
     override fun onAction(action: SearchUiEvent) {
         when (action) {
             is SearchUiEvent.NavigateUp -> output.navigateUp()
-            is SearchUiEvent.PlayVideo -> output.playVideo(action.uri)
+            is SearchUiEvent.PlayVideo -> output.playVideo(action.uri, action.playlist)
             is SearchUiEvent.OpenFolder -> output.openFolder(action.path)
             is SearchUiEvent.OnQueryChange -> onQueryChange(action.query)
             is SearchUiEvent.OnSearch -> {}
@@ -119,7 +119,7 @@ data class SearchUiState(
 
 sealed interface SearchUiEvent {
     data object NavigateUp : SearchUiEvent
-    data class PlayVideo(val uri: Uri) : SearchUiEvent
+    data class PlayVideo(val uri: Uri, val playlist: List<Uri>? = null) : SearchUiEvent
     data class OpenFolder(val path: String) : SearchUiEvent
 
     data class OnQueryChange(val query: String) : SearchUiEvent

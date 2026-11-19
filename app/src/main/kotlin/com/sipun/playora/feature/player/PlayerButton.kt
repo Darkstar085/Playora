@@ -65,15 +65,24 @@ import com.sipun.playora.R as coreUiR
 
 @OptIn(UnstableApi::class)
 @Composable
-internal fun NextButton(modifier: Modifier = Modifier, player: Player?) {
+internal fun NextButton(
+    modifier: Modifier = Modifier,
+    player: Player?,
+    containerColor: Color = PlayerButtonBlackAlpha,
+) {
     val state = rememberNextButtonState(player = player)
     val controlsVisibilityState = LocalControlsVisibilityState.current
 
     PlayerButton(
         modifier = modifier.size(48.dp),
+        containerColor = containerColor,
         enabled = state.isEnabled,
         onClick = {
-            state.onClick()
+            if (player?.hasNextMediaItem() == true) {
+                player.seekToNextMediaItem()
+            } else {
+                state.onClick()
+            }
             controlsVisibilityState?.showControls()
         },
     ) {
@@ -87,7 +96,11 @@ internal fun NextButton(modifier: Modifier = Modifier, player: Player?) {
 
 @OptIn(UnstableApi::class)
 @Composable
-fun PlayPauseButton(modifier: Modifier = Modifier, player: Player?) {
+fun PlayPauseButton(
+    modifier: Modifier = Modifier,
+    player: Player?,
+    containerColor: Color = PlayerButtonBlackAlpha,
+) {
     val state = rememberPlayPauseButtonState(player = player)
     val icon = when (state.showPlay) {
         true -> Icons.Rounded.PlayArrow
@@ -99,14 +112,15 @@ fun PlayPauseButton(modifier: Modifier = Modifier, player: Player?) {
     }
 
     PlayerButton(
-        modifier = modifier.size(64.dp),
+        modifier = modifier.size(56.dp),
+        containerColor = containerColor,
         enabled = state.isEnabled,
         onClick = state::onClick,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(36.dp),
         )
     }
 }
@@ -144,7 +158,7 @@ fun PlaybackSpeedButton(player: Player?, onClick: () -> Unit, modifier: Modifier
     }
 }
 
-val PlayerButtonBlackAlpha = Color.Black.copy(alpha = 0.3f)
+val PlayerButtonBlackAlpha = Color.Black.copy(alpha = 0.35f)
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -227,15 +241,24 @@ fun PlayerButton(
 
 @OptIn(UnstableApi::class)
 @Composable
-internal fun PreviousButton(modifier: Modifier = Modifier, player: Player?) {
+internal fun PreviousButton(
+    modifier: Modifier = Modifier,
+    player: Player?,
+    containerColor: Color = PlayerButtonBlackAlpha,
+) {
     val state = rememberPreviousButtonState(player = player)
     val controlsVisibilityState = LocalControlsVisibilityState.current
 
     PlayerButton(
         modifier = modifier.size(48.dp),
+        containerColor = containerColor,
         enabled = state.isEnabled,
         onClick = {
-            state.onClick()
+            if (player?.hasPreviousMediaItem() == true) {
+                player.seekToPreviousMediaItem()
+            } else {
+                state.onClick()
+            }
             controlsVisibilityState?.showControls()
         },
     ) {
@@ -249,12 +272,19 @@ internal fun PreviousButton(modifier: Modifier = Modifier, player: Player?) {
 
 @OptIn(UnstableApi::class)
 @Composable
-fun LoopButton(modifier: Modifier = Modifier, player: Player?) {
+fun LoopButton(
+    modifier: Modifier = Modifier,
+    player: Player?,
+    containerColor: Color = PlayerButtonBlackAlpha,
+) {
     val state = rememberRepeatButtonState(player = player)
     val controlsVisibilityState = LocalControlsVisibilityState.current
+    val isActive = state.repeatModeState != Player.REPEAT_MODE_OFF
+    val activeAccent = MaterialTheme.colorScheme.primary
 
     PlayerButton(
-        modifier = modifier,
+        modifier = modifier.size(40.dp),
+        containerColor = if (isActive) activeAccent.copy(alpha = 0.35f) else containerColor,
         enabled = state.isEnabled,
         onClick = {
             state.onClick()
@@ -264,6 +294,8 @@ fun LoopButton(modifier: Modifier = Modifier, player: Player?) {
         Icon(
             imageVector = repeatModeIconVector(state.repeatModeState),
             contentDescription = repeatModeContentDescription(state.repeatModeState),
+            modifier = Modifier.size(20.dp),
+            tint = if (isActive) activeAccent else Color.White,
         )
     }
 }
@@ -286,12 +318,19 @@ private fun repeatModeContentDescription(repeatMode: @Player.RepeatMode Int): St
 
 @OptIn(UnstableApi::class)
 @Composable
-fun ShuffleButton(modifier: Modifier = Modifier, player: Player?) {
+fun ShuffleButton(
+    modifier: Modifier = Modifier,
+    player: Player?,
+    containerColor: Color = PlayerButtonBlackAlpha,
+) {
     val state = rememberShuffleButtonState(player = player)
     val controlsVisibilityState = LocalControlsVisibilityState.current
+    val isActive = state.shuffleOn
+    val activeAccent = MaterialTheme.colorScheme.primary
 
     PlayerButton(
-        modifier = modifier,
+        modifier = modifier.size(40.dp),
+        containerColor = if (isActive) activeAccent.copy(alpha = 0.35f) else containerColor,
         enabled = state.isEnabled,
         onClick = {
             state.onClick()
@@ -301,6 +340,8 @@ fun ShuffleButton(modifier: Modifier = Modifier, player: Player?) {
         Icon(
             imageVector = Icons.Rounded.Shuffle,
             contentDescription = shuffleContentDescription(state.shuffleOn),
+            modifier = Modifier.size(20.dp),
+            tint = if (isActive) activeAccent else Color.White,
         )
     }
 }

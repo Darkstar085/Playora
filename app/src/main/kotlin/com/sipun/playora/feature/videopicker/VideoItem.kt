@@ -142,9 +142,9 @@ fun VideoListItem(
                 modifier = Modifier
                     .width(
                         width = min(
-                            150.dp,
+                            128.dp,
                             b =
-                                LocalConfiguration.current.screenWidthDp.dp * 0.35f,
+                                LocalConfiguration.current.screenWidthDp.dp * 0.30f,
                         ),
                     ),
             )

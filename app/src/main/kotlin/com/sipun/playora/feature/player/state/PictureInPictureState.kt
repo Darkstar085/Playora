@@ -80,11 +80,12 @@ class PictureInPictureState(
                 activity,
                 AppOpsManager::class.java,
             ) ?: return true
-            appOps.checkOpNoThrow(
+            val mode = appOps.checkOpNoThrow(
                 AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
                 Process.myUid(),
                 activity.packageName,
-            ) == AppOpsManager.MODE_ALLOWED
+            )
+            mode == AppOpsManager.MODE_ALLOWED || mode == AppOpsManager.MODE_DEFAULT
         } else {
             true
         }
@@ -132,9 +133,50 @@ class PictureInPictureState(
     }
 
     fun enterPictureInPictureMode(): Boolean {
-        return !(pictureInPicture == null || isInPictureInPictureMode) && runCatching {
-            activity.enterPictureInPictureMode(params = buildPictureInPictureParams())
-        }.isSuccess
+        android.util.Log.d("PlayoraPip", "enterPictureInPictureMode: isInPip=$isInPictureInPictureMode, activity=$activity")
+        if (isInPictureInPictureMode) return false
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val builder = android.app.PictureInPictureParams.Builder()
+                val r = aspectRatio
+                if (r != null && r.numerator > 0 && r.denominator > 0) {
+                    val ratioFloat = r.toFloat()
+                    if (ratioFloat in 0.42f..2.39f) {
+                        builder.setAspectRatio(r)
+                    }
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    builder.setSeamlessResizeEnabled(true)
+                }
+                try {
+                    val entered = activity.enterPictureInPictureMode(builder.build())
+                    android.util.Log.d("PlayoraPip", "enterPictureInPictureMode(builder) returned $entered")
+                    entered
+                } catch (e1: Exception) {
+                    android.util.Log.e("PlayoraPip", "builder failed", e1)
+                    val entered = activity.enterPictureInPictureMode(android.app.PictureInPictureParams.Builder().build())
+                    android.util.Log.d("PlayoraPip", "enterPictureInPictureMode(empty) returned $entered")
+                    entered
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                activity.enterPictureInPictureMode()
+                true
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("PlayoraPip", "enterPictureInPictureMode top catch", e)
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    activity.enterPictureInPictureMode(android.app.PictureInPictureParams.Builder().build())
+                } else {
+                    @Suppress("DEPRECATION")
+                    activity.enterPictureInPictureMode()
+                    true
+                }
+            } catch (e2: Exception) {
+                false
+            }
+        }
     }
 
     fun openPictureInPictureSettings() {

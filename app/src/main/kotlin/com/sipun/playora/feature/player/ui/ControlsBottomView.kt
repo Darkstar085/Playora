@@ -1,11 +1,11 @@
 ﻿package com.sipun.playora.feature.player.ui.controls
 
 import androidx.annotation.OptIn
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -15,12 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.NavigateNext
-import androidx.compose.material.icons.rounded.Headset
 import androidx.compose.material.icons.rounded.LockOpen
-import androidx.compose.material.icons.rounded.PictureInPicture
+import androidx.compose.material.icons.rounded.PictureInPictureAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -31,8 +28,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
@@ -41,20 +38,18 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util.getStringForTime
 import androidx.media3.ui.compose.state.ProgressStateWithTickInterval
 import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
-import com.sipun.playora.R
 import com.sipun.playora.core.model.VideoContentScale
 import com.sipun.playora.core.ui.extensions.copy
 import com.sipun.playora.core.ui.theme.PlayoraTheme
-import com.sipun.playora.feature.player.buttons.LoopButton
-import com.sipun.playora.feature.player.buttons.PlaybackSpeedButton
+import com.sipun.playora.feature.player.buttons.NextButton
+import com.sipun.playora.feature.player.buttons.PlayPauseButton
 import com.sipun.playora.feature.player.buttons.PlayerButton
 import com.sipun.playora.feature.player.buttons.PlayerButtonBlackAlpha
-import com.sipun.playora.feature.player.buttons.ShuffleButton
+import com.sipun.playora.feature.player.buttons.PreviousButton
 import com.sipun.playora.feature.player.extensions.imageVector
 import com.sipun.playora.feature.player.state.ChaptersState
 import com.sipun.playora.feature.player.state.rememberChaptersState
 import com.sipun.playora.feature.player.ui.preview.rememberPreviewPlayer
-import com.sipun.playora.feature.player.ui.titleOrDefault
 
 private const val MILLISECONDS_PER_SECOND = 1_000L
 
@@ -65,185 +60,150 @@ fun ControlsBottomView(
     player: Player?,
     progressState: ProgressStateWithTickInterval,
     chaptersState: ChaptersState,
-    controlsAlignment: Alignment.Horizontal,
     videoContentScale: VideoContentScale,
     isPipSupported: Boolean,
     showRemainingTime: Boolean,
     onToggleTimeDisplay: () -> Unit,
-    onChaptersClick: () -> Unit,
     onVideoContentScaleClick: () -> Unit,
     onVideoContentScaleLongClick: () -> Unit,
     onLockControlsClick: () -> Unit,
     onPictureInPictureClick: () -> Unit,
-    onPlaybackSpeedClick: () -> Unit,
-    onPlayInBackgroundClick: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekEnd: () -> Unit,
+    onChaptersClick: () -> Unit = {},
+    onPlaybackSpeedClick: () -> Unit = {},
+    onPlayInBackgroundClick: () -> Unit = {},
+    controlsAlignment: Alignment.Horizontal = Alignment.Start,
 ) {
     val systemBarsPadding = WindowInsets.systemBars.union(
         WindowInsets.displayCutout,
     ).asPaddingValues()
-    BoxWithConstraints(modifier = modifier) {
-        val useCompactControls = maxWidth < 600.dp
-        Column(
-            modifier = Modifier
-                .padding(systemBarsPadding.copy(top = 0.dp))
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp)
-                .padding(
-                    bottom =
-                        16.dp.takeIf { systemBarsPadding.calculateBottomPadding() == 0.dp } ?: 0.dp,
+
+    val timeTextPositionMs by remember(progressState) {
+        derivedStateOf {
+            val wholeSeconds =
+                progressState.currentPositionMs / MILLISECONDS_PER_SECOND
+            wholeSeconds * MILLISECONDS_PER_SECOND
+        }
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color.Black.copy(alpha = 0.45f),
+                        Color.Black.copy(alpha = 0.8f),
+                    ),
                 ),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            )
+            .padding(systemBarsPadding.copy(top = 0.dp))
+            .padding(horizontal = 24.dp)
+            .padding(top = 16.dp)
+            .padding(
+                bottom = 16.dp.takeIf { systemBarsPadding.calculateBottomPadding() == 0.dp } ?: 0.dp,
+            ),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        // Row 1: Seekbar with timers
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
+            Text(
+                text = getStringForTime(timeTextPositionMs),
+                style = MaterialTheme.typography.labelLarge,
+                color = Color.White,
+                modifier = Modifier.padding(end = 8.dp),
+            )
+
+            Box(modifier = Modifier.weight(1f)) {
+                PlayerSeekbar(
+                    position = progressState.currentPositionMs.toFloat(),
+                    duration = progressState.durationMs.toFloat(),
+                    chapters = chaptersState.chapters,
+                    onSeek = { onSeek(it.toLong()) },
+                    onSeekFinished = { onSeekEnd() },
+                )
+            }
+
+            Text(
+                text = buildString {
+                    if (showRemainingTime && progressState.durationMs != C.TIME_UNSET) {
+                        val remainingMs = progressState.durationMs - timeTextPositionMs
+                        append("-")
+                        append(getStringForTime(remainingMs.coerceAtLeast(0)))
+                    } else {
+                        append(getStringForTime(progressState.durationMs))
+                    }
+                },
+                style = MaterialTheme.typography.labelLarge,
+                color = Color.White,
+                modifier = Modifier
+                    .clickable { onToggleTimeDisplay() }
+                    .padding(start = 8.dp),
+            )
+        }
+
+        // Row 2: Bottom controls row (Lock | Prev Play Next | Scale PiP)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            PlayerButton(
+                modifier = Modifier.size(40.dp),
+                onClick = onLockControlsClick,
+                containerColor = PlayerButtonBlackAlpha,
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.LockOpen,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+
             Row(
-                verticalAlignment = Alignment.Bottom,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                PreviousButton(player = player)
+                PlayPauseButton(player = player)
+                NextButton(player = player)
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Row(
-                    modifier = Modifier.weight(weight = 1f),
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    PlayerButton(
-                        onClick = onToggleTimeDisplay,
-                        containerColor = PlayerButtonBlackAlpha,
-                        contentPadding = PaddingValues(
-                            horizontal = 8.dp,
-                            vertical = 1.dp,
-                        ),
-                    ) {
-                        val timeTextPositionMs by remember(progressState) {
-                            derivedStateOf {
-                                val wholeSeconds =
-                                    progressState.currentPositionMs / MILLISECONDS_PER_SECOND
-                                wholeSeconds * MILLISECONDS_PER_SECOND
-                            }
-                        }
-                        Text(
-                            text = buildString {
-                                val positionText = when (showRemainingTime) {
-                                    true -> if (progressState.durationMs != C.TIME_UNSET) {
-                                        val remainingMs =
-                                            timeTextPositionMs - progressState.durationMs
-                                        getStringForTime(remainingMs)
-                                    } else {
-                                        getStringForTime(C.TIME_UNSET)
-                                    }
-
-                                    false -> getStringForTime(timeTextPositionMs)
-                                }
-                                append(positionText)
-                                append(" / ")
-                                append(getStringForTime(progressState.durationMs))
-                            },
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                    }
-
-                    if (chaptersState.chapters.isNotEmpty()) {
-                        PlayerButton(
-                            modifier = Modifier.weight(
-                                weight = 1f,
-                                fill = false,
-                            ),
-                            onClick = onChaptersClick,
-                            containerColor = PlayerButtonBlackAlpha,
-                            contentPadding = PaddingValues(
-                                vertical = 1.dp,
-                                horizontal = 8.dp,
-                            ).copy(end = 2.dp),
-                        ) {
-                            Row(
-                                modifier = Modifier,
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                Text(
-                                    text =
-                                        chaptersState.chapters.getOrNull(
-                                            chaptersState.currentChapterIndex,
-                                        )
-                                            ?.titleOrDefault(chaptersState.currentChapterIndex)
-                                            ?: stringResource(R.string.chapters),
-                                    modifier = Modifier.weight(
-                                        weight = 1f,
-                                        fill = false,
-                                    ),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Rounded.NavigateNext,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                )
-                            }
-                        }
-                    }
-                }
-
-                if (!useCompactControls) {
-                    PlaybackSpeedButton(
-                        player = player,
-                        onClick = onPlaybackSpeedClick,
-                    )
-                }
-            }
-            PlayerSeekbar(
-                position = progressState.currentPositionMs.toFloat(),
-                duration = progressState.durationMs.toFloat(),
-                chapters = chaptersState.chapters,
-                onSeek = { onSeek(it.toLong()) },
-                onSeekFinished = { onSeekEnd() },
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(state = rememberScrollState()),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(
-                    8.dp,
-                    alignment = controlsAlignment,
-                ),
-            ) {
-                PlayerButton(onClick = onLockControlsClick) {
-                    Icon(
-                        imageVector = Icons.Rounded.LockOpen,
-                        contentDescription = null,
-                    )
-                }
                 PlayerButton(
+                    modifier = Modifier.size(40.dp),
                     onClick = onVideoContentScaleClick,
                     onLongClick = onVideoContentScaleLongClick,
+                    containerColor = PlayerButtonBlackAlpha,
                 ) {
                     Icon(
                         imageVector = videoContentScale.imageVector(),
                         contentDescription = null,
+                        modifier = Modifier.size(20.dp),
                     )
                 }
                 if (isPipSupported) {
-                    PlayerButton(onClick = onPictureInPictureClick) {
+                    PlayerButton(
+                        modifier = Modifier.size(40.dp),
+                        onClick = onPictureInPictureClick,
+                        containerColor = PlayerButtonBlackAlpha,
+                    ) {
                         Icon(
-                            imageVector = Icons.Rounded.PictureInPicture,
+                            imageVector = Icons.Rounded.PictureInPictureAlt,
                             contentDescription = null,
+                            modifier = Modifier.size(20.dp),
                         )
                     }
-                }
-                PlayerButton(onClick = onPlayInBackgroundClick) {
-                    Icon(
-                        imageVector = Icons.Rounded.Headset,
-                        contentDescription = null,
-                    )
-                }
-                LoopButton(player = player)
-                ShuffleButton(player = player)
-                if (useCompactControls) {
-                    PlaybackSpeedButton(
-                        player = player,
-                        onClick = onPlaybackSpeedClick,
-                    )
                 }
             }
         }
@@ -265,18 +225,14 @@ private fun ControlsBottomViewPreview() {
                     player = player,
                     progressState = progressState,
                 ),
-                controlsAlignment = Alignment.Start,
                 videoContentScale = VideoContentScale.BEST_FIT,
                 isPipSupported = true,
                 showRemainingTime = false,
                 onToggleTimeDisplay = {},
-                onChaptersClick = {},
                 onVideoContentScaleClick = {},
                 onVideoContentScaleLongClick = {},
                 onLockControlsClick = {},
                 onPictureInPictureClick = {},
-                onPlaybackSpeedClick = {},
-                onPlayInBackgroundClick = {},
                 onSeek = {},
                 onSeekEnd = {},
             )

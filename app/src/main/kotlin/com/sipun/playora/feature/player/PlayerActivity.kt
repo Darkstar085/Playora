@@ -170,9 +170,31 @@ class PlayerActivity : ComponentActivity() {
     private val subtitleFileSuspendLauncher =
         registerForSuspendActivityResult(contract = OpenDocumentAtInitialUri())
 
+    private val cancelPipReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
+            if (isInPictureInPictureMode) {
+                finish()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Dismiss any existing PiP window
+        runCatching {
+            sendBroadcast(Intent(ACTION_CANCEL_PIP).setPackage(packageName))
+        }
+        androidx.core.content.ContextCompat.registerReceiver(
+            this,
+            cancelPipReceiver,
+            android.content.IntentFilter(ACTION_CANCEL_PIP),
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
         val request = PlayerApi(intent)
-        if (request.launchInBackground) setTheme(coreUiR.style.Playora_Background)
+        if (request.launchInBackground) {
+            setTheme(coreUiR.style.Playora_Background)
+        } else {
+            setTheme(coreUiR.style.Playora)
+        }
         super.onCreate(savedInstanceState)
         activityCreated = true
         playerApi = request
@@ -203,6 +225,14 @@ class PlayerActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            window.attributes.layoutInDisplayCutoutMode =
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                } else {
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                }
+        }
 
         viewModel.output = playerOutput()
         playerApi = PlayerApi(intent)
@@ -275,6 +305,7 @@ class PlayerActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        runCatching { unregisterReceiver(cancelPipReceiver) }
         backgroundControllerFuture?.let {
             MediaController.releaseFuture(it)
             mediaController = null
@@ -429,7 +460,7 @@ class PlayerActivity : ComponentActivity() {
         val mediaContentUri = if (request.isApiAccess) null else getMediaContentUri(uri)
         val explicitPlaylist = request.getPlaylist()
         val playlist = explicitPlaylist.takeIf { it.isNotEmpty() }
-            ?: mediaContentUri?.let { mediaUri ->
+            ?: (mediaContentUri ?: uri).let { mediaUri ->
                 viewModel.getPlaylistFromUri(uri = mediaUri)
                     .map { it.uriString }
                     .toMutableList()
@@ -441,10 +472,13 @@ class PlayerActivity : ComponentActivity() {
                             )
                         }
                     }
-            } ?: listOf(uri.toString())
+            }.takeIf { it.isNotEmpty() } ?: listOf(uri.toString())
 
         val mediaItemIndexToPlay = playlist.indexOfFirst {
-            it == (mediaContentUri ?: uri).toString()
+            it == (mediaContentUri ?: uri).toString() ||
+                it == uri.toString() ||
+                Uri.decode(it) == Uri.decode(uri.toString()) ||
+                (mediaContentUri != null && Uri.decode(it) == Uri.decode(mediaContentUri.toString()))
         }.takeIf { it >= 0 } ?: 0
 
         val apiSubs = request.getSubs().map { subtitle ->
@@ -584,6 +618,15 @@ class PlayerActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.data != null) {
+            if (isInPictureInPictureMode) {
+                // Cancel PiP: finish current PiP instance and start new video in fullscreen
+                finish()
+                val fullScreenIntent = Intent(intent).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
+                startActivity(fullScreenIntent)
+                return
+            }
             val previousBackgroundMode = playerApi.launchInBackground
             playbackRequestJob?.cancel()
             setIntent(intent)
@@ -672,5 +715,9 @@ class PlayerActivity : ComponentActivity() {
 
     fun removeOnWindowAttributesChangedListener(listener: Consumer<WindowManager.LayoutParams?>) {
         onWindowAttributesChangedListener.remove(listener)
+    }
+
+    companion object {
+        const val ACTION_CANCEL_PIP = "com.sipun.playora.ACTION_CANCEL_PIP"
     }
 }

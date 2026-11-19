@@ -39,7 +39,7 @@ class PrivacyViewModel(
 
     data class Output(
         val navigateUp: () -> Unit,
-        val playVideo: (Uri) -> Unit,
+        val playVideo: (uri: Uri, playlist: List<Uri>?) -> Unit,
         val playVideos: (List<Uri>) -> Unit,
     )
 
@@ -228,7 +228,8 @@ class PrivacyViewModel(
     }
 
     private fun playVideo(video: Video) {
-        output.playVideo(video.uriString.toUri())
+        val playlist = stateInternal.value.hiddenVideos.map { it.uriString.toUri() }
+        output.playVideo(video.uriString.toUri(), playlist.takeIf { it.isNotEmpty() })
     }
 
     private fun playSelected(selectionItems: Set<SelectionItem>) {

@@ -62,9 +62,16 @@ suspend fun Context.uriToSubtitleConfiguration(
     }.build()
 }
 
-@Suppress("DEPRECATION")
-fun Bundle.getParcelableUriArray(key: String): List<Uri?>? = when (val value = get(key)) {
-    is Array<*> -> value.map { it as? Uri }
-    is ArrayList<*> -> value.map { it as? Uri }
-    else -> null
+fun Bundle.getParcelableUriArray(key: String): List<Uri?>? {
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+        getParcelableArrayList(key, Uri::class.java)?.let { return it }
+        @Suppress("UNCHECKED_CAST")
+        (getParcelableArray(key, Uri::class.java) as? Array<Uri?>)?.let { return it.toList() }
+    }
+    @Suppress("DEPRECATION")
+    return when (val value = get(key)) {
+        is Array<*> -> value.map { it as? Uri }
+        is ArrayList<*> -> value.map { it as? Uri }
+        else -> null
+    }
 }

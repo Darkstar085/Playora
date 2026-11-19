@@ -1,6 +1,7 @@
 ﻿package com.sipun.playora.feature.videopicker.screens.search
 
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -194,7 +195,15 @@ internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent)
                         isSearching = state.isSearching,
                         contentPadding = updatedScaffoldPadding,
                         onFolderClick = { onAction(SearchUiEvent.OpenFolder(path = it)) },
-                        onVideoClick = { onAction(SearchUiEvent.PlayVideo(uri = it)) },
+                        onVideoClick = { clickedUri ->
+                            val playlist = state.searchResults.videos.map { it.uriString.toUri() }
+                            onAction(
+                                SearchUiEvent.PlayVideo(
+                                    uri = clickedUri,
+                                    playlist = playlist.takeIf { it.isNotEmpty() },
+                                ),
+                            )
+                        },
                     )
                 }
             }

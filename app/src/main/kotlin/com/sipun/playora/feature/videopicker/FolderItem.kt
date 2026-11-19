@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,6 +44,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -200,15 +203,11 @@ private fun formatFolderSize(size: Long): String {
 fun FolderThumbnail(
     folder: Folder,
     modifier: Modifier = Modifier,
-    thumbnailWidth: Dp = 76.dp,
-    thumbnailHeight: Dp = 55.dp,
 ) {
     val artIcon = getFolderArt(folderName = folder.name, folderPath = folder.path)
 
     Box(
-        modifier = modifier
-            .width(thumbnailWidth)
-            .height(thumbnailHeight),
+        modifier = modifier,
     ) {
         Icon(
             imageVector = ImageVector.vectorResource(id = R.drawable.folder_thumbnail),
@@ -289,7 +288,12 @@ private fun FolderListItem(
         onClick = onClick,
         onLongClick = onLongClick,
         leadingContent = {
-            FolderThumbnail(folder = folder)
+            FolderThumbnail(
+                folder = folder,
+                modifier = Modifier
+                    .width(72.dp)
+                    .height(53.dp),
+            )
         },
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -410,8 +414,9 @@ private fun FolderGridItem(
             ) {
                 FolderThumbnail(
                     folder = folder,
-                    thumbnailWidth = 72.dp,
-                    thumbnailHeight = 53.dp,
+                    modifier = Modifier
+                        .width(70.dp)
+                        .height(51.dp),
                 )
 
                 Column(

@@ -27,7 +27,7 @@ import com.sipun.playora.feature.player.state.seekToPositionFormated
 import com.sipun.playora.feature.player.ui.InfoView
 import com.sipun.playora.feature.player.ui.OverlayView
 import com.sipun.playora.feature.player.ui.controls.ControlsBottomView
-import com.sipun.playora.feature.player.ui.controls.ControlsMiddleView
+import com.sipun.playora.feature.player.ui.controls.ControlsMiniIndicatorsView
 import com.sipun.playora.feature.player.ui.controls.ControlsTopView
 import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 
@@ -65,10 +65,14 @@ fun PlayerControls(
                 ControlsTopView(
                     title = title,
                     videoDecoderMode = videoDecoderMode,
+                    player = player,
                     onDecoderClick = { onShowOverlay(OverlayView.DECODER_SELECTOR) },
                     onAudioClick = { onShowOverlay(OverlayView.AUDIO_SELECTOR) },
                     onSubtitleClick = { onShowOverlay(OverlayView.SUBTITLE_SELECTOR) },
                     onPlaylistClick = { onShowOverlay(OverlayView.PLAYLIST) },
+                    onChaptersClick = { onShowOverlay(OverlayView.CHAPTERS) },
+                    onPlaybackSpeedClick = { onShowOverlay(OverlayView.PLAYBACK_SPEED) },
+                    onPlayInBackgroundClick = onPlayInBackgroundClick,
                     onBackClick = onBackClick,
                 )
             }
@@ -112,6 +116,16 @@ fun PlayerControls(
                 )
             }
         }
+        AnimatedVisibility(
+            visible = !controlsVisibilityState.controlsVisible || controlsVisibilityState.controlsLocked,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
+            ControlsMiniIndicatorsView(
+                progressState = progressState,
+            )
+        }
         when {
             seekGestureState.seekAmount != null -> InfoView(
                 info =
@@ -125,11 +139,6 @@ fun PlayerControls(
 
             videoZoomAndContentScaleState.showContentScaleIndicator -> InfoView(
                 info = stringResource(videoZoomAndContentScaleState.videoContentScale.nameRes()),
-            )
-
-            controlsVisibilityState.controlsVisible -> ControlsMiddleView(
-                player = player,
-                modifier = middleControlsModifier,
             )
         }
     }

@@ -24,7 +24,7 @@ fun NavBackStack<NavKey>.navigateToMediaPickerScreen(folderId: String) {
 
 fun EntryProviderScope<NavKey>.mediaPickerEntry(
     onNavigateUp: () -> Unit,
-    onPlayVideo: (uri: Uri) -> Unit,
+    onPlayVideo: (uri: Uri, playlist: List<Uri>?) -> Unit,
     onPlayVideos: (uris: List<Uri>) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
     onSettingsClick: () -> Unit,
@@ -63,7 +63,7 @@ fun NavBackStack<NavKey>.navigateToPrivacy() {
 
 fun EntryProviderScope<NavKey>.privacyEntry(
     onNavigateUp: () -> Unit,
-    onPlayVideo: (uri: Uri) -> Unit,
+    onPlayVideo: (uri: Uri, playlist: List<Uri>?) -> Unit,
     onPlayVideos: (uris: List<Uri>) -> Unit,
 ) {
     entry<PrivacyRoute> {
@@ -89,7 +89,7 @@ fun NavBackStack<NavKey>.navigateToSearch() {
 
 fun EntryProviderScope<NavKey>.searchEntry(
     onNavigateUp: () -> Unit,
-    onPlayVideo: (uri: Uri) -> Unit,
+    onPlayVideo: (uri: Uri, playlist: List<Uri>?) -> Unit,
     onFolderClick: (folderPath: String) -> Unit,
 ) {
     entry<SearchRoute> {

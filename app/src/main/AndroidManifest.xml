@@ -226,6 +226,7 @@
 
         <activity
             android:name="com.sipun.playora.feature.player.PlayerActivity"
+            android:theme="@style/Playora"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:exported="true"
             android:launchMode="singleTop"

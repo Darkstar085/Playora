@@ -230,16 +230,17 @@ internal fun MediaPlayerContent(
             dpadUpDown = api?.dpadUpDown,
             isPipSupported = pictureInPictureState?.isPipSupported == true,
             onPictureInPictureClick = {
-                pictureInPictureState?.let {
-                    if (!it.hasPipPermission) {
+                android.util.Log.d("PlayoraPip", "onPictureInPictureClick triggered!")
+                pictureInPictureState?.let { pip ->
+                    val entered = pip.enterPictureInPictureMode()
+                    android.util.Log.d("PlayoraPip", "onPictureInPictureClick: entered=$entered")
+                    if (!entered && !pip.hasPipPermission) {
                         Toast.makeText(
                             context,
                             R.string.enable_pip_from_settings,
                             Toast.LENGTH_SHORT,
                         ).show()
-                        it.openPictureInPictureSettings()
-                    } else {
-                        it.enterPictureInPictureMode()
+                        pip.openPictureInPictureSettings()
                     }
                 }
             },

@@ -18,7 +18,13 @@ import com.sipun.playora.settings.navigation.navigateToSettings
 fun EntryProviderScope<NavKey>.mediaNavGraph(context: Context, backStack: NavBackStack<NavKey>) {
     mediaPickerEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
-        onPlayVideo = { uri -> context.startPlayback(uri = uri) },
+        onPlayVideo = { uri, playlist ->
+            if (!playlist.isNullOrEmpty()) {
+                context.startPlayback(uris = playlist, startUri = uri)
+            } else {
+                context.startPlayback(uri = uri)
+            }
+        },
         onPlayVideos = { uris -> context.startPlayback(uris = uris) },
         onFolderClick = backStack::navigateToMediaPickerScreen,
         onSettingsClick = backStack::navigateToSettings,
@@ -28,7 +34,13 @@ fun EntryProviderScope<NavKey>.mediaNavGraph(context: Context, backStack: NavBac
 
     searchEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
-        onPlayVideo = { uri -> context.startPlayback(uri = uri) },
+        onPlayVideo = { uri, playlist ->
+            if (!playlist.isNullOrEmpty()) {
+                context.startPlayback(uris = playlist, startUri = uri)
+            } else {
+                context.startPlayback(uri = uri)
+            }
+        },
         onFolderClick = backStack::navigateToMediaPickerScreen,
     )
 }
@@ -46,7 +58,7 @@ internal fun Context.startPlayback(
     startUri: Uri? = null,
     grantReadPermission: Boolean = false,
 ) {
-    val uri = startUri?.takeIf(predicate = uris::contains) ?: uris.firstOrNull() ?: return
+    val uri = startUri ?: uris.firstOrNull() ?: return
     startPlayback(
         uri = uri,
         playlist = uris,
@@ -55,6 +67,10 @@ internal fun Context.startPlayback(
 }
 
 private fun Context.startPlayback(uri: Uri, playlist: List<Uri>?, grantReadPermission: Boolean) {
+    // Dismiss any existing PiP window so it cancels and disappears
+    runCatching {
+        sendBroadcast(Intent(PlayerActivity.ACTION_CANCEL_PIP).setPackage(packageName))
+    }
     if (grantReadPermission) {
         (playlist ?: listOf(element = uri)).forEach {
             grantUriPermission(

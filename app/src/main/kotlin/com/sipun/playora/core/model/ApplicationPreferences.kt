@@ -22,7 +22,7 @@ data class ApplicationPreferences(
     val showExtensionField: Boolean = false,
     val showPathField: Boolean = false,
     val showResolutionField: Boolean = true,
-    val showSizeField: Boolean = false,
+    val showSizeField: Boolean = true,
     val showThumbnailField: Boolean = true,
     val showPlayedProgress: Boolean = true,
 

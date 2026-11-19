@@ -132,11 +132,19 @@ class MainActivity : FragmentActivity() {
                         settingsNavGraph(backStack = backStack)
                         privacyEntry(
                             onNavigateUp = { backStack.removeLastIfNotRoot() },
-                            onPlayVideo = { uri ->
-                                this@MainActivity.startPlayback(
-                                    uri = uri,
-                                    grantReadPermission = true,
-                                )
+                            onPlayVideo = { uri, playlist ->
+                                if (!playlist.isNullOrEmpty()) {
+                                    this@MainActivity.startPlayback(
+                                        uris = playlist,
+                                        startUri = uri,
+                                        grantReadPermission = true,
+                                    )
+                                } else {
+                                    this@MainActivity.startPlayback(
+                                        uri = uri,
+                                        grantReadPermission = true,
+                                    )
+                                }
                             },
                             onPlayVideos = { uris ->
                                 this@MainActivity.startPlayback(

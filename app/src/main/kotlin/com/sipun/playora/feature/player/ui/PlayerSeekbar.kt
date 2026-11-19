@@ -122,12 +122,12 @@ private fun SimpleSlider(
                         4.dp,
                         shape = CircleShape,
                     )
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.primary)
                     .then(
                         other = if (isFocused) {
                             Modifier.border(
                                 2.dp,
-                                MaterialTheme.colorScheme.primary,
+                                Color.White,
                                 shape = CircleShape,
                             )
                         } else {

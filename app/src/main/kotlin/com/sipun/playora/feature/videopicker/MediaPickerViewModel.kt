@@ -71,7 +71,7 @@ class MediaPickerViewModel(
 
     data class Output(
         val navigateUp: () -> Unit,
-        val playVideo: (Uri) -> Unit,
+        val playVideo: (uri: Uri, playlist: List<Uri>?) -> Unit,
         val playVideos: (List<Uri>) -> Unit,
         val openFolder: (String) -> Unit,
         val openSettings: () -> Unit,
@@ -108,7 +108,7 @@ class MediaPickerViewModel(
         when (action) {
             is MediaPickerAction.OnNavigateUpClick -> output.navigateUp()
 
-            is MediaPickerAction.OnPlayVideo -> output.playVideo(action.uri)
+            is MediaPickerAction.OnPlayVideo -> output.playVideo(action.uri, action.playlist)
 
             is MediaPickerAction.OnFolderClick -> output.openFolder(action.folderPath)
 
@@ -490,7 +490,7 @@ sealed interface HideFlowState {
 
 sealed interface MediaPickerAction {
     data object OnNavigateUpClick : MediaPickerAction
-    data class OnPlayVideo(val uri: Uri) : MediaPickerAction
+    data class OnPlayVideo(val uri: Uri, val playlist: List<Uri>? = null) : MediaPickerAction
     data class OnFolderClick(val folderPath: String) : MediaPickerAction
     data object OnSettingsClick : MediaPickerAction
     data object OnSearchClick : MediaPickerAction
