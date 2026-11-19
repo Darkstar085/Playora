@@ -3,11 +3,12 @@ package com.sipun.playora.feature.player.model
 import android.net.Uri
 import androidx.annotation.StringRes
 import com.sipun.playora.R
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 
 val selectableDecoderModes = listOf(
     DecoderMode.HARDWARE,
     DecoderMode.SOFTWARE,
+    DecoderMode.SYSTEM,
     DecoderMode.FFMPEG,
 )
 
@@ -17,6 +18,7 @@ val DecoderMode.labelRes: Int
         DecoderMode.AUTO -> R.string.auto
         DecoderMode.HARDWARE -> R.string.decoder_mode_hardware
         DecoderMode.SOFTWARE -> R.string.decoder_mode_system_software
+        DecoderMode.SYSTEM -> R.string.decoder_mode_system_software
         DecoderMode.FFMPEG -> R.string.decoder_mode_app_software
     }
 
@@ -26,6 +28,7 @@ val DecoderMode.descriptionRes: Int
         DecoderMode.AUTO -> R.string.auto
         DecoderMode.HARDWARE -> R.string.decoder_hardware_description
         DecoderMode.SOFTWARE -> R.string.decoder_system_software_description
+        DecoderMode.SYSTEM -> R.string.decoder_system_software_description
         DecoderMode.FFMPEG -> R.string.decoder_app_software_description
     }
 

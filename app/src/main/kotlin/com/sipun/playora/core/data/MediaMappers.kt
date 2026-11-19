@@ -11,9 +11,9 @@ import com.sipun.playora.core.model.Folder
 import com.sipun.playora.core.model.SubtitleStreamInfo
 import com.sipun.playora.core.model.Video
 import com.sipun.playora.core.model.VideoStreamInfo
-import io.github.anilbeesetti.nextlib.mediainfo.AudioStream
-import io.github.anilbeesetti.nextlib.mediainfo.SubtitleStream
-import io.github.anilbeesetti.nextlib.mediainfo.VideoStream
+import com.sipun.nextlib.mediainfo.AudioStream
+import com.sipun.nextlib.mediainfo.SubtitleStream
+import com.sipun.nextlib.mediainfo.VideoStream
 import java.util.Date
 
 internal fun MediaFolder.toFolder() = Folder(

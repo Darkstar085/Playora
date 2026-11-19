@@ -6,7 +6,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.sipun.playora.feature.player.service.decoderMode
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 
 private const val MEDIA_METADATA_EXTERNAL_AUDIO_KEY = "external_audio"
 

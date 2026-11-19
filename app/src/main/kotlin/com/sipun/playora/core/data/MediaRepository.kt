@@ -20,7 +20,7 @@ import com.sipun.playora.core.media.services.MediaService
 import com.sipun.playora.core.model.Folder
 import com.sipun.playora.core.model.MediaInfo
 import com.sipun.playora.core.model.Video
-import io.github.anilbeesetti.nextlib.mediainfo.MediaInfoBuilder
+import com.sipun.nextlib.mediainfo.MediaInfoBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope

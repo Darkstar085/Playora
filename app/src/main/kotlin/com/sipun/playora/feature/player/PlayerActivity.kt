@@ -51,7 +51,7 @@ import com.sipun.playora.feature.player.service.stopPlayerSession
 import com.sipun.playora.feature.player.service.tryDecoderFallback
 import com.sipun.playora.feature.player.state.rememberMediaController
 import com.sipun.playora.feature.player.utils.PlayerApi
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

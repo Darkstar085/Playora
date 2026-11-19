@@ -10,8 +10,8 @@ import androidx.media3.exoplayer.source.FilteringMediaSource
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.MergingMediaSource
 import com.sipun.playora.feature.player.extensions.externalAudio
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.FfmpegSubtitleExtractorsFactory
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.withFfmpegSubtitles
+import com.sipun.nextlib.media3ext.ffdecoder.FfmpegSubtitleExtractorsFactory
+import com.sipun.nextlib.media3ext.ffdecoder.withFfmpegSubtitles
 
 @UnstableApi
 internal class ApiMediaSourceFactory(

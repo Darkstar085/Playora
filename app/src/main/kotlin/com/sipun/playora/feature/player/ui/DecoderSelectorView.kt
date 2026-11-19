@@ -33,7 +33,7 @@ import com.sipun.playora.feature.player.model.DecoderTrackType
 import com.sipun.playora.feature.player.model.descriptionRes
 import com.sipun.playora.feature.player.model.labelRes
 import com.sipun.playora.feature.player.model.selectableDecoderModes
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 
 @Composable
 fun BoxScope.DecoderSelectorView(

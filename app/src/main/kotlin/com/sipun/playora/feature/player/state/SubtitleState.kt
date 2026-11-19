@@ -24,8 +24,8 @@ import com.sipun.playora.feature.player.service.getSubtitleDelayMilliseconds
 import com.sipun.playora.feature.player.service.getSubtitleSpeed
 import com.sipun.playora.feature.player.service.setSubtitleDelayMilliseconds
 import com.sipun.playora.feature.player.service.setSubtitleSpeed
-import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleDelayMilliseconds
-import io.github.anilbeesetti.nextlib.media3ext.renderer.subtitleSpeed
+import com.sipun.nextlib.media3ext.renderer.subtitleDelayMilliseconds
+import com.sipun.nextlib.media3ext.renderer.subtitleSpeed
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

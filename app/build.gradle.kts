@@ -28,6 +28,12 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
     signingConfigs {
         create("release") {
             val keystorePath = signingProperties.getProperty("storeFile")
@@ -130,8 +136,8 @@ dependencies {
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.ui.compose)
     implementation(libs.androidx.media3.session)
-    implementation(libs.github.anilbeesetti.nextlib.media3ext)
-    implementation(libs.github.anilbeesetti.nextlib.mediainfo)
+    implementation(libs.nextlib.extended.media3ext)
+    implementation(libs.nextlib.extended.mediainfo)
     implementation(libs.github.albfernandez.juniversalchardet)
 
     // Koin

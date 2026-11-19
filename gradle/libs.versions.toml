@@ -22,7 +22,7 @@ kotlinxSerializationJson = "1.13.0"
 ksp = "2.3.14"
 reorderable = "3.1.0"
 room = "2.8.5"
-nextlib = "1.11.1-0.18.0"
+nextlibExtended = "1.0.0"
 universalChardet = "2.5.2"
 junit = "4.13.2"
 
@@ -62,8 +62,8 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 github-albfernandez-juniversalchardet = { group = "com.github.albfernandez", name = "juniversalchardet", version.ref = "universalChardet" }
-github-anilbeesetti-nextlib-media3ext = { group = "io.github.anilbeesetti", name = "nextlib-media3ext", version.ref = "nextlib" }
-github-anilbeesetti-nextlib-mediainfo = { group = "io.github.anilbeesetti", name = "nextlib-mediainfo", version.ref = "nextlib" }
+nextlib-extended-media3ext = { group = "io.github.darkstar085", name = "nextlib-extended-media3ext", version.ref = "nextlibExtended" }
+nextlib-extended-mediainfo = { group = "io.github.darkstar085", name = "nextlib-extended-mediainfo", version.ref = "nextlibExtended" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }

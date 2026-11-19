@@ -3,7 +3,7 @@ package com.sipun.playora.feature.player.service
 import com.sipun.playora.feature.player.model.DecoderRecoveryState
 import com.sipun.playora.feature.player.model.DecoderRecoveryStatus
 import com.sipun.playora.feature.player.model.DecoderTrackType
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 
 internal class DecoderRecoveryManager {
 
@@ -118,10 +118,11 @@ private fun DecoderMode.fallbackModes(): List<DecoderMode> = when (this) {
 
     DecoderMode.HARDWARE -> listOf(
         DecoderMode.SOFTWARE,
+        DecoderMode.SYSTEM,
         DecoderMode.FFMPEG,
     )
 
-    DecoderMode.SOFTWARE -> listOf(DecoderMode.FFMPEG)
+    DecoderMode.SOFTWARE, DecoderMode.SYSTEM -> listOf(DecoderMode.FFMPEG)
 
     DecoderMode.FFMPEG -> listOf(DecoderMode.AUTO)
 }

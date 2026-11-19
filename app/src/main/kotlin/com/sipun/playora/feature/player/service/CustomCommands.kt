@@ -9,7 +9,7 @@ import com.sipun.playora.feature.player.model.DecoderRecoveryState
 import com.sipun.playora.feature.player.model.DecoderRecoveryStatus
 import com.sipun.playora.feature.player.model.DecoderServiceState
 import com.sipun.playora.feature.player.model.DecoderTrackType
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 import kotlinx.coroutines.guava.await
 
 enum class CustomCommands(val customAction: String) {

@@ -9,7 +9,7 @@ import com.sipun.playora.core.model.VideoContentScale
 import com.sipun.playora.feature.player.extensions.getParcelableUriArray
 import com.sipun.playora.feature.player.extensions.setExtras
 import com.sipun.playora.feature.player.model.Subtitle
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 
 class PlayerApi(private val intent: Intent) {
     private val extras = intent.extras

@@ -50,7 +50,7 @@
 | Android                 | Min API 24 (Android 7.0), compile / target API 37                          |
 | Build                   | Gradle 9.9.0, Android Gradle Plugin 9.5.1, KSP 2.3.13                      |
 | UI                      | Jetpack Compose (BOM 2026.09.00), Material 3 1.5.0-alpha15, Navigation 3   |
-| Media Engine            | AndroidX Media3 1.11.1 (ExoPlayer, Session, UI), NextLib Media3 Extensions |
+| Media Engine            | AndroidX Media3 1.11.1 (ExoPlayer, Session, UI), NextLib Extended Media3 Extensions |
 | Dependency Injection    | Koin 4.2.2 (Core, Android, Compose ViewModel, Annotations)                 |
 | Local Storage           | Room 2.8.5, DataStore Core 1.3.0                                           |
 | Async & Background Work | Kotlin Coroutines / Flow 1.11.0, Foreground Service                        |

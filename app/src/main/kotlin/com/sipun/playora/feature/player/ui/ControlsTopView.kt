@@ -40,7 +40,7 @@ import com.sipun.playora.core.ui.extensions.copy
 import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.feature.player.buttons.PlayerButton
 import com.sipun.playora.feature.player.model.labelRes
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 
 @OptIn(UnstableApi::class)
 @Composable

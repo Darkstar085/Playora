@@ -29,7 +29,7 @@ import com.sipun.playora.feature.player.ui.OverlayView
 import com.sipun.playora.feature.player.ui.controls.ControlsBottomView
 import com.sipun.playora.feature.player.ui.controls.ControlsMiddleView
 import com.sipun.playora.feature.player.ui.controls.ControlsTopView
-import io.github.anilbeesetti.nextlib.media3ext.ffdecoder.DecoderMode
+import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 
 @OptIn(UnstableApi::class)
 @Composable

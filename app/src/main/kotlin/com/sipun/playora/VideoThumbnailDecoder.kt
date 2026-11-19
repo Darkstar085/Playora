@@ -27,7 +27,7 @@ import coil3.size.pxOrElse
 import coil3.toAndroidUri
 import coil3.util.component1
 import coil3.util.component2
-import io.github.anilbeesetti.nextlib.mediainfo.MediaThumbnailRetriever
+import com.sipun.nextlib.mediainfo.MediaThumbnailRetriever
 import okio.FileSystem
 import kotlin.math.abs
 import kotlin.math.roundToInt

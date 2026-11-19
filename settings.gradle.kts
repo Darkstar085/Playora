@@ -19,10 +19,10 @@ providers.gradleProperty("nextlibPath").orNull?.let { nextlibPath ->
     includeBuild(nextlibPath) {
         dependencySubstitution {
             substitute(
-                module("io.github.anilbeesetti:nextlib-media3ext"),
+                module("io.github.darkstar085:nextlib-extended-media3ext"),
             ).using(project(":media3ext"))
             substitute(
-                module("io.github.anilbeesetti:nextlib-mediainfo"),
+                module("io.github.darkstar085:nextlib-extended-mediainfo"),
             ).using(project(":mediainfo"))
         }
     }
