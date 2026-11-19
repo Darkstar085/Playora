@@ -284,7 +284,8 @@ fun Modifier.accentGradientTint(): Modifier {
 
 fun readWallpaperSeed(context: android.content.Context): Color =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        dynamicLightColorScheme(context).primary
+        val isDark = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        if (isDark) dynamicDarkColorScheme(context).primary else dynamicLightColorScheme(context).primary
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
         WallpaperManager.getInstance(context)
             .getWallpaperColors(WallpaperManager.FLAG_SYSTEM)
@@ -329,34 +330,17 @@ fun PlayoraTheme(
     }
 
     val isDark = highContrastDarkTheme || darkTheme
-    val palette = wallpaperPalette(wallpaperSeedColor, preferences.dynamicPalette, isDark)
-
-    val accentColor = if (dynamicColor) palette.primary else Color(preferences.customColor)
-    val accentBrush = if (dynamicColor) {
-        Brush.horizontalGradient(listOf(palette.primary, palette.tertiary))
-    } else {
-        Brush.horizontalGradient(listOf(accentColor, accentColor))
-    }
 
     val baseDynamicScheme = if (dynamicColor && supportsDynamicTheming()) {
         if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-    } else if (dynamicColor) {
-        if (isDark) {
-            darkColorScheme(
-                primary = palette.primary,
-                secondary = palette.secondary,
-                tertiary = palette.tertiary,
-                surfaceContainer = palette.container,
-            )
-        } else {
-            lightColorScheme(
-                primary = palette.primary,
-                secondary = palette.secondary,
-                tertiary = palette.tertiary,
-                surfaceContainer = palette.container,
-            )
-        }
     } else null
+
+    val accentColor = when {
+        dynamicColor && baseDynamicScheme != null -> baseDynamicScheme.primary
+        dynamicColor -> wallpaperSeedColor
+        else -> Color(preferences.customColor)
+    }
+    val accentBrush = Brush.horizontalGradient(listOf(accentColor, accentColor))
 
     val colorScheme = when {
         isDark && highContrastDarkTheme -> (baseDynamicScheme ?: darkScheme).copy(
@@ -385,21 +369,7 @@ fun PlayoraTheme(
             outline = Color(0xFF3A3A3A),
         )
 
-        baseDynamicScheme != null -> baseDynamicScheme.copy(
-            primary = accentColor,
-            onPrimary = Color.White,
-            primaryContainer = accentColor.copy(alpha = if (isDark) 0.35f else 0.15f),
-            onPrimaryContainer = if (isDark) Color.White else accentColor,
-            secondary = accentColor,
-            onSecondary = Color.White,
-            secondaryContainer = accentColor.copy(alpha = if (isDark) 0.28f else 0.15f),
-            onSecondaryContainer = if (isDark) Color.White else accentColor,
-            tertiary = accentColor,
-            onTertiary = Color.White,
-            tertiaryContainer = accentColor.copy(alpha = if (isDark) 0.28f else 0.15f),
-            onTertiaryContainer = if (isDark) Color.White else accentColor,
-            inversePrimary = accentColor,
-        )
+        dynamicColor && baseDynamicScheme != null -> baseDynamicScheme
 
         isDark -> darkScheme.copy(
             primary = accentColor,

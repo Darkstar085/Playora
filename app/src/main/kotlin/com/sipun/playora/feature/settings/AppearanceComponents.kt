@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrightnessAuto
@@ -292,133 +293,6 @@ internal fun ThemeOptionCard(
     }
 }
 
-@Composable
-internal fun PaletteSelector(
-    seed: Color,
-    darkTheme: Boolean,
-    selected: DynamicPalette,
-    onSelect: (DynamicPalette) -> Unit,
-) {
-    val palettes = DynamicPalette.entries.take(4)
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-    ) {
-        Text(
-            text = stringResource(R.string.palette_style),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            palettes.forEach { palette ->
-                PaletteCard(
-                    palette = palette,
-                    colors = wallpaperPalette(seed, palette, darkTheme),
-                    selected = palette == selected,
-                    onClick = { onSelect(palette) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-internal fun PaletteCard(
-    palette: DynamicPalette,
-    colors: WallpaperPalette,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val paletteColors = listOf(
-        colors.primary,
-        colors.secondary,
-        colors.tertiary,
-        colors.container,
-    )
-
-    Card(
-        modifier = modifier
-            .height(132.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (selected) 4.dp else 1.dp,
-        ),
-        border = BorderStroke(
-            width = if (selected) 2.dp else 1.dp,
-            color = if (selected) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.outline.copy(alpha = 0.28f)
-            },
-        ),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(6.dp),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(15.dp)),
-            ) {
-                paletteColors.forEachIndexed { index, color ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .background(color),
-                    ) {
-                        if (index < paletteColors.lastIndex) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .fillMaxWidth()
-                                    .height(1.dp)
-                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.18f)),
-                            )
-                        }
-                    }
-                }
-            }
-
-            if (selected) {
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(7.dp)
-                        .size(28.dp),
-                    shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.primary,
-                    tonalElevation = 2.dp,
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(17.dp),
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CustomColorSelector(
@@ -480,7 +354,8 @@ internal fun CustomColorSelector(
                 Box(
                     modifier = Modifier
                         .size(38.dp)
-                        .background(preset, RoundedCornerShape(50))
+                        .clip(CircleShape)
+                        .background(preset)
                         .clickable {
                             val presetHsv = FloatArray(3)
                             android.graphics.Color.colorToHSV(preset.toArgb(), presetHsv)

@@ -167,14 +167,7 @@ private fun AppearancePreferencesScreenContent(
                     },
                 )
 
-                if (preferences.useDynamicColors) {
-                    PaletteSelector(
-                        seed = readWallpaperSeed(context),
-                        darkTheme = isDark,
-                        selected = preferences.dynamicPalette,
-                        onSelect = { onAction(AppearancePreferencesEvent.SetDynamicPalette(it)) },
-                    )
-                } else {
+                if (!preferences.useDynamicColors) {
                     CustomColorSelector(
                         color = Color(preferences.customColor),
                         onColorChange = { onAction(AppearancePreferencesEvent.SetCustomColor(it)) },
