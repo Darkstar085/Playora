@@ -34,15 +34,7 @@ fun rememberControlsVisibilityState(player: Player, hideAfter: Duration): Contro
         controlsVisibilityState.controlsVisible,
         controlsVisibilityState.controlsLocked,
     ) {
-        if (controlsVisibilityState.controlsLocked) {
-            activity?.toggleSystemBars(showBars = false)
-            return@LaunchedEffect
-        }
-        if (controlsVisibilityState.controlsVisible) {
-            activity?.toggleSystemBars(showBars = true)
-        } else {
-            activity?.toggleSystemBars(showBars = false)
-        }
+        activity?.toggleSystemBars(showBars = false)
     }
     return controlsVisibilityState
 }
