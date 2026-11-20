@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.sipun.playora.core.ui.theme.PlayoraTheme
+import com.sipun.playora.feature.player.buttons.PlayerButtonBlackAlpha
 
 private const val NORMAL_MAX_PERCENTAGE = 100
 
@@ -53,7 +54,7 @@ fun VerticalProgressView(
         modifier = modifier
             .heightIn(max = 250.dp)
             .clip(shape = CircleShape)
-            .background(MaterialTheme.colorScheme.background)
+            .background(PlayerButtonBlackAlpha)
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
