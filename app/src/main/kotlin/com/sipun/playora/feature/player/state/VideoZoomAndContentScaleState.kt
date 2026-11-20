@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -36,12 +37,7 @@ fun rememberVideoZoomAndContentScaleState(
     onEvent: (VideoZoomEvent) -> Unit = {},
 ): VideoZoomAndContentScaleState {
     val coroutineScope = rememberCoroutineScope()
-    val videoZoomAndContentScaleState = remember(
-        player,
-        initialContentScale,
-        enableZoomGesture,
-        enablePanGesture,
-    ) {
+    val videoZoomAndContentScaleState = remember(player) {
         VideoZoomAndContentScaleState(
             player = player,
             initialContentScale = initialContentScale,
@@ -51,6 +47,8 @@ fun rememberVideoZoomAndContentScaleState(
             coroutineScope = coroutineScope,
         )
     }
+    videoZoomAndContentScaleState.enableZoomGesture = enableZoomGesture
+    videoZoomAndContentScaleState.enablePanGesture = enablePanGesture
     LaunchedEffect(videoZoomAndContentScaleState) { videoZoomAndContentScaleState.observe() }
     return videoZoomAndContentScaleState
 }
@@ -59,16 +57,19 @@ fun rememberVideoZoomAndContentScaleState(
 class VideoZoomAndContentScaleState(
     private val player: Player,
     initialContentScale: VideoContentScale,
-    private val enableZoomGesture: Boolean = true,
-    private val enablePanGesture: Boolean = true,
+    enableZoomGesture: Boolean = true,
+    enablePanGesture: Boolean = true,
     private val onEvent: (VideoZoomEvent) -> Unit,
     private val coroutineScope: CoroutineScope,
 ) {
     companion object Companion {
         private const val MIN_ZOOM = 0.25f
         private const val MAX_ZOOM = 4f
-        private const val CONTENT_SCALE_INDICATOR_DURATION_MS = 1000L
+        private const val CONTENT_SCALE_INDICATOR_DURATION_MS = 2000L
     }
+
+    var enableZoomGesture: Boolean by mutableStateOf(enableZoomGesture)
+    var enablePanGesture: Boolean by mutableStateOf(enablePanGesture)
 
     var videoContentScale: VideoContentScale by mutableStateOf(value = initialContentScale)
         private set
@@ -85,6 +86,9 @@ class VideoZoomAndContentScaleState(
     var showContentScaleIndicator: Boolean by mutableStateOf(value = false)
         private set
 
+    var contentScaleIndicatorKey: Int by mutableIntStateOf(0)
+        private set
+
     private var showContentScaleJob: Job? = null
 
     fun onVideoContentScaleChanged(newContentScale: VideoContentScale) {
@@ -98,6 +102,7 @@ class VideoZoomAndContentScaleState(
 
     private fun showContentScaleIndicator() {
         showContentScaleJob?.cancel()
+        contentScaleIndicatorKey++
         showContentScaleIndicator = true
         showContentScaleJob = coroutineScope.launch {
             delay(timeMillis = CONTENT_SCALE_INDICATOR_DURATION_MS)

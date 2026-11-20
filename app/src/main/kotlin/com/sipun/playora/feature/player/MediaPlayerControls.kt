@@ -2,6 +2,9 @@ package com.sipun.playora.feature.player
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -21,6 +25,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -38,6 +43,8 @@ import com.sipun.playora.feature.player.ui.DpadSeekIndicator
 import com.sipun.playora.feature.player.ui.OverlayShowView
 import com.sipun.playora.feature.player.ui.OverlayView
 import com.sipun.playora.feature.player.ui.PlayerGestureIndicators
+import com.sipun.playora.feature.player.ui.InfoView
+import com.sipun.playora.feature.player.extensions.nameRes
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(UnstableApi::class)
@@ -144,6 +151,19 @@ internal fun MediaPlayerControls(
                     onToggleTimeDisplay = { onAction(PlayerAction.ToggleTimeDisplay) },
                     onPictureInPictureClick = onPictureInPictureClick,
                 )
+            }
+
+            key(videoZoomAndContentScaleState.contentScaleIndicatorKey) {
+                AnimatedVisibility(
+                    modifier = Modifier.align(Alignment.Center),
+                    visible = videoZoomAndContentScaleState.showContentScaleIndicator,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                ) {
+                    InfoView(
+                        info = stringResource(videoZoomAndContentScaleState.videoContentScale.nameRes()),
+                    )
+                }
             }
 
             OverlayShowView(

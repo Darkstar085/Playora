@@ -30,7 +30,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -48,8 +50,13 @@ import com.sipun.playora.R as coreUiR
 internal fun InfoView(
     modifier: Modifier = Modifier,
     info: String,
-    textStyle: TextStyle = MaterialTheme.typography.headlineMedium.copy(
+    textStyle: TextStyle = MaterialTheme.typography.displaySmall.copy(
         fontWeight = FontWeight.Bold,
+        shadow = Shadow(
+            color = Color.Black.copy(alpha = 0.8f),
+            offset = Offset(x = 2f, y = 2f),
+            blurRadius = 6f,
+        ),
     ),
 ) {
     Column(

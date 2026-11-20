@@ -244,7 +244,7 @@ suspend fun captureVideoFrame(context: Context, player: Player?): Boolean {
         }
 
         if (bitmap != null) {
-            saveBitmapToGallery(context, bitmap!!)
+            saveBitmapToGallery(context, bitmap)
         } else {
             false
         }

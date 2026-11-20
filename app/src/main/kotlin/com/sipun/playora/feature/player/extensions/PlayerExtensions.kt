@@ -135,6 +135,13 @@ fun VideoContentScale.nameRes(): Int = when (this) {
     VideoContentScale.HUNDRED_PERCENT -> R.string.hundred_percent
 }
 
+fun VideoContentScale.descriptionRes(): Int = when (this) {
+    VideoContentScale.BEST_FIT -> R.string.best_fit_description
+    VideoContentScale.STRETCH -> R.string.stretch_description
+    VideoContentScale.CROP -> R.string.crop_description
+    VideoContentScale.HUNDRED_PERCENT -> R.string.hundred_percent_description
+}
+
 fun VideoContentScale.imageVector(): ImageVector = when (this) {
     VideoContentScale.BEST_FIT -> Icons.Rounded.FitScreen
     VideoContentScale.STRETCH -> Icons.Rounded.AspectRatio
