@@ -73,6 +73,7 @@ import com.sipun.playora.core.ui.components.DeleteButton
 import com.sipun.playora.core.ui.components.DestructiveRed
 import com.sipun.playora.core.ui.components.MediaQuickSettingsDialog
 import com.sipun.playora.core.ui.components.AppDialog
+import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.extensions.copy
@@ -193,14 +194,7 @@ private fun PrivacyPinContent(
             AppTopAppBar(
                 title = "",
                 navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = onNavigateUp,
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up),
-                        )
-                    }
+                    AppBackButton(onClick = onNavigateUp)
                 },
             )
         },
@@ -372,6 +366,7 @@ private fun PrivacyGalleryContent(state: PrivacyUiState, onAction: (PrivacyActio
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 12.dp),
                     )
                 },
                 navigationIcon = {
@@ -400,14 +395,9 @@ private fun PrivacyGalleryContent(state: PrivacyUiState, onAction: (PrivacyActio
                             )
                         }
                     } else {
-                        FilledTonalIconButton(
+                        AppBackButton(
                             onClick = { onAction(PrivacyAction.NavigateUp) },
-                        ) {
-                            Icon(
-                                imageVector = AppIcons.ArrowBack,
-                                contentDescription = stringResource(id = R.string.navigate_up),
-                            )
-                        }
+                        )
                     }
                 },
                 actions = {

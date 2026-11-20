@@ -92,6 +92,7 @@ import com.sipun.playora.core.ui.components.CancelButton
 import com.sipun.playora.core.ui.components.DeleteButton
 import com.sipun.playora.core.ui.components.DestructiveRed
 import com.sipun.playora.core.ui.components.AppDialog
+import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.TextIconToggleButton
 import com.sipun.playora.core.ui.components.thenIf
@@ -244,16 +245,9 @@ internal fun MediaPickerScreenContent(
                             )
                         }
                     } else if (state.folderName != null) {
-                        FilledTonalIconButton(
+                        AppBackButton(
                             onClick = { onAction(MediaPickerAction.OnNavigateUpClick) },
-                            modifier = Modifier.size(36.dp),
-                        ) {
-                            Icon(
-                                imageVector = AppIcons.ArrowBack,
-                                contentDescription = stringResource(id = R.string.navigate_up),
-                                modifier = Modifier.size(20.dp),
-                            )
-                        }
+                        )
                     }
                 },
                 actions = {

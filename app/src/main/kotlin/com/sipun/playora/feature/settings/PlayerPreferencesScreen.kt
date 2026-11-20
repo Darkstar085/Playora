@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -28,6 +29,7 @@ import com.sipun.playora.core.model.PlayerPreferences
 import com.sipun.playora.core.model.Resume
 import com.sipun.playora.core.ui.components.ClickablePreferenceItem
 import com.sipun.playora.core.ui.components.ListSectionTitle
+import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.PreferenceSlider
 import com.sipun.playora.core.ui.components.PreferenceSwitch
@@ -39,6 +41,7 @@ import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.settings.composables.OptionsDialog
 import com.sipun.playora.settings.extensions.name
 import com.sipun.playora.settings.screens.player.PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition
+import com.sipun.playora.settings.utils.LocalesHelper
 
 @Composable
 fun PlayerPreferencesScreen(viewModel: PlayerPreferencesViewModel) {
@@ -59,21 +62,21 @@ private fun PlayerPreferencesScreenContent(
     state: PlayerPreferencesUiState,
     onAction: (PlayerPreferencesUiEvent) -> Unit,
 ) {
+    val languages = remember {
+        listOf(
+            element = Pair(
+                first = "None",
+                second = "",
+            ),
+        ) + LocalesHelper.getAvailableLocales()
+    }
+
     Scaffold(
         topBar = {
             AppTopAppBar(
                 title = stringResource(id = R.string.player_name),
                 navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = {
-                            onAction(PlayerPreferencesUiEvent.NavigateUp)
-                        },
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up),
-                        )
-                    }
+                    AppBackButton(onClick = { onAction(PlayerPreferencesUiEvent.NavigateUp) })
                 },
             )
         },
@@ -134,6 +137,38 @@ private fun PlayerPreferencesScreenContent(
                     isLastItem = true,
                 )
             }
+
+            ListSectionTitle(text = stringResource(id = R.string.audio))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            ) {
+                ClickablePreferenceItem(
+                    title = stringResource(id = R.string.preferred_audio_lang),
+                    description =
+                        LocalesHelper.getLocaleDisplayLanguage(
+                            state.preferences.preferredAudioLanguage,
+                        )
+                            .takeIf { it.isNotBlank() }
+                            ?: stringResource(R.string.preferred_audio_lang_description),
+                    icon = AppIcons.Language,
+                    onClick = {
+                        onAction(
+                            PlayerPreferencesUiEvent.ShowDialog(
+                                value = PlayerPreferenceDialog.AudioLanguageDialog,
+                            ),
+                        )
+                    },
+                    isFirstItem = true,
+                )
+                PreferenceSwitch(
+                    title = stringResource(id = R.string.volume_boost),
+                    description = stringResource(id = R.string.volume_boost_desc),
+                    icon = AppIcons.VolumeUp,
+                    isChecked = state.preferences.enableVolumeBoost,
+                    onClick = { onAction(PlayerPreferencesUiEvent.ToggleVolumeBoost) },
+                    isLastItem = true,
+                )
+            }
         }
 
         state.showDialog?.let { showDialog ->
@@ -152,6 +187,30 @@ private fun PlayerPreferencesScreenContent(
                                 onClick = {
                                     onAction(
                                         PlayerPreferencesUiEvent.UpdatePlaybackResume(resume = it),
+                                    )
+                                    onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
+                                },
+                            )
+                        }
+                    }
+                }
+
+                PlayerPreferenceDialog.AudioLanguageDialog -> {
+                    OptionsDialog(
+                        text = stringResource(id = R.string.preferred_audio_lang),
+                        onDismissClick = {
+                            onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
+                        },
+                    ) {
+                        items(items = languages) {
+                            RadioTextButton(
+                                text = it.first,
+                                selected = it.second == state.preferences.preferredAudioLanguage,
+                                onClick = {
+                                    onAction(
+                                        PlayerPreferencesUiEvent.UpdateAudioLanguage(
+                                            it.second,
+                                        ),
                                     )
                                     onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
                                 },

@@ -28,6 +28,7 @@ import com.sipun.playora.core.ui.components.ClickablePreferenceItem
 import com.sipun.playora.core.ui.components.DeleteButton
 import com.sipun.playora.core.ui.components.ListSectionTitle
 import com.sipun.playora.core.ui.components.AppDialog
+import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.ResetButton
 import com.sipun.playora.core.ui.designsystem.AppIcons
@@ -56,16 +57,7 @@ private fun GeneralPreferencesScreenContent(
             AppTopAppBar(
                 title = stringResource(id = R.string.general_name),
                 navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = {
-                            onAction(GeneralPreferencesUiEvent.NavigateUp)
-                        },
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up),
-                        )
-                    }
+                    AppBackButton(onClick = { onAction(GeneralPreferencesUiEvent.NavigateUp) })
                 },
             )
         },
@@ -79,6 +71,21 @@ private fun GeneralPreferencesScreenContent(
                 .padding(horizontal = 16.dp),
         ) {
             if (state.isBusy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+
+            ListSectionTitle(text = stringResource(id = R.string.media_library))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            ) {
+                ClickablePreferenceItem(
+                    title = stringResource(id = R.string.manage_folders),
+                    description = stringResource(id = R.string.manage_folders_desc),
+                    icon = AppIcons.FolderOff,
+                    onClick = { onAction(GeneralPreferencesUiEvent.OpenFolders) },
+                    isFirstItem = true,
+                    isLastItem = true,
+                )
+            }
+
             ListSectionTitle(text = stringResource(id = R.string.user_data))
             Column(
                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),

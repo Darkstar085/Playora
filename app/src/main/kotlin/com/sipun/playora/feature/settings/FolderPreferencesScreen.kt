@@ -26,6 +26,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sipun.playora.R
 import com.sipun.playora.core.ui.base.DataState
+import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.SelectablePreference
 import com.sipun.playora.core.ui.designsystem.AppIcons
@@ -58,14 +59,7 @@ private fun FolderPreferencesScreenContent(
             AppTopAppBar(
                 title = stringResource(id = R.string.manage_folders),
                 navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = { onAction(FolderPreferencesUiEvent.NavigateUp) },
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up),
-                        )
-                    }
+                    AppBackButton(onClick = { onAction(FolderPreferencesUiEvent.NavigateUp) })
                 },
             )
         },

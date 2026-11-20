@@ -47,6 +47,10 @@ class PlayerPreferencesViewModel(
 
             is PlayerPreferencesUiEvent.UpdatePlaybackResume -> updatePlaybackResume(action.resume)
 
+            is PlayerPreferencesUiEvent.UpdateAudioLanguage -> updateAudioLanguage(action.value)
+
+            is PlayerPreferencesUiEvent.ToggleVolumeBoost -> toggleVolumeBoost()
+
             is PlayerPreferencesUiEvent.ToggleAutoplay -> toggleAutoplay()
 
             is PlayerPreferencesUiEvent.ToggleTunneledPlayback -> toggleTunneledPlayback()
@@ -157,6 +161,17 @@ class PlayerPreferencesViewModel(
             }
         }
     }
+    private fun updateAudioLanguage(value: String) {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(preferredAudioLanguage = value) }
+        }
+    }
+
+    private fun toggleVolumeBoost() {
+        viewModelScope.launch {
+            preferencesRepository.updatePlayerPreferences { it.copy(enableVolumeBoost = !it.enableVolumeBoost) }
+        }
+    }
 }
 
 @Stable
@@ -168,6 +183,7 @@ data class PlayerPreferencesUiState(
 sealed interface PlayerPreferenceDialog {
     data object ResumeDialog : PlayerPreferenceDialog
     data object ControlButtonsDialog : PlayerPreferenceDialog
+    data object AudioLanguageDialog : PlayerPreferenceDialog
 }
 
 sealed interface PlayerPreferencesUiEvent {
@@ -175,6 +191,8 @@ sealed interface PlayerPreferencesUiEvent {
 
     data class ShowDialog(val value: PlayerPreferenceDialog?) : PlayerPreferencesUiEvent
     data class UpdatePlaybackResume(val resume: Resume) : PlayerPreferencesUiEvent
+    data class UpdateAudioLanguage(val value: String) : PlayerPreferencesUiEvent
+    data object ToggleVolumeBoost : PlayerPreferencesUiEvent
     data object ToggleAutoplay : PlayerPreferencesUiEvent
     data object ToggleTunneledPlayback : PlayerPreferencesUiEvent
     data object ToggleAutoPip : PlayerPreferencesUiEvent

@@ -25,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sipun.playora.R
 import com.sipun.playora.core.ui.components.ClickablePreferenceItem
 import com.sipun.playora.core.ui.components.ListSectionTitle
+import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.PreferenceSwitch
 import com.sipun.playora.core.ui.components.RadioTextButton
@@ -67,16 +68,7 @@ private fun AudioPreferencesScreenContent(
             AppTopAppBar(
                 title = stringResource(id = R.string.audio),
                 navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = {
-                            onAction(AudioPreferencesUiEvent.NavigateUp)
-                        },
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up),
-                        )
-                    }
+                    AppBackButton(onClick = { onAction(AudioPreferencesUiEvent.NavigateUp) })
                 },
             )
         },

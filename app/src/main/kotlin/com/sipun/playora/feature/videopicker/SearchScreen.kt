@@ -61,6 +61,7 @@ import com.sipun.playora.core.model.Folder
 import com.sipun.playora.core.model.MediaLayoutMode
 import com.sipun.playora.core.model.Video
 import com.sipun.playora.core.ui.components.ListSectionTitle
+import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppOutlinedTextField
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.designsystem.AppIcons
@@ -147,12 +148,7 @@ internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent)
                     )
                 },
                 navigationIcon = {
-                    FilledTonalIconButton(onClick = { onAction(SearchUiEvent.NavigateUp) }) {
-                        Icon(
-                            imageVector = AppIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up),
-                        )
-                    }
+                    AppBackButton(onClick = { onAction(SearchUiEvent.NavigateUp) })
                 },
             )
         },

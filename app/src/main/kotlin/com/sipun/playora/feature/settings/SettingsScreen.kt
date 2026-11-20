@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sipun.playora.R
 import com.sipun.playora.core.ui.components.ClickablePreferenceItem
+import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.designsystem.AppIcons
 
@@ -55,14 +56,7 @@ private fun SettingsScreenContent(onAction: (SettingsAction) -> Unit) {
             AppTopAppBar(
                 title = stringResource(id = R.string.settings),
                 navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = { onAction(SettingsAction.NavigateUp) },
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up),
-                        )
-                    }
+                    AppBackButton(onClick = { onAction(SettingsAction.NavigateUp) })
                 },
             )
         },
@@ -95,10 +89,8 @@ private fun SettingsScreenContent(onAction: (SettingsAction) -> Unit) {
 
 enum class Setting {
     APPEARANCE,
-    MEDIA_LIBRARY,
     PLAYER,
     GESTURES,
-    AUDIO,
     SUBTITLE,
     GENERAL,
 }
@@ -115,12 +107,6 @@ private enum class SettingRow(
         icon = AppIcons.Appearance,
         setting = Setting.APPEARANCE,
     ),
-    MEDIA_LIBRARY(
-        titleResId = R.string.media_library,
-        descriptionResId = R.string.media_library_description,
-        icon = AppIcons.Movie,
-        setting = Setting.MEDIA_LIBRARY,
-    ),
     PLAYER(
         titleResId = R.string.player_name,
         descriptionResId = R.string.player_description,
@@ -132,12 +118,6 @@ private enum class SettingRow(
         descriptionResId = R.string.gestures_description,
         icon = AppIcons.SwipeHorizontal,
         setting = Setting.GESTURES,
-    ),
-    AUDIO(
-        titleResId = R.string.audio,
-        descriptionResId = R.string.audio_desc,
-        icon = AppIcons.Audio,
-        setting = Setting.AUDIO,
     ),
     SUBTITLE(
         titleResId = R.string.subtitle,

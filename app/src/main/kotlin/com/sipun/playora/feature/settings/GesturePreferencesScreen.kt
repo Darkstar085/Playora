@@ -34,6 +34,7 @@ import com.sipun.playora.core.model.DoubleTapGesture
 import com.sipun.playora.core.model.PlayerPreferences
 import com.sipun.playora.core.ui.components.ListSectionTitle
 import com.sipun.playora.core.ui.components.AppDialogWithDoneAndCancelButtons
+import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.PreferenceSlider
 import com.sipun.playora.core.ui.components.PreferenceSwitch
@@ -70,16 +71,7 @@ private fun GesturePreferencesScreenContent(
             AppTopAppBar(
                 title = stringResource(id = R.string.gestures),
                 navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = {
-                            onAction(GesturePreferencesUiEvent.NavigateUp)
-                        },
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up),
-                        )
-                    }
+                    AppBackButton(onClick = { onAction(GesturePreferencesUiEvent.NavigateUp) })
                 },
             )
         },

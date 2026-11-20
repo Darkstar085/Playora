@@ -38,6 +38,7 @@ import com.sipun.playora.R
 import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.ThemeConfig
 import com.sipun.playora.core.ui.components.ListSectionTitle
+import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.theme.PlayoraTheme
@@ -85,16 +86,7 @@ private fun AppearancePreferencesScreenContent(
             AppTopAppBar(
                 title = stringResource(id = R.string.appearance_name),
                 navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = {
-                            onAction(AppearancePreferencesEvent.NavigateUp)
-                        },
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up),
-                        )
-                    }
+                    AppBackButton(onClick = { onAction(AppearancePreferencesEvent.NavigateUp) })
                 },
             )
         },

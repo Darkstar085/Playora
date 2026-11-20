@@ -28,10 +28,8 @@ fun EntryProviderScope<NavKey>.settingsNavGraph(backStack: NavBackStack<NavKey>)
         onItemClick = { setting ->
             when (setting) {
                 Setting.APPEARANCE -> backStack.navigateToAppearancePreferences()
-                Setting.MEDIA_LIBRARY -> backStack.navigateToMediaLibraryPreferencesScreen()
                 Setting.PLAYER -> backStack.navigateToPlayerPreferences()
                 Setting.GESTURES -> backStack.navigateToGesturePreferences()
-                Setting.AUDIO -> backStack.navigateToAudioPreferences()
                 Setting.SUBTITLE -> backStack.navigateToSubtitlePreferences()
                 Setting.GENERAL -> backStack.navigateToGeneralPreferences()
             }
@@ -39,10 +37,6 @@ fun EntryProviderScope<NavKey>.settingsNavGraph(backStack: NavBackStack<NavKey>)
     )
     appearancePreferencesEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
-    )
-    mediaLibraryPreferencesEntry(
-        onNavigateUp = { backStack.removeLastIfNotRoot() },
-        onFolderSettingClick = backStack::navigateToFolderPreferencesScreen,
     )
     folderPreferencesEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
@@ -53,13 +47,11 @@ fun EntryProviderScope<NavKey>.settingsNavGraph(backStack: NavBackStack<NavKey>)
     gesturePreferencesEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
-    audioPreferencesEntry(
-        onNavigateUp = { backStack.removeLastIfNotRoot() },
-    )
     subtitlePreferencesEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
     generalPreferencesEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
+        onFolderSettingClick = backStack::navigateToFolderPreferencesScreen,
     )
 }

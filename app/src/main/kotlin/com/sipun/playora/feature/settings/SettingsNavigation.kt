@@ -76,11 +76,15 @@ fun NavBackStack<NavKey>.navigateToGeneralPreferences() {
     add(element = GeneralPreferencesRoute)
 }
 
-fun EntryProviderScope<NavKey>.generalPreferencesEntry(onNavigateUp: () -> Unit) {
+fun EntryProviderScope<NavKey>.generalPreferencesEntry(
+    onNavigateUp: () -> Unit,
+    onFolderSettingClick: () -> Unit = {},
+) {
     entry<GeneralPreferencesRoute> {
         val context = LocalContext.current
         val output = GeneralPreferencesViewModel.Output(
             navigateUp = onNavigateUp,
+            openFolders = onFolderSettingClick,
             showMessage = {
                 Toast.makeText(
                     context,

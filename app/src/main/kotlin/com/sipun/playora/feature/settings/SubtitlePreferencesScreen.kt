@@ -30,6 +30,7 @@ import com.sipun.playora.core.model.Font
 import com.sipun.playora.core.model.PlayerPreferences
 import com.sipun.playora.core.ui.components.ClickablePreferenceItem
 import com.sipun.playora.core.ui.components.ListSectionTitle
+import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.PreferenceSlider
 import com.sipun.playora.core.ui.components.PreferenceSwitch
@@ -77,16 +78,7 @@ private fun SubtitlePreferencesScreenContent(
             AppTopAppBar(
                 title = stringResource(id = R.string.subtitle),
                 navigationIcon = {
-                    FilledTonalIconButton(
-                        onClick = {
-                            onAction(SubtitlePreferencesUiEvent.NavigateUp)
-                        },
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.ArrowBack,
-                            contentDescription = stringResource(id = R.string.navigate_up),
-                        )
-                    }
+                    AppBackButton(onClick = { onAction(SubtitlePreferencesUiEvent.NavigateUp) })
                 },
             )
         },
