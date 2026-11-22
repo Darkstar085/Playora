@@ -29,7 +29,6 @@ import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.sipun.playora.core.common.AppIconManager
 import com.sipun.playora.core.common.service.system.SystemService
 import com.sipun.playora.core.media.services.MediaOperationsService
 import com.sipun.playora.core.model.ApplicationPreferences
@@ -103,12 +102,6 @@ class MainActivity : FragmentActivity() {
                 }
             }
 
-            LaunchedEffect(preferences.customColor, preferences.useDynamicColors) {
-                AppIconManager.setPending(
-                    customColor = preferences.customColor,
-                    useDynamicColors = preferences.useDynamicColors,
-                )
-            }
 
             PlayoraTheme(
                 preferences = preferences,
