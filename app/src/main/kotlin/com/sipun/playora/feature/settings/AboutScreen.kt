@@ -22,12 +22,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +48,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.sipun.playora.core.update.AppUpdate
+import com.sipun.playora.core.update.UpdateManager
+import kotlinx.coroutines.launch
+import java.io.File
 import com.sipun.playora.BuildConfig
 import com.sipun.playora.R
 import com.sipun.playora.core.ui.components.AppBackButton
@@ -60,6 +73,13 @@ data class AboutOutput(val navigateUp: () -> Unit)
 fun AboutScreen(output: AboutOutput) {
     val context = LocalContext.current
     val accent = LocalAccentColor.current
+    val scope = rememberCoroutineScope()
+    var isChecking by remember { mutableStateOf(false) }
+    var isDownloading by remember { mutableStateOf(false) }
+    var downloadProgress by remember { mutableIntStateOf(0) }
+    var update by remember { mutableStateOf<AppUpdate?>(null) }
+    var downloadedApk by remember { mutableStateOf<File?>(null) }
+    var updateMessage by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -136,7 +156,21 @@ fun AboutScreen(output: AboutOutput) {
                 Spacer(Modifier.height(14.dp))
                 Button(
                     onClick = {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(RELEASES_URL)))
+                        if (!isChecking) {
+                            isChecking = true
+                            updateMessage = null
+                            scope.launch {
+                                try {
+                                    update = UpdateManager.findLatestUpdate(context)
+                                    downloadedApk = null
+                                    updateMessage = if (update == null) context.getString(R.string.update_up_to_date) else null
+                                } catch (error: Exception) {
+                                    updateMessage = error.message ?: context.getString(R.string.update_check_failed)
+                                } finally {
+                                    isChecking = false
+                                }
+                            }
+                        }
                     },
                     modifier = Modifier.fillMaxWidth(0.82f),
                     shape = CircleShape,
@@ -150,7 +184,7 @@ fun AboutScreen(output: AboutOutput) {
                         contentDescription = null,
                     )
                     Spacer(Modifier.width(10.dp))
-                    Text(stringResource(R.string.check_for_updates))
+                    Text(stringResource(if (isChecking) R.string.update_checking else R.string.check_for_updates))
                 }
                 Spacer(Modifier.height(8.dp))
                 Row(
@@ -250,6 +284,87 @@ fun AboutScreen(output: AboutOutput) {
                 )
             }
         }
+    }
+
+    if (update != null || updateMessage != null) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!isDownloading) {
+                    update = null
+                    updateMessage = null
+                }
+            },
+            title = { Text(update?.name ?: stringResource(R.string.update_status)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        updateMessage ?: update?.notes?.ifBlank {
+                            context.getString(R.string.update_available, update?.version.orEmpty())
+                        }.orEmpty(),
+                    )
+                    if (isDownloading) {
+                        LinearProgressIndicator(
+                            progress = { downloadProgress / 100f },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Text(stringResource(R.string.update_download_progress, downloadProgress))
+                    }
+                }
+            },
+            confirmButton = {
+                if (update != null) {
+                    TextButton(
+                        enabled = !isDownloading,
+                        onClick = {
+                            val selectedUpdate = update ?: return@TextButton
+                            scope.launch {
+                                if (downloadedApk == null) {
+                                    isDownloading = true
+                                    downloadProgress = 0
+                                    updateMessage = null
+                                    try {
+                                        downloadedApk = UpdateManager.download(context, selectedUpdate) {
+                                            scope.launch { downloadProgress = it }
+                                        }
+                                    } catch (error: Exception) {
+                                        updateMessage = error.message ?: context.getString(R.string.update_download_failed)
+                                    } finally {
+                                        isDownloading = false
+                                    }
+                                }
+                                downloadedApk?.let { apk ->
+                                    if (UpdateManager.install(context, apk)) {
+                                        update = null
+                                        updateMessage = null
+                                    } else {
+                                        updateMessage = context.getString(R.string.update_install_permission)
+                                    }
+                                }
+                            }
+                        },
+                    ) {
+                        Text(stringResource(if (downloadedApk == null) R.string.update_download else R.string.update_install))
+                    }
+                } else {
+                    TextButton(onClick = { updateMessage = null }) {
+                        Text(stringResource(R.string.okay))
+                    }
+                }
+            },
+            dismissButton = {
+                if (update != null) {
+                    TextButton(
+                        enabled = !isDownloading,
+                        onClick = {
+                            update = null
+                            updateMessage = null
+                        },
+                    ) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+            },
+        )
     }
 }
 
