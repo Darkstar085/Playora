@@ -3,6 +3,7 @@ package com.sipun.playora.core.data.repository
 import android.content.Context
 import android.net.Uri
 import androidx.core.net.toUri
+import com.sipun.nextlib.mediainfo.MediaInfoBuilder
 import com.sipun.playora.core.common.Utils
 import com.sipun.playora.core.common.extensions.mapAsync
 import com.sipun.playora.core.data.mappers.toAudioStreamInfo
@@ -21,7 +22,6 @@ import com.sipun.playora.core.model.Folder
 import com.sipun.playora.core.model.MarkType
 import com.sipun.playora.core.model.MediaInfo
 import com.sipun.playora.core.model.Video
-import com.sipun.nextlib.mediainfo.MediaInfoBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope

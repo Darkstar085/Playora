@@ -9,8 +9,8 @@ import androidx.media3.common.Player
 import androidx.media3.extractor.metadata.Chapter
 import com.sipun.playora.core.model.VideoContentScale
 import com.sipun.playora.feature.player.extensions.noRippleClickable
+import com.sipun.playora.feature.player.model.DecoderMode
 import com.sipun.playora.feature.player.state.SubtitleOptionsEvent
-import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 
 @Composable
 fun BoxScope.OverlayShowView(

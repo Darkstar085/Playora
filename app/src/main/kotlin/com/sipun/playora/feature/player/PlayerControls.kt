@@ -11,13 +11,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.state.ProgressStateWithTickInterval
 import com.sipun.playora.core.model.ControlButtonsPosition
 import com.sipun.playora.core.model.PlayerPreferences
-import com.sipun.playora.feature.player.extensions.nameRes
+import com.sipun.playora.feature.player.model.DecoderMode
 import com.sipun.playora.feature.player.state.ChaptersState
 import com.sipun.playora.feature.player.state.ControlsVisibilityState
 import com.sipun.playora.feature.player.state.SeekGestureState
@@ -29,7 +28,6 @@ import com.sipun.playora.feature.player.ui.OverlayView
 import com.sipun.playora.feature.player.ui.controls.ControlsBottomView
 import com.sipun.playora.feature.player.ui.controls.ControlsMiniIndicatorsView
 import com.sipun.playora.feature.player.ui.controls.ControlsTopView
-import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 
 @OptIn(UnstableApi::class)
 @Composable

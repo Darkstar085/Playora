@@ -18,11 +18,8 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.state.observeState
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @UnstableApi
 @Composable

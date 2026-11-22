@@ -10,8 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -29,13 +27,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sipun.playora.R
 import com.sipun.playora.core.common.extensions.round
-import com.sipun.playora.core.common.extensions.toString
 import com.sipun.playora.core.model.DoubleTapGesture
 import com.sipun.playora.core.model.PlayerPreferences
-import com.sipun.playora.core.ui.components.ListSectionTitle
-import com.sipun.playora.core.ui.components.AppDialogWithDoneAndCancelButtons
 import com.sipun.playora.core.ui.components.AppBackButton
+import com.sipun.playora.core.ui.components.AppDialogWithDoneAndCancelButtons
 import com.sipun.playora.core.ui.components.AppTopAppBar
+import com.sipun.playora.core.ui.components.ListSectionTitle
 import com.sipun.playora.core.ui.components.PreferenceSlider
 import com.sipun.playora.core.ui.components.PreferenceSwitch
 import com.sipun.playora.core.ui.components.PreferenceSwitchWithDivider

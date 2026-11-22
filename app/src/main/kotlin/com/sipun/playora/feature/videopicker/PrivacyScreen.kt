@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -47,7 +46,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -68,13 +66,13 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.sipun.playora.R
 import com.sipun.playora.core.model.MediaLayoutMode
 import com.sipun.playora.core.model.Sort
+import com.sipun.playora.core.ui.components.AppBackButton
+import com.sipun.playora.core.ui.components.AppDialog
+import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.CancelButton
 import com.sipun.playora.core.ui.components.DeleteButton
 import com.sipun.playora.core.ui.components.DestructiveRed
 import com.sipun.playora.core.ui.components.MediaQuickSettingsDialog
-import com.sipun.playora.core.ui.components.AppDialog
-import com.sipun.playora.core.ui.components.AppBackButton
-import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.extensions.copy
 import com.sipun.playora.core.ui.theme.PlayoraTheme

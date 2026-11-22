@@ -3,12 +3,33 @@ package com.sipun.playora.feature.player.model
 import android.net.Uri
 import androidx.annotation.StringRes
 import com.sipun.playora.R
-import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
+import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode as NextDecoderMode
+
+/** Extraction and decoder preferences presented by Playora. */
+enum class DecoderMode {
+    AUTO,
+    HARDWARE,
+    HW_PLUS,
+    FFMPEG,
+    ;
+
+    val systemDecoderMode: NextDecoderMode
+        get() = when (this) {
+            AUTO -> NextDecoderMode.AUTO
+            HARDWARE, HW_PLUS -> NextDecoderMode.SYSTEM
+            FFMPEG -> NextDecoderMode.FFMPEG
+        }
+}
+
+internal fun NextDecoderMode.playerMode(): DecoderMode = when (this) {
+    NextDecoderMode.AUTO -> DecoderMode.AUTO
+    NextDecoderMode.FFMPEG -> DecoderMode.FFMPEG
+    else -> DecoderMode.HARDWARE
+}
 
 val selectableDecoderModes = listOf(
     DecoderMode.HARDWARE,
-    DecoderMode.SOFTWARE,
-    DecoderMode.SYSTEM,
+    DecoderMode.HW_PLUS,
     DecoderMode.FFMPEG,
 )
 
@@ -17,8 +38,7 @@ val DecoderMode.labelRes: Int
     get() = when (this) {
         DecoderMode.AUTO -> R.string.auto
         DecoderMode.HARDWARE -> R.string.decoder_mode_hardware
-        DecoderMode.SOFTWARE -> R.string.decoder_mode_system_software
-        DecoderMode.SYSTEM -> R.string.decoder_mode_system_software
+        DecoderMode.HW_PLUS -> R.string.decoder_mode_hardware_plus
         DecoderMode.FFMPEG -> R.string.decoder_mode_app_software
     }
 
@@ -26,9 +46,8 @@ val DecoderMode.labelRes: Int
 val DecoderMode.descriptionRes: Int
     get() = when (this) {
         DecoderMode.AUTO -> R.string.auto
-        DecoderMode.HARDWARE -> R.string.decoder_hardware_description
-        DecoderMode.SOFTWARE -> R.string.decoder_system_software_description
-        DecoderMode.SYSTEM -> R.string.decoder_system_software_description
+        DecoderMode.HARDWARE -> R.string.decoder_system_description
+        DecoderMode.HW_PLUS -> R.string.decoder_hardware_plus_description
         DecoderMode.FFMPEG -> R.string.decoder_app_software_description
     }
 

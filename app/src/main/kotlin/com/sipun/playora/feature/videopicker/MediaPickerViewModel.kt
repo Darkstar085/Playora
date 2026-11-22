@@ -26,9 +26,9 @@ import com.sipun.playora.core.media.services.TransferMode
 import com.sipun.playora.core.media.services.TransferProgress
 import com.sipun.playora.core.media.services.TransferResult
 import com.sipun.playora.core.media.sync.MediaSynchronizer
-import com.sipun.playora.core.model.MarkType
 import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.Folder
+import com.sipun.playora.core.model.MarkType
 import com.sipun.playora.core.model.MediaViewMode
 import com.sipun.playora.core.model.Video
 import com.sipun.playora.core.model.findClosestFolder

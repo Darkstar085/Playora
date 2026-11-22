@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -64,7 +63,6 @@ import com.sipun.playora.core.common.extensions.getFilenameFromUri
 import com.sipun.playora.feature.player.extensions.externalAudio
 import com.sipun.playora.feature.player.extensions.externalAudioIndex
 import com.sipun.playora.feature.player.extensions.getName
-import com.sipun.playora.feature.player.extensions.isPortrait
 import com.sipun.playora.feature.player.state.rememberTracksState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

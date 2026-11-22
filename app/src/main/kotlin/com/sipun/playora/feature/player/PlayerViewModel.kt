@@ -10,10 +10,10 @@ import com.sipun.playora.core.model.PlayerPreferences
 import com.sipun.playora.core.model.Video
 import com.sipun.playora.core.model.VideoContentScale
 import com.sipun.playora.core.ui.base.MviViewModel
+import com.sipun.playora.feature.player.model.DecoderMode
 import com.sipun.playora.feature.player.model.DecoderServiceState
 import com.sipun.playora.feature.player.state.SubtitleOptionsEvent
 import com.sipun.playora.feature.player.state.VideoZoomEvent
-import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

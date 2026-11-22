@@ -40,6 +40,7 @@ import com.sipun.playora.core.data.repository.PreferencesRepository
 import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.feature.player.extensions.OpenDocumentAtInitialUri
 import com.sipun.playora.feature.player.extensions.uriToSubtitleConfiguration
+import com.sipun.playora.feature.player.model.DecoderMode
 import com.sipun.playora.feature.player.service.CustomCommands
 import com.sipun.playora.feature.player.service.PlayerService
 import com.sipun.playora.feature.player.service.addAudioTrack
@@ -53,7 +54,6 @@ import com.sipun.playora.feature.player.service.stopPlayerSession
 import com.sipun.playora.feature.player.service.tryDecoderFallback
 import com.sipun.playora.feature.player.state.rememberMediaController
 import com.sipun.playora.feature.player.utils.PlayerApi
-import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

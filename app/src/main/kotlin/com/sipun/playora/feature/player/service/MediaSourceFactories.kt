@@ -4,14 +4,17 @@ import android.content.Context
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.FilteringMediaSource
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.MergingMediaSource
-import com.sipun.playora.feature.player.extensions.externalAudio
+import com.sipun.nextlib.media3ext.ffdecoder.FfmpegMediaSourceFactory
 import com.sipun.nextlib.media3ext.ffdecoder.FfmpegSubtitleExtractorsFactory
 import com.sipun.nextlib.media3ext.ffdecoder.withFfmpegSubtitles
+import com.sipun.playora.feature.player.extensions.externalAudio
+import com.sipun.playora.feature.player.extensions.ffmpegExtraction
 
 @UnstableApi
 internal class ApiMediaSourceFactory(
@@ -21,11 +24,15 @@ internal class ApiMediaSourceFactory(
     context,
     FfmpegSubtitleExtractorsFactory(),
 ).setDataSourceFactory(dataSourceFactory).withFfmpegSubtitles(dataSourceFactory) {
-    override fun createMediaSource(mediaItem: MediaItem): MediaSource =
-        DefaultMediaSourceFactory(context, FfmpegSubtitleExtractorsFactory())
+    override fun createMediaSource(mediaItem: MediaItem): MediaSource {
+        if (mediaItem.usesFfmpegExtractor) {
+            return FfmpegMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
+        }
+        return DefaultMediaSourceFactory(context, FfmpegSubtitleExtractorsFactory())
             .setDataSourceFactory(dataSourceFactory)
             .withFfmpegSubtitles(dataSourceFactory)
             .createMediaSource(mediaItem)
+    }
 }
 
 @UnstableApi
@@ -48,3 +55,15 @@ internal class ExternalAudioMediaSourceFactory(private val delegate: MediaSource
         )
     }
 }
+
+@get:UnstableApi
+internal val MediaItem.usesFfmpegExtractor: Boolean
+    @Suppress("DEPRECATION")
+    get() {
+        val config = localConfiguration ?: return false
+        return mediaMetadata.ffmpegExtraction && config.drmConfiguration == null &&
+            Util.inferContentType(
+                config.uri,
+                config.mimeType,
+            ) == C.CONTENT_TYPE_OTHER
+    }

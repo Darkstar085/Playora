@@ -54,9 +54,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 import com.sipun.playora.R
-import com.sipun.playora.feature.player.extensions.isPortrait
+import com.sipun.playora.feature.player.model.DecoderMode
 import com.sipun.playora.feature.player.model.DecoderTrackType
 import com.sipun.playora.feature.player.model.descriptionRes
 import com.sipun.playora.feature.player.model.labelRes
@@ -290,12 +289,11 @@ fun BoxScope.DecoderSelectorView(
                             when (selectedTrackType) {
                                 DecoderTrackType.VIDEO -> listOf(
                                     DecoderMode.HARDWARE,
-                                    DecoderMode.SOFTWARE,
+                                    DecoderMode.HW_PLUS,
                                     DecoderMode.FFMPEG,
                                 )
                                 DecoderTrackType.AUDIO -> listOf(
                                     DecoderMode.HARDWARE,
-                                    DecoderMode.SOFTWARE,
                                     DecoderMode.FFMPEG,
                                 )
                             }

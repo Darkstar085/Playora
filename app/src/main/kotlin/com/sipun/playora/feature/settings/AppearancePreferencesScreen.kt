@@ -14,8 +14,6 @@ import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -37,12 +35,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sipun.playora.R
 import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.ThemeConfig
-import com.sipun.playora.core.ui.components.ListSectionTitle
 import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
-import com.sipun.playora.core.ui.designsystem.AppIcons
+import com.sipun.playora.core.ui.components.ListSectionTitle
 import com.sipun.playora.core.ui.theme.PlayoraTheme
-import com.sipun.playora.core.ui.theme.readWallpaperSeed
 
 @Composable
 fun AppearancePreferencesScreen(viewModel: AppearancePreferencesViewModel) {

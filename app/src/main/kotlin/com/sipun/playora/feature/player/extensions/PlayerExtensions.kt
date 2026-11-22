@@ -1,7 +1,6 @@
 package com.sipun.playora.feature.player.extensions
 
 import android.content.Context
-import android.content.pm.ActivityInfo
 import android.graphics.Typeface
 import android.os.Build
 import android.widget.ImageButton

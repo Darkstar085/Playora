@@ -31,6 +31,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
 import com.sipun.playora.core.ui.components.thenIf
+import com.sipun.playora.feature.player.extensions.nameRes
 import com.sipun.playora.feature.player.state.ControlsVisibilityState
 import com.sipun.playora.feature.player.state.SeekGestureState
 import com.sipun.playora.feature.player.state.TapGestureState
@@ -40,11 +41,10 @@ import com.sipun.playora.feature.player.state.rememberMediaPresentationState
 import com.sipun.playora.feature.player.state.rememberMetadataState
 import com.sipun.playora.feature.player.state.rememberPlayerKeyInputState
 import com.sipun.playora.feature.player.ui.DpadSeekIndicator
+import com.sipun.playora.feature.player.ui.InfoView
 import com.sipun.playora.feature.player.ui.OverlayShowView
 import com.sipun.playora.feature.player.ui.OverlayView
 import com.sipun.playora.feature.player.ui.PlayerGestureIndicators
-import com.sipun.playora.feature.player.ui.InfoView
-import com.sipun.playora.feature.player.extensions.nameRes
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(UnstableApi::class)

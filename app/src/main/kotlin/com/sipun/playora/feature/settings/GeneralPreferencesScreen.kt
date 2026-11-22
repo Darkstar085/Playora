@@ -9,8 +9,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -23,13 +21,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sipun.playora.R
+import com.sipun.playora.core.ui.components.AppBackButton
+import com.sipun.playora.core.ui.components.AppDialog
+import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.CancelButton
 import com.sipun.playora.core.ui.components.ClickablePreferenceItem
 import com.sipun.playora.core.ui.components.DeleteButton
 import com.sipun.playora.core.ui.components.ListSectionTitle
-import com.sipun.playora.core.ui.components.AppDialog
-import com.sipun.playora.core.ui.components.AppBackButton
-import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.ResetButton
 import com.sipun.playora.core.ui.designsystem.AppIcons
 

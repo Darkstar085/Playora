@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -56,7 +55,6 @@ import androidx.compose.ui.unit.sp
 import com.sipun.playora.R
 import com.sipun.playora.core.model.VideoContentScale
 import com.sipun.playora.feature.player.extensions.descriptionRes
-import com.sipun.playora.feature.player.extensions.isPortrait
 import com.sipun.playora.feature.player.extensions.nameRes
 
 @Composable

@@ -37,7 +37,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -72,11 +71,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.sipun.playora.R
@@ -86,8 +83,8 @@ import com.sipun.playora.feature.player.buttons.LoopButton
 import com.sipun.playora.feature.player.buttons.PlayerButton
 import com.sipun.playora.feature.player.buttons.PlayerButtonBlackAlpha
 import com.sipun.playora.feature.player.buttons.ShuffleButton
+import com.sipun.playora.feature.player.model.DecoderMode
 import com.sipun.playora.feature.player.model.labelRes
-import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

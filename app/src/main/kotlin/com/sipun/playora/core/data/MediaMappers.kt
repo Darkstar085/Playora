@@ -1,5 +1,8 @@
 package com.sipun.playora.core.data.mappers
 
+import com.sipun.nextlib.mediainfo.AudioStream
+import com.sipun.nextlib.mediainfo.SubtitleStream
+import com.sipun.nextlib.mediainfo.VideoStream
 import com.sipun.playora.core.common.Utils
 import com.sipun.playora.core.data.models.VideoState
 import com.sipun.playora.core.database.converter.UriListConverter
@@ -11,9 +14,6 @@ import com.sipun.playora.core.model.Folder
 import com.sipun.playora.core.model.SubtitleStreamInfo
 import com.sipun.playora.core.model.Video
 import com.sipun.playora.core.model.VideoStreamInfo
-import com.sipun.nextlib.mediainfo.AudioStream
-import com.sipun.nextlib.mediainfo.SubtitleStream
-import com.sipun.nextlib.mediainfo.VideoStream
 import java.util.Date
 
 internal fun MediaFolder.toFolder() = Folder(

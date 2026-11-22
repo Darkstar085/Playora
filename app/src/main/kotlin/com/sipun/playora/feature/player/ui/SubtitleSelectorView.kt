@@ -63,7 +63,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.sipun.playora.R
 import com.sipun.playora.feature.player.extensions.getName
-import com.sipun.playora.feature.player.extensions.isPortrait
 import com.sipun.playora.feature.player.state.SubtitleOptionsEvent
 import com.sipun.playora.feature.player.state.rememberSubtitleOptionsState
 import com.sipun.playora.feature.player.state.rememberTracksState

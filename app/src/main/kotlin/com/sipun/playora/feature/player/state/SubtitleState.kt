@@ -19,13 +19,13 @@ import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
+import com.sipun.nextlib.media3ext.renderer.subtitleDelayMilliseconds
+import com.sipun.nextlib.media3ext.renderer.subtitleSpeed
 import com.sipun.playora.feature.player.extensions.copy
 import com.sipun.playora.feature.player.service.getSubtitleDelayMilliseconds
 import com.sipun.playora.feature.player.service.getSubtitleSpeed
 import com.sipun.playora.feature.player.service.setSubtitleDelayMilliseconds
 import com.sipun.playora.feature.player.service.setSubtitleSpeed
-import com.sipun.nextlib.media3ext.renderer.subtitleDelayMilliseconds
-import com.sipun.nextlib.media3ext.renderer.subtitleSpeed
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

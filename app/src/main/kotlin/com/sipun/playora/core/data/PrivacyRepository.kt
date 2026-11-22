@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import com.sipun.nextlib.mediainfo.MediaInfoBuilder
 import com.sipun.playora.core.common.Logger
 import com.sipun.playora.core.common.Utils
 import com.sipun.playora.core.data.mappers.toAudioStreamInfo
@@ -20,7 +21,6 @@ import com.sipun.playora.core.database.entities.HiddenVideoEntity
 import com.sipun.playora.core.media.services.MediaOperationsService
 import com.sipun.playora.core.model.MediaInfo
 import com.sipun.playora.core.model.Video
-import com.sipun.nextlib.mediainfo.MediaInfoBuilder
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable

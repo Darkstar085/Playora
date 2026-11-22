@@ -154,17 +154,16 @@
     <string name="decoder">Decoder</string>
     <string name="select_decoders">Select decoders</string>
     <string name="decoder_mode_hardware">HW</string>
-    <string name="decoder_mode_system_software">SW+</string>
+    <string name="decoder_mode_hardware_plus">HW+</string>
     <string name="decoder_mode_app_software">SW</string>
-    <string name="decoder_hardware_description">Hardware MediaCodec decoders only</string>
-    <string name="decoder_system_software_description">Android software MediaCodec decoders only</string>
+    <string name="decoder_system_description">Android system decoders (hardware or software)</string>
+    <string name="decoder_hardware_plus_description">FFmpeg container reader with Android system decoders</string>
     <string name="decoder_app_software_description">Bundled FFmpeg software decoder</string>
     <string name="video_decoder_mode_not_supported">%1$s video decoder is not supported</string>
     <string name="audio_decoder_mode_not_supported">%1$s audio decoder is not supported</string>
     <string name="no_supported_decoder">No supported decoder is available for this media.</string>
 
     <string name="audio">Audio</string>
-    <string name="select_audio_track">Select audio track</string>
     <string name="preferred_audio_lang">Preferred audio language</string>
     <string name="preferred_audio_lang_description">Language of the audio track you want to use by default</string>
     <string name="volume_boost">Volume boost</string>
@@ -174,7 +173,6 @@
 
     <string name="subtitle">Subtitle</string>
     <string name="subtitle_desc">Subtitle appearance, playback options</string>
-    <string name="select_subtitle_track">Select subtitle track</string>
     <string name="preferred_subtitle_lang">Preferred subtitle language</string>
     <string name="preferred_subtitle_lang_description">Language of the subtitle track you want to use by default</string>
     <string name="open_subtitle">Open local subtitle</string>

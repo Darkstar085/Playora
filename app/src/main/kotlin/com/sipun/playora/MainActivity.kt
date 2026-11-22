@@ -44,7 +44,6 @@ import com.sipun.playora.navigation.navigationTransitionModifier
 import com.sipun.playora.navigation.removeLastIfNotRoot
 import com.sipun.playora.navigation.settingsNavGraph
 import com.sipun.playora.navigation.startPlayback
-import kotlinx.coroutines.delay
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 

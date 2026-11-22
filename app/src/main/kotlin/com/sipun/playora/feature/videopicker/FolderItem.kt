@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,24 +43,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.unit.min
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sipun.playora.R
-import com.sipun.playora.core.common.Utils
 import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.Folder
 import com.sipun.playora.core.model.MediaLayoutMode
-import com.sipun.playora.core.ui.components.DestructiveRed
 import com.sipun.playora.core.ui.components.AppSegmentedListItem
+import com.sipun.playora.core.ui.components.DestructiveRed
 import com.sipun.playora.core.ui.theme.PlayoraTheme
 import java.util.Locale
 

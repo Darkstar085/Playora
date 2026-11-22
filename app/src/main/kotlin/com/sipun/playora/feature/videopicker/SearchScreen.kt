@@ -1,7 +1,6 @@
 ﻿package com.sipun.playora.feature.videopicker.screens.search
 
 import android.net.Uri
-import androidx.core.net.toUri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -23,7 +22,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sipun.playora.R
@@ -60,10 +59,10 @@ import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.Folder
 import com.sipun.playora.core.model.MediaLayoutMode
 import com.sipun.playora.core.model.Video
-import com.sipun.playora.core.ui.components.ListSectionTitle
 import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppOutlinedTextField
 import com.sipun.playora.core.ui.components.AppTopAppBar
+import com.sipun.playora.core.ui.components.ListSectionTitle
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.extensions.copy
 import com.sipun.playora.core.ui.extensions.plus

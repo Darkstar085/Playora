@@ -8,8 +8,8 @@ import androidx.media3.common.Player
 import com.sipun.playora.core.model.VideoContentScale
 import com.sipun.playora.feature.player.extensions.getParcelableUriArray
 import com.sipun.playora.feature.player.extensions.setExtras
+import com.sipun.playora.feature.player.model.DecoderMode
 import com.sipun.playora.feature.player.model.Subtitle
-import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode
 
 class PlayerApi(private val intent: Intent) {
     private val extras = intent.extras
@@ -53,7 +53,8 @@ class PlayerApi(private val intent: Intent) {
 
     private val decoderMode: DecoderMode?
         get() = when ((value("decode_mode") as? Number)?.toInt()) {
-            1, 4 -> DecoderMode.HARDWARE
+            1 -> DecoderMode.HARDWARE
+            4 -> DecoderMode.HW_PLUS
             2 -> DecoderMode.FFMPEG
             else -> null
         }
@@ -160,7 +161,12 @@ class PlayerApi(private val intent: Intent) {
                 1.toByte(),
             )
 
-            DecoderMode.FFMPEG, DecoderMode.SOFTWARE -> putExtra(
+            DecoderMode.HW_PLUS -> putExtra(
+                "decode_mode",
+                4.toByte(),
+            )
+
+            DecoderMode.FFMPEG -> putExtra(
                 "decode_mode",
                 2.toByte(),
             )
