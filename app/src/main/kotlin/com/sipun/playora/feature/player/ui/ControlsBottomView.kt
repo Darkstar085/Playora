@@ -1,5 +1,6 @@
 ﻿package com.sipun.playora.feature.player.ui.controls
 
+import android.content.res.Configuration
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
@@ -147,16 +149,20 @@ fun ControlsBottomView(
             )
         }
 
+        val configuration = LocalConfiguration.current
+        val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
         // Row 2: Bottom controls row (Lock | Prev Play Next | Scale PiP)
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+            contentAlignment = Alignment.Center,
         ) {
             PlayerButton(
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier
+                    .size(40.dp)
+                    .align(Alignment.CenterStart),
                 onClick = onLockControlsClick,
                 containerColor = PlayerButtonBlackAlpha,
             ) {
@@ -168,17 +174,31 @@ fun ControlsBottomView(
             }
 
             Row(
+                modifier = Modifier.align(Alignment.Center),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(24.dp),
+                horizontalArrangement = Arrangement.spacedBy(if (isLandscape) 24.dp else 10.dp),
             ) {
-                PreviousButton(player = player)
-                PlayPauseButton(player = player)
-                NextButton(player = player)
+                PreviousButton(
+                    modifier = Modifier.size(if (isLandscape) 48.dp else 40.dp),
+                    player = player,
+                    iconSize = if (isLandscape) 28.dp else 24.dp,
+                )
+                PlayPauseButton(
+                    modifier = Modifier.size(if (isLandscape) 56.dp else 48.dp),
+                    player = player,
+                    iconSize = if (isLandscape) 36.dp else 30.dp,
+                )
+                NextButton(
+                    modifier = Modifier.size(if (isLandscape) 48.dp else 40.dp),
+                    player = player,
+                    iconSize = if (isLandscape) 28.dp else 24.dp,
+                )
             }
 
             Row(
+                modifier = Modifier.align(Alignment.CenterEnd),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(if (isLandscape) 12.dp else 16.dp),
             ) {
                 PlayerButton(
                     modifier = Modifier.size(40.dp),

@@ -21,8 +21,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.state.observeState
-import com.sipun.playora.feature.player.service.getSkipSilenceEnabled
-import com.sipun.playora.feature.player.service.setSkipSilenceEnabled
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -100,27 +98,12 @@ class PlaybackParametersState(private val player: Player, private val scope: Cor
     var speed: Float by mutableFloatStateOf(value = 1f)
         private set
 
-    var skipSilenceEnabled: Boolean by mutableStateOf(value = false)
-        private set
-
     fun setPlaybackSpeed(speed: Float) {
         player.setPlaybackSpeed(speed)
     }
 
-    fun setIsSkipSilenceEnabled(enabled: Boolean) {
-        scope.launch {
-            when (player) {
-                is MediaController -> player.setSkipSilenceEnabled(enabled = enabled)
-                is ExoPlayer -> player.skipSilenceEnabled = enabled
-                else -> return@launch
-            }
-            updateSkipSilenceEnabled()
-        }
-    }
-
     suspend fun observe() {
         updateSpeed()
-        updateSkipSilenceEnabled()
 
         player.listen { events ->
             if (events.contains(Player.EVENT_PLAYBACK_PARAMETERS_CHANGED)) {
@@ -131,16 +114,6 @@ class PlaybackParametersState(private val player: Player, private val scope: Cor
 
     private fun updateSpeed() {
         speed = player.playbackParameters.speed
-    }
-
-    private fun updateSkipSilenceEnabled() {
-        scope.launch {
-            skipSilenceEnabled = when (player) {
-                is MediaController -> player.getSkipSilenceEnabled()
-                is ExoPlayer -> player.skipSilenceEnabled
-                else -> return@launch
-            }
-        }
     }
 }
 

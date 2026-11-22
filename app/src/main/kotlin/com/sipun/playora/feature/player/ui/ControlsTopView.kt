@@ -66,10 +66,12 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -136,7 +138,7 @@ fun BatteryAndClockView(modifier: Modifier = Modifier) {
         modifier = modifier,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
@@ -146,7 +148,6 @@ fun BatteryAndClockView(modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.labelMedium,
                 color = Color.White,
             )
-            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = currentTime,
                 style = MaterialTheme.typography.labelMedium,
@@ -330,7 +331,7 @@ fun ControlsTopView(
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             PlayerButton(
                 modifier = Modifier.size(40.dp),
@@ -346,9 +347,11 @@ fun ControlsTopView(
             if (validTitle != null) {
                 Text(
                     text = validTitle,
-                    style = MaterialTheme.typography.titleMedium.copy(lineBreak = LineBreak.Heading),
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.SemiBold,
+                    ),
                     color = Color.White,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(weight = 1f),
                 )
@@ -384,7 +387,7 @@ fun ControlsTopView(
                     .focusRequester(focusRequester = firstControlFocusRequester),
                 onClick = onDecoderClick,
                 containerColor = PlayerButtonBlackAlpha,
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
             ) {
                 Text(
                     text = stringResource((videoDecoderMode ?: DecoderMode.HARDWARE).labelRes),
@@ -395,12 +398,14 @@ fun ControlsTopView(
         }
 
         // Secondary Quick Actions Row
+        val configuration = LocalConfiguration.current
+        val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 48.dp, top = 6.dp),
+                .padding(top = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(if (isLandscape) 12.dp else 8.dp),
         ) {
             val activeAccent = MaterialTheme.colorScheme.primary
 

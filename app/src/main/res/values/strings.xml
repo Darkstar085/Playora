@@ -169,7 +169,6 @@
     <string name="preferred_audio_lang_description">Language of the audio track you want to use by default</string>
     <string name="volume_boost">Volume boost</string>
     <string name="volume_boost_desc">Boost audio volume up to 200%</string>
-    <string name="skip_silence">Skip silence</string>
     <string name="open_audio">Open local audio</string>
     <string name="error_opening_audio">Can’t open this audio file</string>
 

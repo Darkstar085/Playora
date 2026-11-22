@@ -106,11 +106,11 @@ fun PlayerControls(
                         controlsVisibilityState.lockControls()
                     },
                     onVideoContentScaleClick = {
-                        controlsVisibilityState.showControls()
-                        videoZoomAndContentScaleState.switchToNextVideoContentScale()
+                        onShowOverlay(OverlayView.VIDEO_CONTENT_SCALE)
                     },
                     onVideoContentScaleLongClick = {
-                        onShowOverlay(OverlayView.VIDEO_CONTENT_SCALE)
+                        controlsVisibilityState.showControls()
+                        videoZoomAndContentScaleState.switchToNextVideoContentScale()
                     },
                     onPictureInPictureClick = onPictureInPictureClick,
                 )

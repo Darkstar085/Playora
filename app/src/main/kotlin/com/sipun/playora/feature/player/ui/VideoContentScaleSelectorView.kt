@@ -1,6 +1,9 @@
 ﻿package com.sipun.playora.feature.player.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
@@ -16,12 +19,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,6 +52,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.sipun.playora.R
 import com.sipun.playora.core.model.VideoContentScale
 import com.sipun.playora.feature.player.extensions.descriptionRes
@@ -65,121 +71,136 @@ fun BoxScope.VideoContentScaleSelectorView(
     val isPortrait = configuration.isPortrait
 
     AnimatedVisibility(
-        modifier = Modifier.align(
-            alignment = if (isPortrait) {
-                Alignment.BottomCenter
-            } else {
-                Alignment.CenterEnd
-            },
-        ),
         visible = show,
-        enter = if (isPortrait) {
-            slideInVertically { it }
-        } else {
-            slideInHorizontally { it }
-        },
-        exit = if (isPortrait) {
-            slideOutVertically { it }
-        } else {
-            slideOutHorizontally { it }
-        },
+        enter = fadeIn(animationSpec = tween(150)),
+        exit = fadeOut(animationSpec = tween(150)),
     ) {
-        Surface(
-            shape = if (isPortrait) {
-                RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
-            } else {
-                RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp)
-            },
-            color = Color(0xFF0F1418),
-            modifier = modifier
-                .then(
-                    if (isPortrait) {
-                        Modifier.fillMaxWidth()
-                    } else {
-                        Modifier
-                            .fillMaxWidth(fraction = 0.5f)
-                            .fillMaxHeight()
-                    },
-                )
+        // Scrim
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClick = {},
-                )
-                .navigationBarsPadding(),
+                    onClick = onDismiss,
+                ),
+            contentAlignment = if (isPortrait) Alignment.BottomCenter else Alignment.CenterEnd,
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 12.dp, bottom = 20.dp)
-                    .verticalScroll(rememberScrollState()),
+            AnimatedVisibility(
+                visible = show,
+                enter = if (isPortrait) {
+                    slideInVertically(
+                        initialOffsetY = { it },
+                        animationSpec = tween(220),
+                    ) + fadeIn(animationSpec = tween(220))
+                } else {
+                    slideInHorizontally(
+                        initialOffsetX = { it },
+                        animationSpec = tween(220),
+                    ) + fadeIn(animationSpec = tween(220))
+                },
+                exit = if (isPortrait) {
+                    slideOutVertically(
+                        targetOffsetY = { it },
+                        animationSpec = tween(180),
+                    ) + fadeOut(animationSpec = tween(180))
+                } else {
+                    slideOutHorizontally(
+                        targetOffsetX = { it },
+                        animationSpec = tween(180),
+                    ) + fadeOut(animationSpec = tween(180))
+                },
+                modifier = Modifier.align(if (isPortrait) Alignment.BottomCenter else Alignment.CenterEnd),
             ) {
-                // Drag handle
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center,
+                Surface(
+                    shape = if (isPortrait) {
+                        RoundedCornerShape(24.dp)
+                    } else {
+                        RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp)
+                    },
+                    color = Color(0xF012171E),
+                    border = BorderStroke(1.dp, Color(0xFF26323D)),
+                    shadowElevation = 12.dp,
+                    modifier = modifier
+                        .then(
+                            if (isPortrait) {
+                                Modifier
+                                    .padding(bottom = 32.dp, start = 16.dp, end = 16.dp)
+                                    .fillMaxWidth()
+                                    .widthIn(max = 440.dp)
+                            } else {
+                                Modifier
+                                    .fillMaxHeight()
+                                    .width(350.dp)
+                            }
+                        )
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                        ) {},
                 ) {
-                    Box(
+                    Column(
                         modifier = Modifier
-                            .size(width = 36.dp, height = 4.dp)
-                            .background(
-                                color = Color(0xFF5E666D),
-                                shape = RoundedCornerShape(2.dp),
-                            ),
-                    )
-                }
+                            .then(if (isPortrait) Modifier.fillMaxWidth() else Modifier.fillMaxSize())
+                            .padding(20.dp)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        // Header: Icon + Title & Subtitle (No drag handle indicator pill)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .background(
+                                        color = Color(0xFF1E2833),
+                                        shape = RoundedCornerShape(12.dp),
+                                    ),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.CropFree,
+                                    contentDescription = null,
+                                    tint = Color(0xFF4CA5FF),
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            }
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.video_zoom),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = stringResource(R.string.video_zoom_description),
+                                    color = Color(0xFF8E9BA8),
+                                    fontSize = 12.sp,
+                                )
+                            }
+                        }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Header
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.CropFree,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(32.dp),
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text(
-                            text = stringResource(R.string.video_zoom),
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                            ),
-                            color = Color.White,
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = stringResource(R.string.video_zoom_description),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xFF9EABB8),
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Options list
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .selectableGroup(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    VideoContentScale.entries.forEach { contentScale ->
-                        VideoContentScaleCard(
-                            contentScale = contentScale,
-                            isSelected = contentScale == videoContentScale,
-                            onClick = {
-                                onVideoContentScaleChanged(contentScale)
-                                onDismiss()
-                            },
-                        )
+                        // Options list
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .selectableGroup(),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            VideoContentScale.entries.forEach { contentScale ->
+                                VideoContentScaleCard(
+                                    contentScale = contentScale,
+                                    isSelected = contentScale == videoContentScale,
+                                    onClick = {
+                                        onVideoContentScaleChanged(contentScale)
+                                        onDismiss()
+                                    },
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -198,27 +219,27 @@ private fun VideoContentScaleCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        color = Color(0xFF1B2228),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF182028),
         border = if (isSelected) {
-            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+            BorderStroke(1.5.dp, Color(0xFF1B88F5))
         } else {
-            null
+            BorderStroke(1.dp, Color(0x3326323D))
         },
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 14.dp),
+                .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Icon container
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(40.dp)
                     .background(
-                        color = Color(0xFF262E36),
-                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF222B36),
+                        shape = RoundedCornerShape(10.dp),
                     ),
                 contentAlignment = Alignment.Center,
             ) {
@@ -228,7 +249,7 @@ private fun VideoContentScaleCard(
                             imageVector = Icons.Rounded.ZoomOutMap,
                             contentDescription = null,
                             tint = Color.White,
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(22.dp),
                         )
                     }
 
@@ -238,7 +259,7 @@ private fun VideoContentScaleCard(
                             contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier
-                                .size(24.dp)
+                                .size(22.dp)
                                 .rotate(90f),
                         )
                     }
@@ -248,7 +269,7 @@ private fun VideoContentScaleCard(
                             imageVector = Icons.Rounded.Crop,
                             contentDescription = null,
                             tint = Color.White,
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(22.dp),
                         )
                     }
 
@@ -259,6 +280,7 @@ private fun VideoContentScaleCard(
                                 fontWeight = FontWeight.Bold,
                             ),
                             color = Color.White,
+                            fontSize = 15.sp,
                         )
                     }
                 }
@@ -271,16 +293,15 @@ private fun VideoContentScaleCard(
             ) {
                 Text(
                     text = stringResource(contentScale.nameRes()),
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                    ),
                     color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.sp,
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = stringResource(contentScale.descriptionRes()),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF9EABB8),
+                    color = Color(0xFF8E9BA8),
+                    fontSize = 11.5.sp,
                 )
             }
 
@@ -290,8 +311,8 @@ private fun VideoContentScaleCard(
                 selected = isSelected,
                 onClick = null,
                 colors = RadioButtonDefaults.colors(
-                    selectedColor = MaterialTheme.colorScheme.primary,
-                    unselectedColor = Color(0xFF7A8693),
+                    selectedColor = Color(0xFF1B88F5),
+                    unselectedColor = Color(0xFF5E6E7E),
                 ),
             )
         }

@@ -1,8 +1,10 @@
 package com.sipun.playora.feature.player.buttons
 
 import androidx.annotation.OptIn
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
@@ -45,6 +47,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
@@ -66,15 +69,16 @@ import com.sipun.playora.R as coreUiR
 @OptIn(UnstableApi::class)
 @Composable
 internal fun NextButton(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.size(48.dp),
     player: Player?,
     containerColor: Color = PlayerButtonBlackAlpha,
+    iconSize: Dp = 28.dp,
 ) {
     val state = rememberNextButtonState(player = player)
     val controlsVisibilityState = LocalControlsVisibilityState.current
 
     PlayerButton(
-        modifier = modifier.size(48.dp),
+        modifier = modifier,
         containerColor = containerColor,
         enabled = state.isEnabled,
         onClick = {
@@ -89,7 +93,7 @@ internal fun NextButton(
         Icon(
             imageVector = Icons.Rounded.SkipNext,
             contentDescription = stringResource(coreUiR.string.player_controls_next),
-            modifier = Modifier.size(28.dp),
+            modifier = Modifier.size(iconSize),
         )
     }
 }
@@ -97,9 +101,10 @@ internal fun NextButton(
 @OptIn(UnstableApi::class)
 @Composable
 fun PlayPauseButton(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.size(56.dp),
     player: Player?,
     containerColor: Color = PlayerButtonBlackAlpha,
+    iconSize: Dp = 36.dp,
 ) {
     val state = rememberPlayPauseButtonState(player = player)
     val icon = when (state.showPlay) {
@@ -112,7 +117,7 @@ fun PlayPauseButton(
     }
 
     PlayerButton(
-        modifier = modifier.size(56.dp),
+        modifier = modifier,
         containerColor = containerColor,
         enabled = state.isEnabled,
         onClick = state::onClick,
@@ -120,7 +125,7 @@ fun PlayPauseButton(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            modifier = Modifier.size(36.dp),
+            modifier = Modifier.size(iconSize),
         )
     }
 }
@@ -160,7 +165,7 @@ fun PlaybackSpeedButton(player: Player?, onClick: () -> Unit, modifier: Modifier
 
 val PlayerButtonBlackAlpha = Color.Black.copy(alpha = 0.35f)
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun PlayerButton(
     modifier: Modifier = Modifier,
@@ -172,31 +177,7 @@ fun PlayerButton(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val viewConfiguration = LocalViewConfiguration.current
     val hapticFeedback = LocalHapticFeedback.current
-
-    LaunchedEffect(key1 = interactionSource) {
-        var isLongPressClicked = false
-        interactionSource.interactions.collectLatest { interaction ->
-            when (interaction) {
-                is PressInteraction.Press -> {
-                    isLongPressClicked = false
-                    delay(viewConfiguration.longPressTimeoutMillis.milliseconds)
-                    onLongClick?.let {
-                        isLongPressClicked = true
-                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                        it.invoke()
-                    }
-                }
-
-                is PressInteraction.Release -> {
-                    if (!isLongPressClicked) {
-                        onClick()
-                    }
-                }
-            }
-        }
-    }
 
     val colors = IconButtonDefaults.iconButtonColors(
         contentColor = Color.White,
@@ -227,10 +208,26 @@ fun PlayerButton(
                 .background(
                     color = if (enabled) colors.containerColor else colors.disabledContainerColor,
                 )
-                .clickable(
-                    interactionSource = interactionSource,
-                    enabled = enabled,
-                    onClick = {},
+                .then(
+                    if (onLongClick != null) {
+                        Modifier.combinedClickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            enabled = enabled,
+                            onClick = onClick,
+                            onLongClick = {
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onLongClick()
+                            },
+                        )
+                    } else {
+                        Modifier.clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            enabled = enabled,
+                            onClick = onClick,
+                        )
+                    }
                 )
                 .padding(paddingValues = contentPadding),
             contentAlignment = Alignment.Center,
@@ -242,15 +239,16 @@ fun PlayerButton(
 @OptIn(UnstableApi::class)
 @Composable
 internal fun PreviousButton(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.size(48.dp),
     player: Player?,
     containerColor: Color = PlayerButtonBlackAlpha,
+    iconSize: Dp = 28.dp,
 ) {
     val state = rememberPreviousButtonState(player = player)
     val controlsVisibilityState = LocalControlsVisibilityState.current
 
     PlayerButton(
-        modifier = modifier.size(48.dp),
+        modifier = modifier,
         containerColor = containerColor,
         enabled = state.isEnabled,
         onClick = {
@@ -265,7 +263,7 @@ internal fun PreviousButton(
         Icon(
             imageVector = Icons.Rounded.SkipPrevious,
             contentDescription = stringResource(coreUiR.string.player_controls_previous),
-            modifier = Modifier.size(28.dp),
+            modifier = Modifier.size(iconSize),
         )
     }
 }

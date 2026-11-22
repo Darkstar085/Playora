@@ -55,6 +55,7 @@ fun BoxScope.OverlayShowView(
         audioMode = audioDecoderMode,
         onVideoModeSelected = onVideoDecoderModeSelected,
         onAudioModeSelected = onAudioDecoderModeSelected,
+        onDismiss = onDismiss,
     )
 
     SubtitleSelectorView(
@@ -68,6 +69,7 @@ fun BoxScope.OverlayShowView(
     PlaybackSpeedSelectorView(
         show = overlayView == OverlayView.PLAYBACK_SPEED,
         player = player,
+        onDismiss = onDismiss,
     )
 
     VideoContentScaleSelectorView(
