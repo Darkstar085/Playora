@@ -8,6 +8,8 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.sipun.playora.settings.Setting
 import com.sipun.playora.settings.SettingsOutput
+import com.sipun.playora.settings.AboutOutput
+import com.sipun.playora.settings.AboutScreen
 import com.sipun.playora.settings.SettingsScreen
 import com.sipun.playora.settings.screens.appearance.AppearancePreferencesScreen
 import com.sipun.playora.settings.screens.appearance.AppearancePreferencesViewModel
@@ -221,5 +223,18 @@ fun EntryProviderScope<NavKey>.subtitlePreferencesEntry(onNavigateUp: () -> Unit
         )
         SideEffect { viewModel.output = output }
         SubtitlePreferencesScreen(viewModel = viewModel)
+    }
+}
+
+@Serializable
+object AboutRoute : NavKey
+
+fun NavBackStack<NavKey>.navigateToAbout() {
+    add(element = AboutRoute)
+}
+
+fun EntryProviderScope<NavKey>.aboutEntry(onNavigateUp: () -> Unit) {
+    entry<AboutRoute> {
+        AboutScreen(output = AboutOutput(navigateUp = onNavigateUp))
     }
 }

@@ -5,6 +5,8 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.sipun.playora.settings.Setting
 import com.sipun.playora.settings.navigation.appearancePreferencesEntry
+import com.sipun.playora.settings.navigation.aboutEntry
+import com.sipun.playora.settings.navigation.navigateToAbout
 import com.sipun.playora.settings.navigation.folderPreferencesEntry
 import com.sipun.playora.settings.navigation.generalPreferencesEntry
 import com.sipun.playora.settings.navigation.gesturePreferencesEntry
@@ -28,6 +30,7 @@ fun EntryProviderScope<NavKey>.settingsNavGraph(backStack: NavBackStack<NavKey>)
                 Setting.GESTURES -> backStack.navigateToGesturePreferences()
                 Setting.SUBTITLE -> backStack.navigateToSubtitlePreferences()
                 Setting.GENERAL -> backStack.navigateToGeneralPreferences()
+                Setting.ABOUT -> backStack.navigateToAbout()
             }
         },
     )
@@ -46,6 +49,7 @@ fun EntryProviderScope<NavKey>.settingsNavGraph(backStack: NavBackStack<NavKey>)
     subtitlePreferencesEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
     )
+    aboutEntry(onNavigateUp = { backStack.removeLastIfNotRoot() })
     generalPreferencesEntry(
         onNavigateUp = { backStack.removeLastIfNotRoot() },
         onFolderSettingClick = backStack::navigateToFolderPreferencesScreen,

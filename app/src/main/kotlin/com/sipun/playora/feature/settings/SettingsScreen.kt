@@ -91,6 +91,7 @@ enum class Setting {
     GESTURES,
     SUBTITLE,
     GENERAL,
+    ABOUT,
 }
 
 private enum class SettingRow(
@@ -128,5 +129,11 @@ private enum class SettingRow(
         descriptionResId = R.string.general_description,
         icon = AppIcons.ExtraSettings,
         setting = Setting.GENERAL,
+    ),
+    ABOUT(
+        titleResId = R.string.about,
+        descriptionResId = R.string.about_settings_description,
+        icon = AppIcons.Info,
+        setting = Setting.ABOUT,
     ),
 }

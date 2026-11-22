@@ -310,5 +310,22 @@
     <string name="mark_as">Mark as</string>
     <string name="last_played">Last played</string>
     <string name="finished">Finished</string>
+    <string name="about">About</string>
+    <string name="about_settings_description">App information and project links</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_description">A modern and lightweight video player for Android with a clean interface and powerful playback features.</string>
+    <string name="check_for_updates">Check for updates</string>
+    <string name="about_update_hint">Check the latest release on GitHub</string>
+    <string name="get_involved">Get involved</string>
+    <string name="about_source">Source</string>
+    <string name="about_source_description">View the project on GitHub</string>
+    <string name="about_contact">Contact</string>
+    <string name="about_contact_description">Get in touch or report an issue</string>
+    <string name="about_support">Support</string>
+    <string name="about_support_description">Support development and the project</string>
+    <string name="about_section">About</string>
+    <string name="license">License</string>
+    <string name="about_license_description">Released under the MIT License</string>
+    <string name="about_copyright">© 2026 Playora</string>
 </resources>
 
