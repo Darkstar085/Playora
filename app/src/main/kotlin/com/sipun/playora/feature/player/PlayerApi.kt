@@ -18,7 +18,7 @@ class PlayerApi(private val intent: Intent) {
     val hasTitle: Boolean get() = title != null
     val shouldReturnResult: Boolean get() = boolean(API_RETURN_RESULT) == true
     val position: Int? get() = (value(API_POSITION) as? Int)?.takeIf { it >= 0 }
-    val title: String? get() = value(API_TITLE) as? String
+    val title: String? get() = (value(API_TITLE) as? String) ?: (value(API_FILENAME) as? String)
     val sticky: Boolean? get() = boolean("sticky")
     val playbackSpeed: Float?
         get() = (value(API_PLAYBACK_SPEED) as? Number)?.toFloat()?.takeIf {
@@ -107,10 +107,12 @@ class PlayerApi(private val intent: Intent) {
             )
             .mapValues { ArrayDeque(it.value) }
         val names = value("video_list.name") as? Array<*>
+        val filenames = value("video_list.filename") as? Array<*>
         return playlist.mapIndexed { index, uri ->
             val suppliedIndex = suppliedIndices[uri]?.removeFirstOrNull() ?: -1
-            val itemTitle = if (suppliedIndex >= 0 && names != null) {
-                names.getOrNull(suppliedIndex) as? String
+            val itemTitle = if (suppliedIndex >= 0) {
+                (names?.getOrNull(suppliedIndex) as? String)
+                    ?: (filenames?.getOrNull(suppliedIndex) as? String)
             } else {
                 title.takeIf { index == selectedIndex }
             }
@@ -129,15 +131,7 @@ class PlayerApi(private val intent: Intent) {
                     ).build(),
                 )
                 .setSubtitleConfigurations(subtitles.takeIf { index == selectedIndex }.orEmpty())
-                .build().let { item ->
-                    if (boolean("video_list_is_explicit") ==
-                        true
-                    ) {
-                        item
-                    } else {
-                        item
-                    }
-                }
+                .build()
         }
     }
 
@@ -173,23 +167,17 @@ class PlayerApi(private val intent: Intent) {
 
             else -> Unit
         }
-        if (!isPlaybackFinished) {
-            if (duration >=
-                0
-            ) {
-                putExtra(
-                    API_DURATION,
-                    duration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
-                )
-            }
-            if (position >=
-                0
-            ) {
-                putExtra(
-                    API_POSITION,
-                    position.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
-                )
-            }
+        if (duration >= 0) {
+            putExtra(
+                API_DURATION,
+                duration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+            )
+        }
+        if (position >= 0) {
+            putExtra(
+                API_POSITION,
+                position.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+            )
         }
     }
 
@@ -197,6 +185,7 @@ class PlayerApi(private val intent: Intent) {
         const val API_PLAYBACK_SPEED = "playback_speed"
         const val API_BACKGROUND = "background"
         const val API_TITLE = "title"
+        const val API_FILENAME = "filename"
         const val API_POSITION = "position"
         const val API_DURATION = "duration"
         const val API_RETURN_RESULT = "return_result"
@@ -222,13 +211,16 @@ class PlayerApi(private val intent: Intent) {
             API_PLAYBACK_SPEED,
             API_BACKGROUND,
             API_TITLE,
+            API_FILENAME,
             API_POSITION,
             API_RETURN_RESULT,
             API_SUBS,
             API_SUBS_ENABLE,
             API_SUBS_NAME,
+            "subs.filename",
             API_PLAYLIST,
             "video_list.name",
+            "video_list.filename",
             "video_list_is_explicit",
             "decode_mode",
             "video",
