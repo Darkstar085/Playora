@@ -30,11 +30,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -386,15 +388,16 @@ internal fun CustomColorSelector(
                     .clip(RoundedCornerShape(50))
                     .background(Brush.horizontalGradient(hueColors)),
             )
+            val sliderState = rememberSliderState(value = hue, trackRange = 0f..360f)
+            SideEffect { sliderState.value = hue }
             Slider(
-                value = hue,
+                state = sliderState,
                 onValueChange = {
                     hue = it
                     onColorChange(
                         android.graphics.Color.HSVToColor(floatArrayOf(it, 0.78f, 0.92f)),
                     )
                 },
-                valueRange = 0f..360f,
                 colors = SliderDefaults.colors(
                     thumbColor = Color.White,
                     activeTrackColor = Color.Transparent,

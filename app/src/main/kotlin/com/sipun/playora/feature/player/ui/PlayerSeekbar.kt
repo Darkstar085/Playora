@@ -12,9 +12,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -84,6 +87,7 @@ internal fun PlayerSeekbar(
         SimpleSlider(
             modifier = focusModifier,
             isFocused = isFocused,
+            isScrubbing = isScrubbing,
             chapters = chapters,
             value = position,
             valueRange = 0f..(duration.takeIf { it > 0 } ?: 0f),
@@ -102,15 +106,19 @@ private fun SimpleSlider(
     onValueChange: (Float) -> Unit,
     onValueChangeFinished: () -> Unit,
     isFocused: Boolean = false,
+    isScrubbing: Boolean = false,
     chapters: List<Chapter> = emptyList(),
 ) {
     val thumbSize by animateDpAsState(
         targetValue = if (isFocused) 22.dp else 16.dp,
         label = "thumbSize",
     )
+    val sliderState = key(valueRange) { rememberSliderState(value = value, trackRange = valueRange) }
+    SideEffect {
+        if (!isScrubbing) sliderState.value = value.coerceIn(valueRange)
+    }
     Slider(
-        value = value,
-        valueRange = valueRange,
+        state = sliderState,
         onValueChange = onValueChange,
         onValueChangeFinished = onValueChangeFinished,
         modifier = modifier.height(24.dp),
@@ -136,7 +144,7 @@ private fun SimpleSlider(
                     ),
             )
         },
-        track = {
+        track = { state ->
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -151,7 +159,7 @@ private fun SimpleSlider(
                 if (valueRange.endInclusive > 0f) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(fraction = value / valueRange.endInclusive)
+                            .fillMaxWidth(fraction = state.value / valueRange.endInclusive)
                             .height(4.dp)
                             .background(MaterialTheme.colorScheme.primary),
                     )
