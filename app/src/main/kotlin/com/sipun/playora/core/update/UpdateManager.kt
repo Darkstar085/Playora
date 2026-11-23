@@ -24,6 +24,8 @@ data class AppUpdate(
     val fileName: String,
     val size: Long,
     val digest: String,
+    val releaseDate: String = "",
+    val isPrerelease: Boolean = false,
 )
 
 object UpdateManager {
@@ -47,6 +49,10 @@ object UpdateManager {
             val version = release.getString("tag_name").removePrefix("v")
             if (!isNewerVersion(currentVersion(context), version)) return@withContext null
 
+            val isPrerelease = release.optBoolean("prerelease")
+            val publishedAt = release.optString("published_at").ifBlank { release.optString("created_at") }
+            val formattedDate = formatReleaseDate(publishedAt)
+
             val assets = release.getJSONArray("assets")
             for (index in 0 until assets.length()) {
                 val asset = assets.getJSONObject(index)
@@ -65,6 +71,8 @@ object UpdateManager {
                         fileName = name,
                         size = asset.optLong("size"),
                         digest = digest,
+                        releaseDate = formattedDate,
+                        isPrerelease = isPrerelease,
                     )
                 }
             }
@@ -77,7 +85,7 @@ object UpdateManager {
     suspend fun download(
         context: Context,
         update: AppUpdate,
-        onProgress: (Int) -> Unit,
+        onProgress: (downloadedBytes: Long, totalBytes: Long) -> Unit,
     ): File = withContext(Dispatchers.IO) {
         require(update.fileName.matches(Regex("[A-Za-z0-9._-]+\\.apk", RegexOption.IGNORE_CASE))) {
             "Invalid APK filename"
@@ -111,7 +119,7 @@ object UpdateManager {
                         if (count < 0) break
                         output.write(buffer, 0, count)
                         downloaded += count
-                        if (total > 0) onProgress(((downloaded * 100) / total).toInt().coerceIn(0, 100))
+                        onProgress(downloaded, total)
                     }
                 }
             }
@@ -132,6 +140,31 @@ object UpdateManager {
             throw IllegalStateException("Could not save downloaded APK")
         }
         apk
+    }
+
+    private fun formatReleaseDate(isoDate: String): String {
+        if (isoDate.isBlank()) return "Recently"
+        return try {
+            val parser = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
+            val date = parser.parse(isoDate) ?: return "Recently"
+            val formatter = java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.US)
+            formatter.format(date)
+        } catch (_: Exception) {
+            try {
+                val datePart = isoDate.take(10)
+                val parts = datePart.split("-")
+                val year = parts.getOrNull(0) ?: ""
+                val monthNum = parts.getOrNull(1)?.toIntOrNull() ?: 1
+                val day = parts.getOrNull(2)?.toIntOrNull() ?: 1
+                val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+                val month = months.getOrElse(monthNum - 1) { "Jan" }
+                "$month $day, $year"
+            } catch (_: Exception) {
+                "Recently"
+            }
+        }
     }
 
     fun install(context: Context, apk: File): Boolean {

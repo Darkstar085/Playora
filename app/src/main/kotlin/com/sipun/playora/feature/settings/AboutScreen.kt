@@ -22,9 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -32,7 +29,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,10 +44,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.sipun.playora.core.update.AppUpdate
-import com.sipun.playora.core.update.UpdateManager
-import kotlinx.coroutines.launch
-import java.io.File
 import com.sipun.playora.BuildConfig
 import com.sipun.playora.R
 import com.sipun.playora.core.ui.components.AppBackButton
@@ -59,6 +51,9 @@ import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.theme.LocalAccentBrush
 import com.sipun.playora.core.ui.theme.LocalAccentColor
+import com.sipun.playora.core.update.AppUpdate
+import com.sipun.playora.core.update.UpdateManager
+import kotlinx.coroutines.launch
 
 private const val REPOSITORY_URL = "https://github.com/Darkstar085/playora"
 private const val RELEASES_URL = "$REPOSITORY_URL/releases/latest"
@@ -75,11 +70,8 @@ fun AboutScreen(output: AboutOutput) {
     val accent = LocalAccentColor.current
     val scope = rememberCoroutineScope()
     var isChecking by remember { mutableStateOf(false) }
-    var isDownloading by remember { mutableStateOf(false) }
-    var downloadProgress by remember { mutableIntStateOf(0) }
-    var update by remember { mutableStateOf<AppUpdate?>(null) }
-    var downloadedApk by remember { mutableStateOf<File?>(null) }
-    var updateMessage by remember { mutableStateOf<String?>(null) }
+    var updateFlowState by remember { mutableStateOf<UpdateFlowState?>(null) }
+    var downloadJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
 
     Scaffold(
         topBar = {
@@ -139,6 +131,33 @@ fun AboutScreen(output: AboutOutput) {
                 Surface(
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.clickable {
+                        // Allows instant UI review of the new updater flow
+                        updateFlowState = UpdateFlowState.Available(
+                            AppUpdate(
+                                version = "1.0.0",
+                                name = "Playora 1.0.0",
+                                notes = """
+                                    - Prepare Playora 1.0.0
+                                    - Refine folder list layout and spacing
+                                    - Migrate sliders to stable Material 3
+                                    - Add in-app GitHub release updates
+                                    - Add app about page
+                                    - Use device accent for launcher icon
+                                    - Improve playback performance
+                                    - Memory optimization for video lists
+                                    - Modern audio and gesture settings
+                                    - Refined player gesture controls
+                                """.trimIndent(),
+                                downloadUrl = "https://github.com/Darkstar085/playora/releases/latest",
+                                fileName = "playora-1.0.0.apk",
+                                size = 51065651L,
+                                digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+                                releaseDate = "Nov 20, 2026",
+                                isPrerelease = false,
+                            ),
+                        )
+                    },
                 ) {
                     Text(
                         text = stringResource(R.string.about_version, BuildConfig.VERSION_NAME),
@@ -158,14 +177,18 @@ fun AboutScreen(output: AboutOutput) {
                     onClick = {
                         if (!isChecking) {
                             isChecking = true
-                            updateMessage = null
                             scope.launch {
                                 try {
-                                    update = UpdateManager.findLatestUpdate(context)
-                                    downloadedApk = null
-                                    updateMessage = if (update == null) context.getString(R.string.update_up_to_date) else null
+                                    val latest = UpdateManager.findLatestUpdate(context)
+                                    updateFlowState = if (latest != null) {
+                                        UpdateFlowState.Available(latest)
+                                    } else {
+                                        UpdateFlowState.UpToDate(BuildConfig.VERSION_NAME)
+                                    }
                                 } catch (error: Exception) {
-                                    updateMessage = error.message ?: context.getString(R.string.update_check_failed)
+                                    updateFlowState = UpdateFlowState.Error(
+                                        error.message ?: context.getString(R.string.update_check_failed),
+                                    )
                                 } finally {
                                     isChecking = false
                                 }
@@ -286,83 +309,57 @@ fun AboutScreen(output: AboutOutput) {
         }
     }
 
-    if (update != null || updateMessage != null) {
-        AlertDialog(
-            onDismissRequest = {
-                if (!isDownloading) {
-                    update = null
-                    updateMessage = null
-                }
+    updateFlowState?.let { flowState ->
+        UpdateDialog(
+            state = flowState,
+            onDismiss = {
+                downloadJob?.cancel()
+                downloadJob = null
+                updateFlowState = null
             },
-            title = { Text(update?.name ?: stringResource(R.string.update_status)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        updateMessage ?: update?.notes?.ifBlank {
-                            context.getString(R.string.update_available, update?.version.orEmpty())
-                        }.orEmpty(),
+            onUpdateNow = { selectedUpdate ->
+                downloadJob = scope.launch {
+                    updateFlowState = UpdateFlowState.Downloading(
+                        update = selectedUpdate,
+                        downloadedBytes = 0L,
+                        totalBytes = selectedUpdate.size,
+                        progressPercent = 0,
                     )
-                    if (isDownloading) {
-                        LinearProgressIndicator(
-                            progress = { downloadProgress / 100f },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        Text(stringResource(R.string.update_download_progress, downloadProgress))
-                    }
-                }
-            },
-            confirmButton = {
-                if (update != null) {
-                    TextButton(
-                        enabled = !isDownloading,
-                        onClick = {
-                            val selectedUpdate = update ?: return@TextButton
-                            scope.launch {
-                                if (downloadedApk == null) {
-                                    isDownloading = true
-                                    downloadProgress = 0
-                                    updateMessage = null
-                                    try {
-                                        downloadedApk = UpdateManager.download(context, selectedUpdate) {
-                                            scope.launch { downloadProgress = it }
-                                        }
-                                    } catch (error: Exception) {
-                                        updateMessage = error.message ?: context.getString(R.string.update_download_failed)
-                                    } finally {
-                                        isDownloading = false
-                                    }
-                                }
-                                downloadedApk?.let { apk ->
-                                    if (UpdateManager.install(context, apk)) {
-                                        update = null
-                                        updateMessage = null
-                                    } else {
-                                        updateMessage = context.getString(R.string.update_install_permission)
-                                    }
-                                }
+                    try {
+                        val apk = UpdateManager.download(context, selectedUpdate) { downloaded, total ->
+                            val percent = if (total > 0) {
+                                ((downloaded * 100) / total).toInt().coerceIn(0, 100)
+                            } else {
+                                0
                             }
-                        },
-                    ) {
-                        Text(stringResource(if (downloadedApk == null) R.string.update_download else R.string.update_install))
-                    }
-                } else {
-                    TextButton(onClick = { updateMessage = null }) {
-                        Text(stringResource(R.string.okay))
+                            updateFlowState = UpdateFlowState.Downloading(
+                                update = selectedUpdate,
+                                downloadedBytes = downloaded,
+                                totalBytes = total,
+                                progressPercent = percent,
+                            )
+                        }
+                        updateFlowState = UpdateFlowState.Installing(selectedUpdate)
+                        if (UpdateManager.install(context, apk)) {
+                            updateFlowState = UpdateFlowState.Success(selectedUpdate.version)
+                        } else {
+                            updateFlowState = UpdateFlowState.Error(
+                                context.getString(R.string.update_install_permission),
+                            )
+                        }
+                    } catch (_: kotlinx.coroutines.CancellationException) {
+                        updateFlowState = null
+                    } catch (e: Exception) {
+                        updateFlowState = UpdateFlowState.Error(
+                            e.message ?: context.getString(R.string.update_download_failed),
+                        )
                     }
                 }
             },
-            dismissButton = {
-                if (update != null) {
-                    TextButton(
-                        enabled = !isDownloading,
-                        onClick = {
-                            update = null
-                            updateMessage = null
-                        },
-                    ) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                }
+            onCancelDownload = {
+                downloadJob?.cancel()
+                downloadJob = null
+                updateFlowState = null
             },
         )
     }

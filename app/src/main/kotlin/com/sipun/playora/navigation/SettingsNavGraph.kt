@@ -4,12 +4,12 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.sipun.playora.settings.Setting
-import com.sipun.playora.settings.navigation.appearancePreferencesEntry
 import com.sipun.playora.settings.navigation.aboutEntry
-import com.sipun.playora.settings.navigation.navigateToAbout
+import com.sipun.playora.settings.navigation.appearancePreferencesEntry
 import com.sipun.playora.settings.navigation.folderPreferencesEntry
 import com.sipun.playora.settings.navigation.generalPreferencesEntry
 import com.sipun.playora.settings.navigation.gesturePreferencesEntry
+import com.sipun.playora.settings.navigation.navigateToAbout
 import com.sipun.playora.settings.navigation.navigateToAppearancePreferences
 import com.sipun.playora.settings.navigation.navigateToFolderPreferencesScreen
 import com.sipun.playora.settings.navigation.navigateToGeneralPreferences

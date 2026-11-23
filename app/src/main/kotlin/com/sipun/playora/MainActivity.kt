@@ -15,7 +15,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
@@ -34,6 +37,7 @@ import com.sipun.playora.core.media.services.MediaOperationsService
 import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.ThemeConfig
 import com.sipun.playora.core.ui.theme.PlayoraTheme
+import com.sipun.playora.core.update.UpdateManager
 import com.sipun.playora.feature.videopicker.navigation.MediaPickerRoute
 import com.sipun.playora.feature.videopicker.navigation.privacyEntry
 import com.sipun.playora.navigation.ensureRoot
@@ -43,6 +47,12 @@ import com.sipun.playora.navigation.navigationTransitionModifier
 import com.sipun.playora.navigation.removeLastIfNotRoot
 import com.sipun.playora.navigation.settingsNavGraph
 import com.sipun.playora.navigation.startPlayback
+import com.sipun.playora.settings.UpdateDialog
+import com.sipun.playora.settings.UpdateFlowState
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -90,6 +100,22 @@ class MainActivity : FragmentActivity() {
             val preferences =
                 (state as? MainActivityUiState.Success)?.preferences ?: ApplicationPreferences()
             val shouldUseDarkTheme = shouldUseDarkTheme(state = state)
+
+            val scope = rememberCoroutineScope()
+            var autoUpdateFlowState by remember { mutableStateOf<UpdateFlowState?>(null) }
+            var autoDownloadJob by remember { mutableStateOf<Job?>(null) }
+
+            LaunchedEffect(Unit) {
+                delay(2500)
+                try {
+                    val latest = UpdateManager.findLatestUpdate(this@MainActivity)
+                    if (latest != null) {
+                        autoUpdateFlowState = UpdateFlowState.Available(latest)
+                    }
+                } catch (_: Exception) {
+                    // Silently ignore network failures on automatic background check
+                }
+            }
 
             LaunchedEffect(key1 = shouldUseDarkTheme) {
                 darkSystemBars = shouldUseDarkTheme
@@ -194,6 +220,61 @@ class MainActivity : FragmentActivity() {
                             )
                         },
                     )
+
+                    autoUpdateFlowState?.let { flowState ->
+                        UpdateDialog(
+                            state = flowState,
+                            onDismiss = {
+                                autoDownloadJob?.cancel()
+                                autoDownloadJob = null
+                                autoUpdateFlowState = null
+                            },
+                            onUpdateNow = { selectedUpdate ->
+                                autoDownloadJob = scope.launch {
+                                    autoUpdateFlowState = UpdateFlowState.Downloading(
+                                        update = selectedUpdate,
+                                        downloadedBytes = 0L,
+                                        totalBytes = selectedUpdate.size,
+                                        progressPercent = 0,
+                                    )
+                                    try {
+                                        val apk = UpdateManager.download(this@MainActivity, selectedUpdate) { downloaded, total ->
+                                            val percent = if (total > 0) {
+                                                ((downloaded * 100) / total).toInt().coerceIn(0, 100)
+                                            } else {
+                                                0
+                                            }
+                                            autoUpdateFlowState = UpdateFlowState.Downloading(
+                                                update = selectedUpdate,
+                                                downloadedBytes = downloaded,
+                                                totalBytes = total,
+                                                progressPercent = percent,
+                                            )
+                                        }
+                                        autoUpdateFlowState = UpdateFlowState.Installing(selectedUpdate)
+                                        if (UpdateManager.install(this@MainActivity, apk)) {
+                                            autoUpdateFlowState = UpdateFlowState.Success(selectedUpdate.version)
+                                        } else {
+                                            autoUpdateFlowState = UpdateFlowState.Error(
+                                                getString(R.string.update_install_permission),
+                                            )
+                                        }
+                                    } catch (_: CancellationException) {
+                                        autoUpdateFlowState = null
+                                    } catch (e: Exception) {
+                                        autoUpdateFlowState = UpdateFlowState.Error(
+                                            e.message ?: getString(R.string.update_download_failed),
+                                        )
+                                    }
+                                }
+                            },
+                            onCancelDownload = {
+                                autoDownloadJob?.cancel()
+                                autoDownloadJob = null
+                                autoUpdateFlowState = null
+                            },
+                        )
+                    }
                 }
             }
         }

@@ -6,10 +6,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import com.sipun.playora.settings.Setting
-import com.sipun.playora.settings.SettingsOutput
 import com.sipun.playora.settings.AboutOutput
 import com.sipun.playora.settings.AboutScreen
+import com.sipun.playora.settings.Setting
+import com.sipun.playora.settings.SettingsOutput
 import com.sipun.playora.settings.SettingsScreen
 import com.sipun.playora.settings.screens.appearance.AppearancePreferencesScreen
 import com.sipun.playora.settings.screens.appearance.AppearancePreferencesViewModel
