@@ -345,9 +345,30 @@
     <string name="about_contact_description">Get in touch or report an issue</string>
     <string name="about_support">Support</string>
     <string name="about_support_description">Support development and the project</string>
+    <string name="about_welcome_tour">Welcome tour</string>
+    <string name="about_welcome_tour_description">View the introductory feature tour</string>
     <string name="about_section">About</string>
     <string name="license">License</string>
     <string name="about_license_description">Released under the MIT License</string>
     <string name="about_copyright">© 2026 Playora</string>
+
+    <string name="onboarding_video_player">Video Player</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_get_started">Get Started</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_start_watching">Start Watching</string>
+    <string name="onboarding_welcome_desc">A modern and lightweight video player for Android with a clean interface and powerful playback features.</string>
+    <string name="onboarding_smooth_playback">Smooth Playback</string>
+    <string name="onboarding_smooth_playback_desc">Enjoy high-quality video playback</string>
+    <string name="onboarding_private_secure">Private &amp; Secure</string>
+    <string name="onboarding_private_secure_desc">Keep your videos safe with PIN</string>
+    <string name="onboarding_customizable">Highly Customizable</string>
+    <string name="onboarding_customizable_desc">Adjust playback, gestures and more</string>
+    <string name="onboarding_playback_desc">Enjoy smooth, high-quality video playback with support for all your favorite formats.</string>
+    <string name="onboarding_privacy_desc">Enjoy a private, secure, and personalized video experience with PIN-protected storage and flexible playback controls.</string>
+    <string name="onboarding_and_more">and more</string>
+    <string name="onboarding_check_pin">Keep your videos private with a PIN</string>
+    <string name="onboarding_check_theming">Personalize the look and feel of the app</string>
+    <string name="onboarding_check_controls">Fine-tune playback, gestures, and more</string>
 </resources>
 

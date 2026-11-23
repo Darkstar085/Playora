@@ -53,6 +53,7 @@ import com.sipun.playora.core.ui.theme.LocalAccentBrush
 import com.sipun.playora.core.ui.theme.LocalAccentColor
 import com.sipun.playora.core.update.AppUpdate
 import com.sipun.playora.core.update.UpdateManager
+import com.sipun.playora.feature.onboarding.WelcomeScreen
 import kotlinx.coroutines.launch
 
 private const val REPOSITORY_URL = "https://github.com/Darkstar085/playora"
@@ -72,6 +73,7 @@ fun AboutScreen(output: AboutOutput) {
     var isChecking by remember { mutableStateOf(false) }
     var updateFlowState by remember { mutableStateOf<UpdateFlowState?>(null) }
     var downloadJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    var showWelcomeTour by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -254,6 +256,12 @@ fun AboutScreen(output: AboutOutput) {
                 description = stringResource(R.string.about_support_description),
                 onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(SUPPORT_URL))) },
             )
+            AboutLinkCard(
+                icon = AppIcons.DoubleTap,
+                title = stringResource(R.string.about_welcome_tour),
+                description = stringResource(R.string.about_welcome_tour_description),
+                onClick = { showWelcomeTour = true },
+            )
 
             Text(
                 text = stringResource(R.string.about_section).uppercase(),
@@ -362,6 +370,15 @@ fun AboutScreen(output: AboutOutput) {
                 updateFlowState = null
             },
         )
+    }
+
+    if (showWelcomeTour) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { showWelcomeTour = false },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+        ) {
+            WelcomeScreen(onFinish = { showWelcomeTour = false })
+        }
     }
 }
 

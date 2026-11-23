@@ -33,11 +33,13 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.sipun.playora.core.common.service.system.SystemService
+import com.sipun.playora.core.data.repository.PreferencesRepository
 import com.sipun.playora.core.media.services.MediaOperationsService
 import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.ThemeConfig
 import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.core.update.UpdateManager
+import com.sipun.playora.feature.onboarding.WelcomeScreen
 import com.sipun.playora.feature.videopicker.navigation.MediaPickerRoute
 import com.sipun.playora.feature.videopicker.navigation.privacyEntry
 import com.sipun.playora.navigation.ensureRoot
@@ -61,6 +63,8 @@ class MainActivity : FragmentActivity() {
     private val mediaOperationsService: MediaOperationsService by inject()
 
     private val systemService: SystemService by inject()
+
+    private val preferencesRepository: PreferencesRepository by inject()
 
     private val viewModel: MainViewModel by viewModel()
 
@@ -105,15 +109,17 @@ class MainActivity : FragmentActivity() {
             var autoUpdateFlowState by remember { mutableStateOf<UpdateFlowState?>(null) }
             var autoDownloadJob by remember { mutableStateOf<Job?>(null) }
 
-            LaunchedEffect(Unit) {
-                delay(2500)
-                try {
-                    val latest = UpdateManager.findLatestUpdate(this@MainActivity)
-                    if (latest != null) {
-                        autoUpdateFlowState = UpdateFlowState.Available(latest)
+            LaunchedEffect(preferences.hasCompletedOnboarding) {
+                if (preferences.hasCompletedOnboarding) {
+                    delay(2500)
+                    try {
+                        val latest = UpdateManager.findLatestUpdate(this@MainActivity)
+                        if (latest != null) {
+                            autoUpdateFlowState = UpdateFlowState.Available(latest)
+                        }
+                    } catch (_: Exception) {
+                        // Silently ignore network failures on automatic background check
                     }
-                } catch (_: Exception) {
-                    // Silently ignore network failures on automatic background check
                 }
             }
 
@@ -135,10 +141,21 @@ class MainActivity : FragmentActivity() {
                 highContrastDarkTheme = shouldUseHighContrastDarkTheme(state = state),
                 dynamicColor = shouldUseDynamicTheming(state = state),
             ) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.surfaceContainer,
-                ) {
+                if (!preferences.hasCompletedOnboarding) {
+                    WelcomeScreen(
+                        onFinish = {
+                            scope.launch {
+                                preferencesRepository.updateApplicationPreferences {
+                                    it.copy(hasCompletedOnboarding = true)
+                                }
+                            }
+                        },
+                    )
+                } else {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                    ) {
                     val backStack = rememberNavBackStack(MediaPickerRoute())
                     backStack.ensureRoot(MediaPickerRoute())
 
@@ -279,6 +296,7 @@ class MainActivity : FragmentActivity() {
             }
         }
     }
+}
 }
 
 @Composable
