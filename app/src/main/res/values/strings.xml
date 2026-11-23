@@ -370,5 +370,10 @@
     <string name="onboarding_check_pin">Keep your videos private with a PIN</string>
     <string name="onboarding_check_theming">Personalize the look and feel of the app</string>
     <string name="onboarding_check_controls">Fine-tune playback, gestures, and more</string>
+    <string name="onboarding_vault_tip_title">Secret Vault</string>
+    <string name="onboarding_vault_tip_desc">Tap the “Playora” logo on the home header anytime to open your private vault.</string>
+    <string name="vault_hint_title">Secret Vault</string>
+    <string name="vault_hint_first_launch">Tap “Playora” here to open your private vault</string>
+    <string name="vault_hint_after_hide">Video hidden! Tap “Playora” anytime to view your vault</string>
 </resources>
 

@@ -4,9 +4,16 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +31,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
@@ -53,6 +61,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -62,9 +75,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -73,6 +90,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import com.sipun.playora.R
+import kotlinx.coroutines.delay
 import com.sipun.playora.core.common.storagePermission
 import com.sipun.playora.core.domain.MediaHolder
 import com.sipun.playora.core.media.services.MediaOperationsService
@@ -190,29 +208,110 @@ internal fun MediaPickerScreenContent(
     val totalItemsSize =
         (state.mediaDataState as? DataState.Success)?.value?.run { folders.size + videos.size } ?: 0
 
+    val isRoot = state.folderName == null
+    var showVaultTooltip by remember { mutableStateOf(false) }
+    var isFromHide by remember { mutableStateOf(false) }
+    val shakeOffset = remember { Animatable(0f) }
+    val haptic = LocalHapticFeedback.current
+
+    // Trigger on first install when landing on homepage
+    LaunchedEffect(state.preferences.hasSeenVaultHint, isRoot) {
+        if (!state.preferences.hasSeenVaultHint && isRoot) {
+            delay(800)
+            isFromHide = false
+            showVaultTooltip = true
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            repeat(3) {
+                shakeOffset.animateTo(-7f, animationSpec = tween(50, easing = LinearEasing))
+                shakeOffset.animateTo(7f, animationSpec = tween(50, easing = LinearEasing))
+            }
+            shakeOffset.animateTo(0f, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+            delay(5500)
+            showVaultTooltip = false
+            onAction(MediaPickerAction.UpdateMenu(state.preferences.copy(hasSeenVaultHint = true)))
+        }
+    }
+
+    // Trigger whenever videos are hidden
+    LaunchedEffect(state.showVaultHintTimestamp) {
+        if (state.showVaultHintTimestamp > 0L) {
+            isFromHide = true
+            showVaultTooltip = true
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            repeat(3) {
+                shakeOffset.animateTo(-7f, animationSpec = tween(50, easing = LinearEasing))
+                shakeOffset.animateTo(7f, animationSpec = tween(50, easing = LinearEasing))
+            }
+            shakeOffset.animateTo(0f, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+            delay(5000)
+            showVaultTooltip = false
+        }
+    }
+
     Scaffold(
         topBar = {
             AppTopAppBar(
                 title = {
-                    val isRoot = state.folderName == null
                     val titleText = (state.folderName ?: stringResource(R.string.app_name))
                         .takeIf { !selectionManager.isInSelectionMode } ?: ""
-                    Text(
-                        text = titleText,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        fontWeight = FontWeight.Bold.takeIf { isRoot },
-                        modifier = if (isRoot && !selectionManager.isInSelectionMode) {
-                            Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { onAction(MediaPickerAction.OnPrivacyClick) }
-                                .padding(horizontal = 4.dp, vertical = 2.dp)
-                        } else if (!isRoot) {
-                            Modifier.padding(start = 12.dp)
-                        } else {
-                            Modifier
-                        },
-                    )
+                    Box {
+                        Text(
+                            text = titleText,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            fontWeight = FontWeight.Bold.takeIf { isRoot },
+                            modifier = if (isRoot && !selectionManager.isInSelectionMode) {
+                                Modifier
+                                    .graphicsLayer { translationX = shakeOffset.value }
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable {
+                                        showVaultTooltip = false
+                                        if (!state.preferences.hasSeenVaultHint) {
+                                            onAction(MediaPickerAction.UpdateMenu(state.preferences.copy(hasSeenVaultHint = true)))
+                                        }
+                                        onAction(MediaPickerAction.OnPrivacyClick)
+                                    }
+                                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                            } else if (!isRoot) {
+                                Modifier
+                                    .graphicsLayer { translationX = shakeOffset.value }
+                                    .padding(start = 12.dp)
+                            } else {
+                                Modifier
+                            },
+                        )
+
+                        if (showVaultTooltip && !selectionManager.isInSelectionMode) {
+                            Popup(
+                                alignment = Alignment.BottomStart,
+                                offset = IntOffset(x = 0, y = with(LocalDensity.current) { 6.dp.roundToPx() }),
+                                onDismissRequest = {
+                                    showVaultTooltip = false
+                                    if (!state.preferences.hasSeenVaultHint) {
+                                        onAction(MediaPickerAction.UpdateMenu(state.preferences.copy(hasSeenVaultHint = true)))
+                                    }
+                                },
+                                properties = PopupProperties(focusable = false, dismissOnClickOutside = true),
+                            ) {
+                                VaultHintBubble(
+                                    isFromHide = isFromHide,
+                                    onClick = {
+                                        showVaultTooltip = false
+                                        if (!state.preferences.hasSeenVaultHint) {
+                                            onAction(MediaPickerAction.UpdateMenu(state.preferences.copy(hasSeenVaultHint = true)))
+                                        }
+                                        onAction(MediaPickerAction.OnPrivacyClick)
+                                    },
+                                    onDismiss = {
+                                        showVaultTooltip = false
+                                        if (!state.preferences.hasSeenVaultHint) {
+                                            onAction(MediaPickerAction.UpdateMenu(state.preferences.copy(hasSeenVaultHint = true)))
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                    }
                 },
                 navigationIcon = {
                     if (selectionManager.isInSelectionMode) {
@@ -1118,6 +1217,106 @@ private fun ButtonPreview() {
             icon = AppIcons.Title,
             onClick = {},
         )
+    }
+}
+
+@Composable
+private fun VaultHintBubble(
+    isFromHide: Boolean,
+    onClick: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val bubbleColor = MaterialTheme.colorScheme.surfaceContainerHighest
+    val borderColor = primaryColor.copy(alpha = 0.5f)
+
+    Column(
+        modifier = Modifier
+            .padding(start = 2.dp, end = 16.dp)
+            .widthIn(max = 290.dp),
+    ) {
+        // Upward pointing caret
+        Canvas(
+            modifier = Modifier
+                .padding(start = 20.dp)
+                .size(width = 14.dp, height = 7.dp),
+        ) {
+            val path = Path().apply {
+                moveTo(size.width / 2f, 0f)
+                lineTo(size.width, size.height)
+                lineTo(0f, size.height)
+                close()
+            }
+            drawPath(path = path, color = bubbleColor)
+        }
+
+        // Bubble Content Card
+        Surface(
+            onClick = onClick,
+            shape = RoundedCornerShape(14.dp),
+            color = bubbleColor,
+            border = BorderStroke(1.dp, borderColor),
+            shadowElevation = 8.dp,
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(primaryColor.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Lock,
+                        contentDescription = null,
+                        tint = primaryColor,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.vault_hint_title),
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                        ),
+                        color = primaryColor,
+                    )
+                    Text(
+                        text = if (isFromHide) {
+                            stringResource(R.string.vault_hint_after_hide)
+                        } else {
+                            stringResource(R.string.vault_hint_first_launch)
+                        },
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 11.sp,
+                            lineHeight = 14.5.sp,
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(20.dp),
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Close,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
+            }
+        }
     }
 }
 

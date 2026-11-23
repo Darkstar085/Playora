@@ -401,7 +401,12 @@ class MediaPickerViewModel(
         if (stateInternal.value.hideFlow != HideFlowState.BiometricSetup) return
         viewModelScope.launch {
             privacyPinRepository.setBiometricEnabled(enabled = enabled)
-            stateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
+            stateInternal.update {
+                it.copy(
+                    hideFlow = HideFlowState.Idle,
+                    showVaultHintTimestamp = System.currentTimeMillis(),
+                )
+            }
         }
     }
 
@@ -416,7 +421,12 @@ class MediaPickerViewModel(
             } else {
                 hideVideoItems(videos = pending)
                 privacyPinRepository.setHideConfirmationShown()
-                stateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
+                stateInternal.update {
+                    it.copy(
+                        hideFlow = HideFlowState.Idle,
+                        showVaultHintTimestamp = System.currentTimeMillis(),
+                    )
+                }
             }
         }
     }
@@ -424,7 +434,12 @@ class MediaPickerViewModel(
     private suspend fun hideVideoItems(videos: List<Video>) {
         stateInternal.update { it.copy(hideFlow = HideFlowState.Processing) }
         privacyRepository.hideVideos(videos = videos)
-        stateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
+        stateInternal.update {
+            it.copy(
+                hideFlow = HideFlowState.Idle,
+                showVaultHintTimestamp = System.currentTimeMillis(),
+            )
+        }
     }
 
     private suspend fun Set<SelectionItem>.toVideos(): List<Video> {
@@ -463,6 +478,7 @@ data class MediaPickerUiState(
     val mediaInfo: com.sipun.playora.core.model.MediaInfo? = null,
     val hideFlow: HideFlowState = HideFlowState.Idle,
     val transferFlow: TransferFlowState = TransferFlowState.Idle,
+    val showVaultHintTimestamp: Long = 0L,
 ) {
     val recentlyPlayedFolder: Folder?
         get() = recentlyPlayedVideo?.let { video ->
