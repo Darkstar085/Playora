@@ -221,7 +221,9 @@ fun BoxScope.DecoderSelectorView(
                                         Icon(
                                             imageVector = Icons.Rounded.PlayArrow,
                                             contentDescription = null,
-                                            tint = if (isVideoSelected) Color.White else Color(0xFF90A4AE),
+                                            tint = if (isVideoSelected) Color.White else Color(
+                                                0xFF90A4AE
+                                            ),
                                             modifier = Modifier.size(18.dp),
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
@@ -231,7 +233,9 @@ fun BoxScope.DecoderSelectorView(
                                                 fontWeight = if (isVideoSelected) FontWeight.Bold else FontWeight.Medium,
                                                 fontSize = 14.sp,
                                             ),
-                                            color = if (isVideoSelected) Color.White else Color(0xFF90A4AE),
+                                            color = if (isVideoSelected) Color.White else Color(
+                                                0xFF90A4AE
+                                            ),
                                         )
                                     }
                                 }
@@ -258,7 +262,9 @@ fun BoxScope.DecoderSelectorView(
                                         Icon(
                                             imageVector = Icons.Rounded.MusicNote,
                                             contentDescription = null,
-                                            tint = if (isAudioSelected) Color.White else Color(0xFF90A4AE),
+                                            tint = if (isAudioSelected) Color.White else Color(
+                                                0xFF90A4AE
+                                            ),
                                             modifier = Modifier.size(18.dp),
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
@@ -268,7 +274,9 @@ fun BoxScope.DecoderSelectorView(
                                                 fontWeight = if (isAudioSelected) FontWeight.Bold else FontWeight.Medium,
                                                 fontSize = 14.sp,
                                             ),
-                                            color = if (isAudioSelected) Color.White else Color(0xFF90A4AE),
+                                            color = if (isAudioSelected) Color.White else Color(
+                                                0xFF90A4AE
+                                            ),
                                         )
                                     }
                                 }
@@ -292,6 +300,7 @@ fun BoxScope.DecoderSelectorView(
                                     DecoderMode.HW_PLUS,
                                     DecoderMode.FFMPEG,
                                 )
+
                                 DecoderTrackType.AUDIO -> listOf(
                                     DecoderMode.HARDWARE,
                                     DecoderMode.FFMPEG,
@@ -302,7 +311,12 @@ fun BoxScope.DecoderSelectorView(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .then(if (isPortrait) Modifier else Modifier.weight(1f, fill = false))
+                                .then(
+                                    if (isPortrait) Modifier else Modifier.weight(
+                                        1f,
+                                        fill = false
+                                    )
+                                )
                                 .verticalScroll(state = rememberScrollState()),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {

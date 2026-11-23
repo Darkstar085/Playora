@@ -221,16 +221,19 @@ fun MarkAsDialog(
                                 "Continue from where you left off",
                                 Icons.Rounded.PlayCircle,
                             )
+
                             MarkType.NEW -> Triple(
                                 "New",
                                 "Mark as newly added",
                                 Icons.Rounded.AutoAwesome,
                             )
+
                             MarkType.FINISHED -> Triple(
                                 stringResource(R.string.finished),
                                 "Mark as completed",
                                 Icons.Rounded.TaskAlt,
                             )
+
                             MarkType.NONE -> Triple(
                                 stringResource(R.string.none),
                                 "Clear the watch status",
@@ -256,7 +259,11 @@ fun MarkAsDialog(
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(if (isSelected) Color(0xFF007AFF).copy(alpha = 0.2f) else Color(0xFF282B33)),
+                                    .background(
+                                        if (isSelected) Color(0xFF007AFF).copy(alpha = 0.2f) else Color(
+                                            0xFF282B33
+                                        )
+                                    ),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(

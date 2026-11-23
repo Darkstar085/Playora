@@ -105,7 +105,8 @@ fun ControlsBottomView(
             .padding(horizontal = 24.dp)
             .padding(top = 16.dp)
             .padding(
-                bottom = 16.dp.takeIf { systemBarsPadding.calculateBottomPadding() == 0.dp } ?: 0.dp,
+                bottom = 16.dp.takeIf { systemBarsPadding.calculateBottomPadding() == 0.dp }
+                    ?: 0.dp,
             ),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {

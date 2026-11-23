@@ -414,8 +414,8 @@ class PlayerService : MediaSessionService() {
         override fun onPlayerError(error: PlaybackException) {
             val item = mediaSession?.player?.currentMediaItem
             val primaryParserError = item != null &&
-                item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor &&
-                item.hasPrimaryParserError(error)
+                    item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor &&
+                    item.hasPrimaryParserError(error)
             val trackType = when {
                 error.isDecoderFailure -> error.decoderTrackType()
                 primaryParserError -> DecoderTrackType.VIDEO
@@ -434,7 +434,7 @@ class PlayerService : MediaSessionService() {
                     rejectedFfmpegReader && item.videoDecoderBackend == DecoderMode.FFMPEG,
                 initializing =
                     error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ||
-                        !isMediaItemReady,
+                            !isMediaItemReady,
             )
         }
 
@@ -1273,7 +1273,7 @@ class PlayerService : MediaSessionService() {
             // shortcut: use source eligibility until NextLib exposes native codec compatibility.
             retrySoftwareReader = retrySoftwareReader,
             canTryHwPlus = trackType == DecoderTrackType.VIDEO && !ffmpegReaderFailed &&
-                item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor,
+                    item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor,
             showConfirmation =
                 trackType == DecoderTrackType.AUDIO || initializing || recentVideoSelection,
         )
@@ -1286,14 +1286,14 @@ class PlayerService : MediaSessionService() {
         when (trackType) {
             DecoderTrackType.VIDEO -> decoderManager.selectVideoDecoder(
                 mode = (
-                    if (mode ==
-                        DecoderMode.AUTO
-                    ) {
-                        DecoderMode.HARDWARE
-                    } else {
-                        mode
-                    }
-                    ).systemDecoderMode,
+                        if (mode ==
+                            DecoderMode.AUTO
+                        ) {
+                            DecoderMode.HARDWARE
+                        } else {
+                            mode
+                        }
+                        ).systemDecoderMode,
             )
 
             DecoderTrackType.AUDIO -> decoderManager.selectAudioDecoder(

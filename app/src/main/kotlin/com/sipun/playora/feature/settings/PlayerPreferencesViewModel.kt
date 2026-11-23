@@ -161,6 +161,7 @@ class PlayerPreferencesViewModel(
             }
         }
     }
+
     private fun updateAudioLanguage(value: String) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(preferredAudioLanguage = value) }

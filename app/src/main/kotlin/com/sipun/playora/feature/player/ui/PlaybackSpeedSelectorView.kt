@@ -14,7 +14,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -41,6 +40,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,7 +66,7 @@ import kotlin.math.roundToInt
 
 @OptIn(UnstableApi::class)
 @Composable
-fun BoxScope.PlaybackSpeedSelectorView(
+fun PlaybackSpeedSelectorView(
     modifier: Modifier = Modifier,
     show: Boolean,
     player: Player,
@@ -203,7 +203,8 @@ fun BoxScope.PlaybackSpeedSelectorView(
                                     .clip(CircleShape)
                                     .background(Color(0xFF202730))
                                     .clickable {
-                                        val newSpeed = ((playbackParametersState.speed - stepSize) * 100).roundToInt() / 100f
+                                        val newSpeed =
+                                            ((playbackParametersState.speed - stepSize) * 100).roundToInt() / 100f
                                         val clamped = newSpeed.coerceAtLeast(minValue)
                                         playbackParametersState.setPlaybackSpeed(clamped)
                                         hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -226,17 +227,28 @@ fun BoxScope.PlaybackSpeedSelectorView(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(20.dp))
                                     .clickable {
-                                        customSpeedText = String.format(Locale.US, "%.2f", playbackParametersState.speed)
+                                        customSpeedText = String.format(
+                                            Locale.US,
+                                            "%.2f",
+                                            playbackParametersState.speed
+                                        )
                                         showCustomSpeedDialog = true
                                     },
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                                    modifier = Modifier.padding(
+                                        horizontal = 24.dp,
+                                        vertical = 8.dp
+                                    ),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {
                                     Text(
-                                        text = String.format(Locale.US, "%.2fx", playbackParametersState.speed),
+                                        text = String.format(
+                                            Locale.US,
+                                            "%.2fx",
+                                            playbackParametersState.speed
+                                        ),
                                         color = Color.White,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 17.sp,
@@ -257,7 +269,8 @@ fun BoxScope.PlaybackSpeedSelectorView(
                                     .clip(CircleShape)
                                     .background(Color(0xFF202730))
                                     .clickable {
-                                        val newSpeed = ((playbackParametersState.speed + stepSize) * 100).roundToInt() / 100f
+                                        val newSpeed =
+                                            ((playbackParametersState.speed + stepSize) * 100).roundToInt() / 100f
                                         val clamped = newSpeed.coerceAtMost(maxValue)
                                         playbackParametersState.setPlaybackSpeed(clamped)
                                         hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -288,21 +301,27 @@ fun BoxScope.PlaybackSpeedSelectorView(
 
                                 // Slider
                                 Slider(
-                                    value = playbackParametersState.speed.coerceIn(minValue, maxValue),
+                                    state = rememberSliderState(
+                                        value = playbackParametersState.speed.coerceIn(
+                                            minValue,
+                                            maxValue
+                                        ),
+                                        steps = 0, trackRange = minValue..maxValue
+                                    ),
                                     onValueChange = {
                                         val rounded = (it * 100).roundToInt() / 100f
                                         playbackParametersState.setPlaybackSpeed(rounded)
                                         hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     },
-                                    valueRange = minValue..maxValue,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    enabled = true,
+                                    onValueChangeFinished = {},
                                     colors = SliderDefaults.colors(
                                         thumbColor = Color.White,
                                         activeTrackColor = Color(0xFF1B88F5),
                                         inactiveTrackColor = Color(0xFF2A3542),
                                     ),
-                                    modifier = Modifier.fillMaxWidth(),
                                 )
-
                                 // Tick dots on track
                                 Canvas(
                                     modifier = Modifier
@@ -364,12 +383,17 @@ fun BoxScope.PlaybackSpeedSelectorView(
                                         },
                                 ) {
                                     Box(
-                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                                        modifier = Modifier.padding(
+                                            horizontal = 14.dp,
+                                            vertical = 6.dp
+                                        ),
                                         contentAlignment = Alignment.Center,
                                     ) {
                                         Text(
                                             text = "${preset}x",
-                                            color = if (isSelected) Color.White else Color(0xFF9EABB8),
+                                            color = if (isSelected) Color.White else Color(
+                                                0xFF9EABB8
+                                            ),
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                             fontSize = 13.sp,
                                         )

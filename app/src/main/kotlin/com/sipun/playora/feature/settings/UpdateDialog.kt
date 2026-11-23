@@ -60,6 +60,7 @@ sealed interface UpdateFlowState {
         val totalBytes: Long,
         val progressPercent: Int,
     ) : UpdateFlowState
+
     data class Installing(val update: AppUpdate) : UpdateFlowState
     data class Success(val version: String) : UpdateFlowState
     data class UpToDate(val version: String) : UpdateFlowState
@@ -113,7 +114,10 @@ fun UpdateDialog(
                 .heightIn(max = 680.dp),
             shape = RoundedCornerShape(28.dp),
             color = MaterialTheme.colorScheme.surfaceContainer,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+            border = BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            ),
         ) {
             AnimatedContent(
                 targetState = state.step,
@@ -448,7 +452,10 @@ private fun UpdateAvailableContent(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                 contentColor = MaterialTheme.colorScheme.onSurface,
             ),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
+            border = BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
+            ),
         ) {
             Text(
                 text = stringResource(R.string.update_later),
@@ -593,7 +600,10 @@ private fun UpdateDownloadingContent(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                 contentColor = MaterialTheme.colorScheme.onSurface,
             ),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
+            border = BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
+            ),
         ) {
             Text(
                 text = stringResource(R.string.cancel),

@@ -19,8 +19,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -360,13 +362,16 @@ fun PreferenceSlider(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Slider(
-                        value = value,
+                        state = rememberSliderState(
+                            value = value,
+                            steps = steps,
+                            trackRange = valueRange,
+                        ),
                         onValueChange = onValueChange,
                         modifier = Modifier.weight(1f),
                         enabled = enabled,
-                        valueRange = valueRange,
-                        steps = steps,
                         onValueChangeFinished = onValueChangeFinished,
+                        colors = SliderDefaults.colors(),
                     )
                     trailingContent()
                 }

@@ -97,7 +97,7 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
 }
 
 /** Recreates only the current source, retaining the playlist, shuffle order and playback position. */
-@androidx.annotation.OptIn(UnstableApi::class)
+@OptIn(UnstableApi::class)
 fun Player.reloadCurrentMediaItem(item: MediaItem) {
     val position = currentPosition
     val index = currentMediaItemIndex

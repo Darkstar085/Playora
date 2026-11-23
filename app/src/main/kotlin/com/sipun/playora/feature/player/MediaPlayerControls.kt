@@ -110,8 +110,8 @@ internal fun MediaPlayerControls(
                         .focusable()
                         .onPreviewKeyEvent { keyEvent ->
                             overlayView == null &&
-                                (keyEvent.key == Key.DirectionUp || keyEvent.key == Key.DirectionDown) &&
-                                keyInputState.onKeyEvent(keyEvent = keyEvent)
+                                    (keyEvent.key == Key.DirectionUp || keyEvent.key == Key.DirectionDown) &&
+                                    keyInputState.onKeyEvent(keyEvent = keyEvent)
                         }
                 },
         ) {

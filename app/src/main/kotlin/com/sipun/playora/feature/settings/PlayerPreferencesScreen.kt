@@ -23,7 +23,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sipun.playora.R
 import com.sipun.playora.core.common.extensions.isPipFeatureSupported
 import com.sipun.playora.core.model.ControlButtonsPosition
-import com.sipun.playora.core.model.Resume
 import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.ClickablePreferenceItem

@@ -1,7 +1,6 @@
 package com.sipun.playora.core.model
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SortTest {

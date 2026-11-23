@@ -258,7 +258,10 @@ private fun TopHeaderRow(
                 modifier = Modifier.align(Alignment.TopEnd),
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.85f),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
+                ),
             ) {
                 Text(
                     text = stringResource(R.string.onboarding_skip),
@@ -503,11 +506,31 @@ private fun PowerfulPlaybackPage() {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(AppIcons.ArrowBack, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        Icon(
+                            AppIcons.ArrowBack,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Icon(AppIcons.Rotation, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
-                            Icon(AppIcons.Caption, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
-                            Icon(AppIcons.MoreVert, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
+                            Icon(
+                                AppIcons.Rotation,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Icon(
+                                AppIcons.Caption,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Icon(
+                                AppIcons.MoreVert,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(15.dp)
+                            )
                         }
                     }
 
@@ -521,7 +544,12 @@ private fun PowerfulPlaybackPage() {
                             .align(Alignment.CenterHorizontally),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Icon(AppIcons.Play, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                        Icon(
+                            AppIcons.Play,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
 
                     // Bottom time bar and controls
@@ -531,7 +559,11 @@ private fun PowerfulPlaybackPage() {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text("12:18", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = Color.White)
+                            Text(
+                                "12:18",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                color = Color.White
+                            )
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
@@ -548,7 +580,11 @@ private fun PowerfulPlaybackPage() {
                                         .background(primaryColor),
                                 )
                             }
-                            Text("24:56", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = Color.White)
+                            Text(
+                                "24:56",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                color = Color.White
+                            )
                         }
 
                         Row(
@@ -556,8 +592,18 @@ private fun PowerfulPlaybackPage() {
                             horizontalArrangement = Arrangement.SpaceAround,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(AppIcons.Lock, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
-                            Icon(AppIcons.Replay, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            Icon(
+                                AppIcons.Lock,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Icon(
+                                AppIcons.Replay,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
                             Box(
                                 modifier = Modifier
                                     .size(28.dp)
@@ -565,10 +611,25 @@ private fun PowerfulPlaybackPage() {
                                     .background(Color.White.copy(alpha = 0.25f)),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Icon(Icons.Rounded.Pause, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
+                                Icon(
+                                    Icons.Rounded.Pause,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(15.dp)
+                                )
                             }
-                            Icon(AppIcons.FastForward, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                            Icon(AppIcons.Focus, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                            Icon(
+                                AppIcons.FastForward,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Icon(
+                                AppIcons.Focus,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
                         }
                     }
                 }

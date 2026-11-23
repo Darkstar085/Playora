@@ -189,14 +189,17 @@ class LocalMediaRepository(
                     MarkType.LAST_PLAYED -> state.copy(
                         lastPlayedTime = now,
                     )
+
                     MarkType.NEW -> state.copy(
                         lastPlayedTime = null,
                         playbackPosition = 0L,
                     )
+
                     MarkType.FINISHED -> state.copy(
                         lastPlayedTime = now,
                         playbackPosition = state.duration ?: 0L,
                     )
+
                     MarkType.NONE -> state.copy(
                         lastPlayedTime = null,
                         playbackPosition = 0L,

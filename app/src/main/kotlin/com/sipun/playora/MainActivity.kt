@@ -156,147 +156,154 @@ class MainActivity : FragmentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.surfaceContainer,
                     ) {
-                    val backStack = rememberNavBackStack(MediaPickerRoute())
-                    backStack.ensureRoot(MediaPickerRoute())
+                        val backStack = rememberNavBackStack(MediaPickerRoute())
+                        backStack.ensureRoot(MediaPickerRoute())
 
-                    val provider = entryProvider {
-                        mediaNavGraph(
-                            context = this@MainActivity,
+                        val provider = entryProvider {
+                            mediaNavGraph(
+                                context = this@MainActivity,
+                                backStack = backStack,
+                            )
+                            settingsNavGraph(backStack = backStack)
+                            privacyEntry(
+                                onNavigateUp = { backStack.removeLastIfNotRoot() },
+                                onPlayVideo = { uri, playlist ->
+                                    if (!playlist.isNullOrEmpty()) {
+                                        this@MainActivity.startPlayback(
+                                            uris = playlist,
+                                            startUri = uri,
+                                            grantReadPermission = true,
+                                        )
+                                    } else {
+                                        this@MainActivity.startPlayback(
+                                            uri = uri,
+                                            grantReadPermission = true,
+                                        )
+                                    }
+                                },
+                                onPlayVideos = { uris ->
+                                    this@MainActivity.startPlayback(
+                                        uris = uris,
+                                        grantReadPermission = true,
+                                    )
+                                },
+                            )
+                        }
+
+                        val navigationDecorator = remember {
+                            NavEntryDecorator<NavKey> { entry ->
+                                Box(navigationTransitionModifier(entry)) {
+                                    entry.Content()
+                                }
+                            }
+                        }
+
+                        val entries = rememberDecoratedNavEntries(
                             backStack = backStack,
+                            entryDecorators = listOf(
+                                rememberSaveableStateHolderNavEntryDecorator(),
+                                rememberViewModelStoreNavEntryDecorator(),
+                                navigationDecorator,
+                            ),
+                            entryProvider = provider,
                         )
-                        settingsNavGraph(backStack = backStack)
-                        privacyEntry(
-                            onNavigateUp = { backStack.removeLastIfNotRoot() },
-                            onPlayVideo = { uri, playlist ->
-                                if (!playlist.isNullOrEmpty()) {
-                                    this@MainActivity.startPlayback(
-                                        uris = playlist,
-                                        startUri = uri,
-                                        grantReadPermission = true,
-                                    )
+
+                        NavDisplay(
+                            entries = entries,
+                            onBack = {
+                                if (backStack.size > 1) {
+                                    backStack.removeLastIfNotRoot()
                                 } else {
-                                    this@MainActivity.startPlayback(
-                                        uri = uri,
-                                        grantReadPermission = true,
-                                    )
+                                    finish()
                                 }
                             },
-                            onPlayVideos = { uris ->
-                                this@MainActivity.startPlayback(
-                                    uris = uris,
-                                    grantReadPermission = true,
+                            transitionSpec = {
+                                navigationTransition(
+                                    initialState = initialState,
+                                    targetState = targetState,
+                                )
+                            },
+                            popTransitionSpec = {
+                                navigationTransition(
+                                    initialState = initialState,
+                                    targetState = targetState,
+                                )
+                            },
+                            predictivePopTransitionSpec = {
+                                navigationTransition(
+                                    initialState = initialState,
+                                    targetState = targetState,
+                                    isPredictive = true,
                                 )
                             },
                         )
-                    }
 
-                    val navigationDecorator = remember {
-                        NavEntryDecorator<NavKey> { entry ->
-                            Box(navigationTransitionModifier(entry)) {
-                                entry.Content()
-                            }
-                        }
-                    }
-
-                    val entries = rememberDecoratedNavEntries(
-                        backStack = backStack,
-                        entryDecorators = listOf(
-                            rememberSaveableStateHolderNavEntryDecorator(),
-                            rememberViewModelStoreNavEntryDecorator(),
-                            navigationDecorator,
-                        ),
-                        entryProvider = provider,
-                    )
-
-                    NavDisplay(
-                        entries = entries,
-                        onBack = {
-                            if (backStack.size > 1) {
-                                backStack.removeLastIfNotRoot()
-                            } else {
-                                finish()
-                            }
-                        },
-                        transitionSpec = {
-                            navigationTransition(
-                                initialState = initialState,
-                                targetState = targetState,
-                            )
-                        },
-                        popTransitionSpec = {
-                            navigationTransition(
-                                initialState = initialState,
-                                targetState = targetState,
-                            )
-                        },
-                        predictivePopTransitionSpec = {
-                            navigationTransition(
-                                initialState = initialState,
-                                targetState = targetState,
-                                isPredictive = true,
-                            )
-                        },
-                    )
-
-                    autoUpdateFlowState?.let { flowState ->
-                        UpdateDialog(
-                            state = flowState,
-                            onDismiss = {
-                                autoDownloadJob?.cancel()
-                                autoDownloadJob = null
-                                autoUpdateFlowState = null
-                            },
-                            onUpdateNow = { selectedUpdate ->
-                                autoDownloadJob = scope.launch {
-                                    autoUpdateFlowState = UpdateFlowState.Downloading(
-                                        update = selectedUpdate,
-                                        downloadedBytes = 0L,
-                                        totalBytes = selectedUpdate.size,
-                                        progressPercent = 0,
-                                    )
-                                    try {
-                                        val apk = UpdateManager.download(this@MainActivity, selectedUpdate) { downloaded, total ->
-                                            val percent = if (total > 0) {
-                                                ((downloaded * 100) / total).toInt().coerceIn(0, 100)
-                                            } else {
-                                                0
-                                            }
-                                            autoUpdateFlowState = UpdateFlowState.Downloading(
-                                                update = selectedUpdate,
-                                                downloadedBytes = downloaded,
-                                                totalBytes = total,
-                                                progressPercent = percent,
-                                            )
-                                        }
-                                        autoUpdateFlowState = UpdateFlowState.Installing(selectedUpdate)
-                                        if (UpdateManager.install(this@MainActivity, apk)) {
-                                            autoUpdateFlowState = UpdateFlowState.Success(selectedUpdate.version)
-                                        } else {
-                                            autoUpdateFlowState = UpdateFlowState.Error(
-                                                getString(R.string.update_install_permission),
-                                            )
-                                        }
-                                    } catch (_: CancellationException) {
-                                        autoUpdateFlowState = null
-                                    } catch (e: Exception) {
-                                        autoUpdateFlowState = UpdateFlowState.Error(
-                                            e.message ?: getString(R.string.update_download_failed),
+                        autoUpdateFlowState?.let { flowState ->
+                            UpdateDialog(
+                                state = flowState,
+                                onDismiss = {
+                                    autoDownloadJob?.cancel()
+                                    autoDownloadJob = null
+                                    autoUpdateFlowState = null
+                                },
+                                onUpdateNow = { selectedUpdate ->
+                                    autoDownloadJob = scope.launch {
+                                        autoUpdateFlowState = UpdateFlowState.Downloading(
+                                            update = selectedUpdate,
+                                            downloadedBytes = 0L,
+                                            totalBytes = selectedUpdate.size,
+                                            progressPercent = 0,
                                         )
+                                        try {
+                                            val apk = UpdateManager.download(
+                                                this@MainActivity,
+                                                selectedUpdate
+                                            ) { downloaded, total ->
+                                                val percent = if (total > 0) {
+                                                    ((downloaded * 100) / total).toInt()
+                                                        .coerceIn(0, 100)
+                                                } else {
+                                                    0
+                                                }
+                                                autoUpdateFlowState = UpdateFlowState.Downloading(
+                                                    update = selectedUpdate,
+                                                    downloadedBytes = downloaded,
+                                                    totalBytes = total,
+                                                    progressPercent = percent,
+                                                )
+                                            }
+                                            autoUpdateFlowState =
+                                                UpdateFlowState.Installing(selectedUpdate)
+                                            if (UpdateManager.install(this@MainActivity, apk)) {
+                                                autoUpdateFlowState =
+                                                    UpdateFlowState.Success(selectedUpdate.version)
+                                            } else {
+                                                autoUpdateFlowState = UpdateFlowState.Error(
+                                                    getString(R.string.update_install_permission),
+                                                )
+                                            }
+                                        } catch (_: CancellationException) {
+                                            autoUpdateFlowState = null
+                                        } catch (e: Exception) {
+                                            autoUpdateFlowState = UpdateFlowState.Error(
+                                                e.message
+                                                    ?: getString(R.string.update_download_failed),
+                                            )
+                                        }
                                     }
-                                }
-                            },
-                            onCancelDownload = {
-                                autoDownloadJob?.cancel()
-                                autoDownloadJob = null
-                                autoUpdateFlowState = null
-                            },
-                        )
+                                },
+                                onCancelDownload = {
+                                    autoDownloadJob?.cancel()
+                                    autoDownloadJob = null
+                                    autoUpdateFlowState = null
+                                },
+                            )
+                        }
                     }
                 }
             }
         }
     }
-}
 }
 
 @Composable

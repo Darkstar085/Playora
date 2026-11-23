@@ -201,7 +201,8 @@ fun QuickSettingsDialog(
                     label = stringResource(R.string.duration),
                     selected = preferences.showDurationField,
                     onClick = {
-                        preferences = preferences.copy(showDurationField = !preferences.showDurationField)
+                        preferences =
+                            preferences.copy(showDurationField = !preferences.showDurationField)
                     },
                 )
                 QuickSettingFieldChip(
@@ -217,7 +218,8 @@ fun QuickSettingsDialog(
                     label = stringResource(R.string.extension),
                     selected = preferences.showExtensionField,
                     onClick = {
-                        preferences = preferences.copy(showExtensionField = !preferences.showExtensionField)
+                        preferences =
+                            preferences.copy(showExtensionField = !preferences.showExtensionField)
                     },
                 )
                 QuickSettingFieldChip(
@@ -415,10 +417,26 @@ private fun SortCriteriaRow(
 ) {
     val items = listOf(
         Triple(Sort.By.TITLE, stringResource(R.string.title), null),
-        Triple(Sort.By.LENGTH, stringResource(R.string.duration), SortCriterionIcon.Vector(Icons.Rounded.Timer)),
-        Triple(Sort.By.DATE, stringResource(R.string.date), SortCriterionIcon.Vector(Icons.Rounded.CalendarMonth)),
-        Triple(Sort.By.SIZE, stringResource(R.string.size), SortCriterionIcon.DrawableRes(R.drawable.ic_storage_disks)),
-        Triple(Sort.By.PATH, stringResource(R.string.location), SortCriterionIcon.Vector(Icons.Rounded.LocationOn)),
+        Triple(
+            Sort.By.LENGTH,
+            stringResource(R.string.duration),
+            SortCriterionIcon.Vector(Icons.Rounded.Timer)
+        ),
+        Triple(
+            Sort.By.DATE,
+            stringResource(R.string.date),
+            SortCriterionIcon.Vector(Icons.Rounded.CalendarMonth)
+        ),
+        Triple(
+            Sort.By.SIZE,
+            stringResource(R.string.size),
+            SortCriterionIcon.DrawableRes(R.drawable.ic_storage_disks)
+        ),
+        Triple(
+            Sort.By.PATH,
+            stringResource(R.string.location),
+            SortCriterionIcon.Vector(Icons.Rounded.LocationOn)
+        ),
     )
 
     Row(
@@ -444,7 +462,9 @@ private fun SortCriteriaRow(
                         )
                         .border(
                             width = 1.dp,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(
+                                alpha = 0.4f
+                            ),
                             shape = RoundedCornerShape(16.dp),
                         )
                         .clickable { onSelectBy(by) },
@@ -461,6 +481,7 @@ private fun SortCriteriaRow(
                                 color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
+
                         icon is SortCriterionIcon.Vector -> {
                             Icon(
                                 imageVector = icon.imageVector,
@@ -469,6 +490,7 @@ private fun SortCriteriaRow(
                                 tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
+
                         icon is SortCriterionIcon.DrawableRes -> {
                             Icon(
                                 painter = painterResource(icon.resId),
@@ -499,8 +521,12 @@ fun QuickSettingFieldChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-    val backgroundColor = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceContainerHighest
+    val borderColor =
+        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(
+            alpha = 0.4f
+        )
+    val backgroundColor =
+        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceContainerHighest
 
     Box(
         modifier = modifier

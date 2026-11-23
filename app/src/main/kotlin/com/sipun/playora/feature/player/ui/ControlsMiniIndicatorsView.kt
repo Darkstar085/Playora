@@ -51,12 +51,13 @@ fun ControlsMiniIndicatorsView(
     }
 
     val currentFormatted = getStringForTime(timeTextPositionMs)
-    val remainingFormatted = if (progressState.durationMs > 0 && progressState.durationMs != C.TIME_UNSET) {
-        val remainingMs = (progressState.durationMs - timeTextPositionMs).coerceAtLeast(0)
-        "-" + getStringForTime(remainingMs)
-    } else {
-        null
-    }
+    val remainingFormatted =
+        if (progressState.durationMs > 0 && progressState.durationMs != C.TIME_UNSET) {
+            val remainingMs = (progressState.durationMs - timeTextPositionMs).coerceAtLeast(0)
+            "-" + getStringForTime(remainingMs)
+        } else {
+            null
+        }
 
     val playbackTimeText = if (remainingFormatted != null) {
         "$currentFormatted / $remainingFormatted"

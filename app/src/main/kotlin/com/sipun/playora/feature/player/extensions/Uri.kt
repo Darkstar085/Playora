@@ -72,8 +72,16 @@ fun Bundle.getParcelableUriArray(key: String): List<Uri?>? {
     return when (val value = get(key)) {
         is Uri -> listOf(value)
         is CharSequence -> listOf(runCatching { Uri.parse(value.toString()) }.getOrNull())
-        is Array<*> -> value.map { (it as? Uri) ?: (it as? CharSequence)?.let { s -> runCatching { Uri.parse(s.toString()) }.getOrNull() } }
-        is Iterable<*> -> value.map { (it as? Uri) ?: (it as? CharSequence)?.let { s -> runCatching { Uri.parse(s.toString()) }.getOrNull() } }
+        is Array<*> -> value.map {
+            (it as? Uri)
+                ?: (it as? CharSequence)?.let { s -> runCatching { Uri.parse(s.toString()) }.getOrNull() }
+        }
+
+        is Iterable<*> -> value.map {
+            (it as? Uri)
+                ?: (it as? CharSequence)?.let { s -> runCatching { Uri.parse(s.toString()) }.getOrNull() }
+        }
+
         else -> null
     }
 }

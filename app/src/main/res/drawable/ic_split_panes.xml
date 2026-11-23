@@ -5,26 +5,26 @@
     android:viewportHeight="24">
     <!-- Left vertical pane -->
     <path
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
-        android:strokeLineJoin="round"
-        android:strokeLineCap="round"
         android:fillColor="#00000000"
-        android:pathData="M 5,3.5 L 9,3.5 C 10.1,3.5 11,4.4 11,5.5 L 11,18.5 C 11,19.6 10.1,20.5 9,20.5 L 5,20.5 C 3.9,20.5 3,19.6 3,18.5 L 3,5.5 C 3,4.4 3.9,3.5 5,3.5 Z" />
+        android:pathData="M 5,3.5 L 9,3.5 C 10.1,3.5 11,4.4 11,5.5 L 11,18.5 C 11,19.6 10.1,20.5 9,20.5 L 5,20.5 C 3.9,20.5 3,19.6 3,18.5 L 3,5.5 C 3,4.4 3.9,3.5 5,3.5 Z"
+        android:strokeWidth="2"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
     <!-- Top right pane -->
     <path
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
-        android:strokeLineJoin="round"
-        android:strokeLineCap="round"
         android:fillColor="#00000000"
-        android:pathData="M 15.5,3.5 L 19,3.5 C 20.1,3.5 21,4.4 21,5.5 L 21,9 C 21,10.1 20.1,11 19,11 L 15.5,11 C 14.4,11 13.5,10.1 13.5,9 L 13.5,5.5 C 13.5,4.4 14.4,3.5 15.5,3.5 Z" />
+        android:pathData="M 15.5,3.5 L 19,3.5 C 20.1,3.5 21,4.4 21,5.5 L 21,9 C 21,10.1 20.1,11 19,11 L 15.5,11 C 14.4,11 13.5,10.1 13.5,9 L 13.5,5.5 C 13.5,4.4 14.4,3.5 15.5,3.5 Z"
+        android:strokeWidth="2"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
     <!-- Bottom right pane -->
     <path
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="2"
-        android:strokeLineJoin="round"
-        android:strokeLineCap="round"
         android:fillColor="#00000000"
-        android:pathData="M 15.5,13 L 19,13 C 20.1,13 21,13.9 21,15 L 21,18.5 C 21,19.6 20.1,20.5 19,20.5 L 15.5,20.5 C 14.4,20.5 13.5,19.6 13.5,18.5 L 13.5,15 C 13.5,13.9 14.4,13 15.5,13 Z" />
+        android:pathData="M 15.5,13 L 19,13 C 20.1,13 21,13.9 21,15 L 21,18.5 C 21,19.6 20.1,20.5 19,20.5 L 15.5,20.5 C 14.4,20.5 13.5,19.6 13.5,18.5 L 13.5,15 C 13.5,13.9 14.4,13 15.5,13 Z"
+        android:strokeWidth="2"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
 </vector>

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,7 +23,6 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sipun.playora.R
-import com.sipun.playora.core.model.Font
 import com.sipun.playora.core.model.PlayerPreferences
 import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
@@ -33,12 +31,10 @@ import com.sipun.playora.core.ui.components.ListSectionTitle
 import com.sipun.playora.core.ui.components.PreferenceSlider
 import com.sipun.playora.core.ui.components.PreferenceSwitch
 import com.sipun.playora.core.ui.components.PreferenceSwitchWithDivider
-import com.sipun.playora.core.ui.components.RadioTextButton
 import com.sipun.playora.core.ui.components.ResetIconButton
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.settings.composables.LanguageSelectionBottomSheet
-import com.sipun.playora.settings.composables.OptionsDialog
 import com.sipun.playora.settings.composables.SubtitleFontBottomSheet
 import com.sipun.playora.settings.extensions.name
 import com.sipun.playora.settings.utils.LocalesHelper
@@ -233,6 +229,7 @@ private fun SubtitlePreferencesScreenContent(
                         },
                     )
                 }
+
                 else -> {}
             }
         }

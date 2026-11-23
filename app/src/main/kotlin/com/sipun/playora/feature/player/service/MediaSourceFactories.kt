@@ -67,10 +67,10 @@ internal val MediaItem.usesFfmpegExtractor: Boolean
     get() {
         val config = localConfiguration ?: return false
         return mediaMetadata.ffmpegExtraction && config.drmConfiguration == null &&
-            Util.inferContentType(
-                config.uri,
-                config.mimeType,
-            ) == C.CONTENT_TYPE_OTHER
+                Util.inferContentType(
+                    config.uri,
+                    config.mimeType,
+                ) == C.CONTENT_TYPE_OTHER
     }
 
 internal val MediaItem.videoDecoderBackend: DecoderMode

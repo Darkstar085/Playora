@@ -173,7 +173,7 @@ class PlayerActivity : ComponentActivity() {
         registerForSuspendActivityResult(contract = OpenDocumentAtInitialUri())
 
     private val cancelPipReceiver = object : android.content.BroadcastReceiver() {
-        override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
+        override fun onReceive(context: android.content.Context?, intent: Intent?) {
             if (isInPictureInPictureMode) {
                 finish()
             }
@@ -479,9 +479,9 @@ class PlayerActivity : ComponentActivity() {
 
         val mediaItemIndexToPlay = playlist.indexOfFirst {
             it == (mediaContentUri ?: uri).toString() ||
-                it == uri.toString() ||
-                Uri.decode(it) == Uri.decode(uri.toString()) ||
-                (mediaContentUri != null && Uri.decode(it) == Uri.decode(mediaContentUri.toString()))
+                    it == uri.toString() ||
+                    Uri.decode(it) == Uri.decode(uri.toString()) ||
+                    (mediaContentUri != null && Uri.decode(it) == Uri.decode(mediaContentUri.toString()))
         }.takeIf { it >= 0 } ?: 0
 
         val apiSubs = request.getSubs().map { subtitle ->

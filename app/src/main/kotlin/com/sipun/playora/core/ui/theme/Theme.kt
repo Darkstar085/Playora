@@ -284,7 +284,8 @@ fun Modifier.accentGradientTint(): Modifier {
 
 fun readWallpaperSeed(context: android.content.Context): Color =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        val isDark = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val isDark =
+            (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
         if (isDark) dynamicDarkColorScheme(context).primary else dynamicLightColorScheme(context).primary
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
         WallpaperManager.getInstance(context)

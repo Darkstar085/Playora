@@ -351,9 +351,21 @@ class DecoderRecoveryManagerTest {
 
     @Test
     fun decoderModeMappingPreservesAppAndSystemSeparation() {
-        assertEquals(com.sipun.nextlib.media3ext.ffdecoder.DecoderMode.SYSTEM, DecoderMode.HARDWARE.systemDecoderMode)
-        assertEquals(com.sipun.nextlib.media3ext.ffdecoder.DecoderMode.SYSTEM, DecoderMode.HW_PLUS.systemDecoderMode)
-        assertEquals(com.sipun.nextlib.media3ext.ffdecoder.DecoderMode.FFMPEG, DecoderMode.FFMPEG.systemDecoderMode)
-        assertEquals(com.sipun.nextlib.media3ext.ffdecoder.DecoderMode.AUTO, DecoderMode.AUTO.systemDecoderMode)
+        assertEquals(
+            com.sipun.nextlib.media3ext.ffdecoder.DecoderMode.SYSTEM,
+            DecoderMode.HARDWARE.systemDecoderMode
+        )
+        assertEquals(
+            com.sipun.nextlib.media3ext.ffdecoder.DecoderMode.SYSTEM,
+            DecoderMode.HW_PLUS.systemDecoderMode
+        )
+        assertEquals(
+            com.sipun.nextlib.media3ext.ffdecoder.DecoderMode.FFMPEG,
+            DecoderMode.FFMPEG.systemDecoderMode
+        )
+        assertEquals(
+            com.sipun.nextlib.media3ext.ffdecoder.DecoderMode.AUTO,
+            DecoderMode.AUTO.systemDecoderMode
+        )
     }
 }

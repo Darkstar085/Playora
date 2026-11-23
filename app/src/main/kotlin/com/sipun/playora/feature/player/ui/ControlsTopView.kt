@@ -215,7 +215,10 @@ suspend fun captureVideoFrame(context: Context, player: Player?): Boolean {
                     retriever.setDataSource(context, uri)
                 }
                 val currentPosUs = (currentPositionMs * 1000L).coerceAtLeast(0L)
-                bitmap = retriever.getFrameAtTime(currentPosUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                bitmap = retriever.getFrameAtTime(
+                    currentPosUs,
+                    MediaMetadataRetriever.OPTION_CLOSEST_SYNC
+                )
                     ?: retriever.getFrameAtTime(currentPosUs)
                 retriever.release()
             } catch (e: Exception) {
@@ -228,7 +231,11 @@ suspend fun captureVideoFrame(context: Context, player: Player?): Boolean {
                 val window = activity.window ?: return@withContext
                 val bounds = window.decorView.let { Rect(0, 0, it.width, it.height) }
                 if (bounds.width() > 0 && bounds.height() > 0) {
-                    val bmp = Bitmap.createBitmap(bounds.width(), bounds.height(), Bitmap.Config.ARGB_8888)
+                    val bmp = Bitmap.createBitmap(
+                        bounds.width(),
+                        bounds.height(),
+                        Bitmap.Config.ARGB_8888
+                    )
                     val latch = CountDownLatch(1)
                     var success = false
                     PixelCopy.request(window, bmp, { copyResult ->
@@ -256,11 +263,17 @@ private fun saveBitmapToGallery(context: Context, bitmap: Bitmap): Boolean {
             put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
             put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Playora")
+                put(
+                    MediaStore.MediaColumns.RELATIVE_PATH,
+                    Environment.DIRECTORY_PICTURES + "/Playora"
+                )
                 put(MediaStore.MediaColumns.IS_PENDING, 1)
             }
         }
-        val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+        val uri = context.contentResolver.insert(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            contentValues
+        )
         if (uri != null) {
             context.contentResolver.openOutputStream(uri)?.use { os ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, os)
@@ -422,7 +435,8 @@ fun ControlsTopView(
             // Playback speed
             val speed = player?.playbackParameters?.speed ?: 1.0f
             val isSpeedActive = speed != 1.0f
-            val speedText = if (speed == speed.toInt().toFloat()) "${speed.toInt()}X" else "${speed}X"
+            val speedText =
+                if (speed == speed.toInt().toFloat()) "${speed.toInt()}X" else "${speed}X"
             PlayerButton(
                 modifier = Modifier.size(40.dp),
                 onClick = onPlaybackSpeedClick,
@@ -432,7 +446,7 @@ fun ControlsTopView(
                 Text(
                     text = speedText,
                     style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        fontWeight = FontWeight.Bold,
                     ),
                     color = if (isSpeedActive) activeAccent else Color.White,
                 )
@@ -443,12 +457,21 @@ fun ControlsTopView(
                 modifier = Modifier.size(40.dp),
                 onClick = {
                     coroutineScope.launch {
-                        Toast.makeText(context, "Capturing screenshot...", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Capturing screenshot...", Toast.LENGTH_SHORT)
+                            .show()
                         val success = captureVideoFrame(context, player)
                         if (success) {
-                            Toast.makeText(context, "Screenshot saved to Pictures/Playora", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Screenshot saved to Pictures/Playora",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         } else {
-                            Toast.makeText(context, "Failed to capture screenshot", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Failed to capture screenshot",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 },
@@ -480,7 +503,8 @@ fun ControlsTopView(
                 onClick = {
                     val activity = context.findActivity()
                     activity?.let { act ->
-                        val isLandscape = act.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+                        val isLandscape =
+                            act.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
                         act.requestedOrientation = if (isLandscape) {
                             ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                         } else {

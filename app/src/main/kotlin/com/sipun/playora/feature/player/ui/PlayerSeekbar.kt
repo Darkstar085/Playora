@@ -113,7 +113,8 @@ private fun SimpleSlider(
         targetValue = if (isFocused) 22.dp else 16.dp,
         label = "thumbSize",
     )
-    val sliderState = key(valueRange) { rememberSliderState(value = value, trackRange = valueRange) }
+    val sliderState =
+        key(valueRange) { rememberSliderState(value = value, trackRange = valueRange) }
     SideEffect {
         if (!isScrubbing) sliderState.value = value.coerceIn(valueRange)
     }

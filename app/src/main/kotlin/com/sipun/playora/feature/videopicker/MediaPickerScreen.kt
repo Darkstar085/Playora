@@ -90,7 +90,6 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import com.sipun.playora.R
-import kotlinx.coroutines.delay
 import com.sipun.playora.core.common.storagePermission
 import com.sipun.playora.core.domain.MediaHolder
 import com.sipun.playora.core.media.services.MediaOperationsService
@@ -132,6 +131,7 @@ import com.sipun.playora.feature.videopicker.state.SelectionItem
 import com.sipun.playora.feature.videopicker.state.rememberSelectionManager
 import com.sipun.playora.feature.videopicker.state.toSelectedFolder
 import com.sipun.playora.feature.videopicker.state.toSelectedVideo
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @Composable
@@ -225,7 +225,10 @@ internal fun MediaPickerScreenContent(
                 shakeOffset.animateTo(-7f, animationSpec = tween(50, easing = LinearEasing))
                 shakeOffset.animateTo(7f, animationSpec = tween(50, easing = LinearEasing))
             }
-            shakeOffset.animateTo(0f, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+            shakeOffset.animateTo(
+                0f,
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+            )
             delay(5500)
             showVaultTooltip = false
             onAction(MediaPickerAction.UpdateMenu(state.preferences.copy(hasSeenVaultHint = true)))
@@ -242,7 +245,10 @@ internal fun MediaPickerScreenContent(
                 shakeOffset.animateTo(-7f, animationSpec = tween(50, easing = LinearEasing))
                 shakeOffset.animateTo(7f, animationSpec = tween(50, easing = LinearEasing))
             }
-            shakeOffset.animateTo(0f, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+            shakeOffset.animateTo(
+                0f,
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+            )
             delay(5000)
             showVaultTooltip = false
         }
@@ -267,7 +273,13 @@ internal fun MediaPickerScreenContent(
                                     .clickable {
                                         showVaultTooltip = false
                                         if (!state.preferences.hasSeenVaultHint) {
-                                            onAction(MediaPickerAction.UpdateMenu(state.preferences.copy(hasSeenVaultHint = true)))
+                                            onAction(
+                                                MediaPickerAction.UpdateMenu(
+                                                    state.preferences.copy(
+                                                        hasSeenVaultHint = true
+                                                    )
+                                                )
+                                            )
                                         }
                                         onAction(MediaPickerAction.OnPrivacyClick)
                                     }
@@ -284,28 +296,51 @@ internal fun MediaPickerScreenContent(
                         if (showVaultTooltip && !selectionManager.isInSelectionMode) {
                             Popup(
                                 alignment = Alignment.BottomStart,
-                                offset = IntOffset(x = 0, y = with(LocalDensity.current) { 6.dp.roundToPx() }),
+                                offset = IntOffset(
+                                    x = 0,
+                                    y = with(LocalDensity.current) { 6.dp.roundToPx() }),
                                 onDismissRequest = {
                                     showVaultTooltip = false
                                     if (!state.preferences.hasSeenVaultHint) {
-                                        onAction(MediaPickerAction.UpdateMenu(state.preferences.copy(hasSeenVaultHint = true)))
+                                        onAction(
+                                            MediaPickerAction.UpdateMenu(
+                                                state.preferences.copy(
+                                                    hasSeenVaultHint = true
+                                                )
+                                            )
+                                        )
                                     }
                                 },
-                                properties = PopupProperties(focusable = false, dismissOnClickOutside = true),
+                                properties = PopupProperties(
+                                    focusable = false,
+                                    dismissOnClickOutside = true
+                                ),
                             ) {
                                 VaultHintBubble(
                                     isFromHide = isFromHide,
                                     onClick = {
                                         showVaultTooltip = false
                                         if (!state.preferences.hasSeenVaultHint) {
-                                            onAction(MediaPickerAction.UpdateMenu(state.preferences.copy(hasSeenVaultHint = true)))
+                                            onAction(
+                                                MediaPickerAction.UpdateMenu(
+                                                    state.preferences.copy(
+                                                        hasSeenVaultHint = true
+                                                    )
+                                                )
+                                            )
                                         }
                                         onAction(MediaPickerAction.OnPrivacyClick)
                                     },
                                     onDismiss = {
                                         showVaultTooltip = false
                                         if (!state.preferences.hasSeenVaultHint) {
-                                            onAction(MediaPickerAction.UpdateMenu(state.preferences.copy(hasSeenVaultHint = true)))
+                                            onAction(
+                                                MediaPickerAction.UpdateMenu(
+                                                    state.preferences.copy(
+                                                        hasSeenVaultHint = true
+                                                    )
+                                                )
+                                            )
                                         }
                                     },
                                 )

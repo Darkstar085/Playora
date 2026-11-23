@@ -189,7 +189,8 @@ fun AboutScreen(output: AboutOutput) {
                                     }
                                 } catch (error: Exception) {
                                     updateFlowState = UpdateFlowState.Error(
-                                        error.message ?: context.getString(R.string.update_check_failed),
+                                        error.message
+                                            ?: context.getString(R.string.update_check_failed),
                                     )
                                 } finally {
                                     isChecking = false
@@ -242,19 +243,40 @@ fun AboutScreen(output: AboutOutput) {
                 icon = AppIcons.Link,
                 title = stringResource(R.string.about_source),
                 description = stringResource(R.string.about_source_description),
-                onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(REPOSITORY_URL))) },
+                onClick = {
+                    context.startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(REPOSITORY_URL)
+                        )
+                    )
+                },
             )
             AboutLinkCard(
                 icon = AppIcons.BugReport,
                 title = stringResource(R.string.about_contact),
                 description = stringResource(R.string.about_contact_description),
-                onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(CONTACT_URL))) },
+                onClick = {
+                    context.startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(CONTACT_URL)
+                        )
+                    )
+                },
             )
             AboutLinkCard(
                 icon = AppIcons.Headset,
                 title = stringResource(R.string.about_support),
                 description = stringResource(R.string.about_support_description),
-                onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(SUPPORT_URL))) },
+                onClick = {
+                    context.startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(SUPPORT_URL)
+                        )
+                    )
+                },
             )
             AboutLinkCard(
                 icon = AppIcons.DoubleTap,
@@ -334,19 +356,20 @@ fun AboutScreen(output: AboutOutput) {
                         progressPercent = 0,
                     )
                     try {
-                        val apk = UpdateManager.download(context, selectedUpdate) { downloaded, total ->
-                            val percent = if (total > 0) {
-                                ((downloaded * 100) / total).toInt().coerceIn(0, 100)
-                            } else {
-                                0
+                        val apk =
+                            UpdateManager.download(context, selectedUpdate) { downloaded, total ->
+                                val percent = if (total > 0) {
+                                    ((downloaded * 100) / total).toInt().coerceIn(0, 100)
+                                } else {
+                                    0
+                                }
+                                updateFlowState = UpdateFlowState.Downloading(
+                                    update = selectedUpdate,
+                                    downloadedBytes = downloaded,
+                                    totalBytes = total,
+                                    progressPercent = percent,
+                                )
                             }
-                            updateFlowState = UpdateFlowState.Downloading(
-                                update = selectedUpdate,
-                                downloadedBytes = downloaded,
-                                totalBytes = total,
-                                progressPercent = percent,
-                            )
-                        }
                         updateFlowState = UpdateFlowState.Installing(selectedUpdate)
                         if (UpdateManager.install(context, apk)) {
                             updateFlowState = UpdateFlowState.Success(selectedUpdate.version)
@@ -406,7 +429,11 @@ private fun AboutLinkCard(
         AboutIconTile(icon = icon)
         Spacer(Modifier.width(12.dp))
         Column {
-            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Text(
+                title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
             Text(
                 description,
                 style = MaterialTheme.typography.bodySmall,

@@ -118,7 +118,9 @@ fun getFolderArt(folderName: String, folderPath: String): ImageVector? {
             }
         }
 
-        name.contains("download") || name.contains("1dmp") || name.contains("adm") || name.contains("torrent") ->
+        name.contains("download") || name.contains("1dmp") || name.contains("adm") || name.contains(
+            "torrent"
+        ) ->
             Icons.Rounded.FileDownload
 
         name.contains("insta") || name.contains("aero") || name.contains("reel") || name.contains("stories") ->
@@ -130,7 +132,9 @@ fun getFolderArt(folderName: String, folderPath: String): ImageVector? {
         name.contains("telegram") || name.contains("tg ") ->
             Icons.AutoMirrored.Rounded.Send
 
-        name.contains("picture") || name.contains("image") || name.contains("photo") || name.contains("gallery") ->
+        name.contains("picture") || name.contains("image") || name.contains("photo") || name.contains(
+            "gallery"
+        ) ->
             Icons.Rounded.Image
 
         name.contains("music") || name.contains("audio") || name.contains("song") ->
@@ -142,10 +146,14 @@ fun getFolderArt(folderName: String, folderPath: String): ImageVector? {
         name.contains("document") || name.contains("doc") ->
             Icons.Rounded.Description
 
-        name.contains("youtube") || name.contains("vanced") || name.contains("newpipe") || name.contains("short") ->
+        name.contains("youtube") || name.contains("vanced") || name.contains("newpipe") || name.contains(
+            "short"
+        ) ->
             Icons.Rounded.SmartDisplay
 
-        name.contains("private") || name.contains("vault") || name.contains("hidden") || name.contains("lock") ->
+        name.contains("private") || name.contains("vault") || name.contains("hidden") || name.contains(
+            "lock"
+        ) ->
             Icons.Rounded.Lock
 
         name.contains("anime") || name.contains("animation") ->

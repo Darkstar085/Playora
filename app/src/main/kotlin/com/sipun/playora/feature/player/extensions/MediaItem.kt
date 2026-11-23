@@ -203,4 +203,4 @@ fun MediaItem.copy(
 
 val MediaMetadata.ffmpegExtraction: Boolean
     get() = videoDecoderMode == DecoderMode.HW_PLUS ||
-        extras?.getBoolean(MEDIA_METADATA_FFMPEG_EXTRACTION_KEY) == true
+            extras?.getBoolean(MEDIA_METADATA_FFMPEG_EXTRACTION_KEY) == true

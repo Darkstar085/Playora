@@ -8,13 +8,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -54,10 +54,6 @@ fun GesturePreferencesScreen(viewModel: GesturePreferencesViewModel) {
     )
 }
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class,
-)
 @Composable
 private fun GesturePreferencesScreenContent(
     state: GesturePreferencesUiState,
@@ -233,7 +229,7 @@ private fun GesturePreferencesScreenContent(
                         },
                         content = {
                             Text(
-                                text = "$longPressControlsSpeed",
+                                text = longPressControlsSpeed.toString(),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 20.dp),
@@ -241,12 +237,18 @@ private fun GesturePreferencesScreenContent(
                                 style = MaterialTheme.typography.titleMedium,
                             )
                             Slider(
-                                value = longPressControlsSpeed,
+                                state = rememberSliderState(
+                                    value = longPressControlsSpeed,
+                                    steps = 0,
+                                    trackRange = 0.2f..4.0f,
+                                ),
                                 onValueChange = {
                                     longPressControlsSpeed = it.round(decimalPlaces = 1)
                                 },
-                                valueRange = 0.2f..4.0f,
                                 modifier = Modifier.fillMaxWidth(),
+                                enabled = true,
+                                onValueChangeFinished = {},
+                                colors = SliderDefaults.colors(),
                             )
                         },
                     )

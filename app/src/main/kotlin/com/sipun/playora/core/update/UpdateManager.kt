@@ -50,7 +50,8 @@ object UpdateManager {
             if (!isNewerVersion(currentVersion(context), version)) return@withContext null
 
             val isPrerelease = release.optBoolean("prerelease")
-            val publishedAt = release.optString("published_at").ifBlank { release.optString("created_at") }
+            val publishedAt =
+                release.optString("published_at").ifBlank { release.optString("created_at") }
             val formattedDate = formatReleaseDate(publishedAt)
 
             val assets = release.getJSONArray("assets")
@@ -145,9 +146,10 @@ object UpdateManager {
     private fun formatReleaseDate(isoDate: String): String {
         if (isoDate.isBlank()) return "Recently"
         return try {
-            val parser = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
-                timeZone = java.util.TimeZone.getTimeZone("UTC")
-            }
+            val parser =
+                java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
+                    timeZone = java.util.TimeZone.getTimeZone("UTC")
+                }
             val date = parser.parse(isoDate) ?: return "Recently"
             val formatter = java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.US)
             formatter.format(date)
@@ -158,7 +160,20 @@ object UpdateManager {
                 val year = parts.getOrNull(0) ?: ""
                 val monthNum = parts.getOrNull(1)?.toIntOrNull() ?: 1
                 val day = parts.getOrNull(2)?.toIntOrNull() ?: 1
-                val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+                val months = listOf(
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sep",
+                    "Oct",
+                    "Nov",
+                    "Dec"
+                )
                 val month = months.getOrElse(monthNum - 1) { "Jan" }
                 "$month $day, $year"
             } catch (_: Exception) {
@@ -205,8 +220,10 @@ object UpdateManager {
         val currentParts = current.removePrefix("v").split(".")
         val latestParts = latest.removePrefix("v").split(".")
         for (index in 0 until maxOf(currentParts.size, latestParts.size)) {
-            val currentPart = currentParts.getOrNull(index)?.takeWhile(Char::isDigit)?.toIntOrNull() ?: 0
-            val latestPart = latestParts.getOrNull(index)?.takeWhile(Char::isDigit)?.toIntOrNull() ?: 0
+            val currentPart =
+                currentParts.getOrNull(index)?.takeWhile(Char::isDigit)?.toIntOrNull() ?: 0
+            val latestPart =
+                latestParts.getOrNull(index)?.takeWhile(Char::isDigit)?.toIntOrNull() ?: 0
             if (latestPart != currentPart) return latestPart > currentPart
         }
         return false
@@ -231,13 +248,14 @@ object UpdateManager {
     private fun verifyPackage(context: Context, apk: File): Boolean {
         val flags = PackageManager.GET_SIGNATURES
         val installed = context.packageManager.getPackageInfo(context.packageName, flags)
-        val archived = context.packageManager.getPackageArchiveInfo(apk.absolutePath, flags) ?: return false
+        val archived =
+            context.packageManager.getPackageArchiveInfo(apk.absolutePath, flags) ?: return false
         val installedSignatures = installed.signatures ?: return false
         val archivedSignatures = archived.signatures ?: return false
         return archived.packageName == context.packageName &&
-            installedSignatures.size == archivedSignatures.size &&
-            installedSignatures.zip(archivedSignatures).all { (left, right) ->
-                left.toByteArray().contentEquals(right.toByteArray())
-            }
+                installedSignatures.size == archivedSignatures.size &&
+                installedSignatures.zip(archivedSignatures).all { (left, right) ->
+                    left.toByteArray().contentEquals(right.toByteArray())
+                }
     }
 }

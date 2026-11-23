@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -49,7 +48,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -285,7 +283,8 @@ private fun ResumeOptionCard(
     onClick: () -> Unit,
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
-    val borderColor = if (isSelected) primaryColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    val borderColor =
+        if (isSelected) primaryColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
     val bgColor = if (isSelected) {
         primaryColor.copy(alpha = 0.18f)
     } else {
@@ -403,7 +402,10 @@ fun SubtitleFontBottomSheet(
                 fonts.forEach { font ->
                     val isSelected = font == tempSelected
                     val primaryColor = MaterialTheme.colorScheme.primary
-                    val borderColor = if (isSelected) primaryColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                    val borderColor =
+                        if (isSelected) primaryColor else MaterialTheme.colorScheme.outlineVariant.copy(
+                            alpha = 0.35f
+                        )
                     val bgColor = if (isSelected) {
                         primaryColor.copy(alpha = 0.18f)
                     } else {
@@ -711,7 +713,10 @@ private fun SettingsBottomSheetActions(
                 .height(48.dp),
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surfaceContainerHighest,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
+            border = BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
+            ),
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Text(
@@ -810,7 +815,10 @@ fun OptionsDialog(
                     .navigationBarsPadding(),
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
+                ),
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(

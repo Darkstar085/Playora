@@ -279,14 +279,16 @@ fun BoxScope.SubtitleSelectorView(
                                 ),
                                 onMinusClick = {
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    val newSpeed = (round((subtitleOptionsState.speedMultiplier - 0.05f) * 100f) / 100f)
-                                        .coerceAtLeast(0.25f)
+                                    val newSpeed =
+                                        (round((subtitleOptionsState.speedMultiplier - 0.05f) * 100f) / 100f)
+                                            .coerceAtLeast(0.25f)
                                     subtitleOptionsState.setSpeed(newSpeed)
                                 },
                                 onPlusClick = {
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    val newSpeed = (round((subtitleOptionsState.speedMultiplier + 0.05f) * 100f) / 100f)
-                                        .coerceAtMost(4.0f)
+                                    val newSpeed =
+                                        (round((subtitleOptionsState.speedMultiplier + 0.05f) * 100f) / 100f)
+                                            .coerceAtMost(4.0f)
                                     subtitleOptionsState.setSpeed(newSpeed)
                                 },
                             )

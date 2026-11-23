@@ -40,6 +40,7 @@ class MediaStoreMediaService(
 
     private data class MetadataKey(val uri: Uri, val size: Long, val modified: Long)
     private data class VideoMetadata(val duration: Long, val width: Int, val height: Int)
+
     private val missingMetadata = LruCache<MetadataKey, VideoMetadata>(256)
 
     companion object {
