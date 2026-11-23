@@ -3,6 +3,7 @@
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -353,19 +354,26 @@ fun PreferenceSlider(
         supportingContent = {
             Column {
                 description?.let { Text(text = description) }
-                Slider(
-                    value = value,
-                    onValueChange = onValueChange,
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = enabled,
-                    valueRange = valueRange,
-                    steps = steps,
-                    onValueChangeFinished = onValueChangeFinished,
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Slider(
+                        value = value,
+                        onValueChange = onValueChange,
+                        modifier = Modifier.weight(1f),
+                        enabled = enabled,
+                        valueRange = valueRange,
+                        steps = steps,
+                        onValueChangeFinished = onValueChangeFinished,
+                    )
+                    trailingContent()
+                }
             }
         },
         content = { Text(text = title) },
-        trailingContent = trailingContent,
+        trailingContent = null,
     )
 }
 

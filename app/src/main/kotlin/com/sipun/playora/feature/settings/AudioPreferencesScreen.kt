@@ -29,6 +29,7 @@ import com.sipun.playora.core.ui.components.PreferenceSwitch
 import com.sipun.playora.core.ui.components.RadioTextButton
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.theme.PlayoraTheme
+import com.sipun.playora.settings.composables.LanguageSelectionBottomSheet
 import com.sipun.playora.settings.composables.OptionsDialog
 import com.sipun.playora.settings.utils.LocalesHelper
 
@@ -115,23 +116,19 @@ private fun AudioPreferencesScreenContent(
         state.showDialog?.let { showDialog ->
             when (showDialog) {
                 AudioPreferenceDialog.AudioLanguageDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.preferred_audio_lang),
-                        onDismissClick = {
+                    LanguageSelectionBottomSheet(
+                        title = stringResource(id = R.string.preferred_audio_lang),
+                        subtitle = stringResource(id = R.string.preferred_audio_lang_desc),
+                        languages = languages,
+                        selectedLanguage = state.preferences.preferredAudioLanguage,
+                        onApply = {
+                            onAction(AudioPreferencesUiEvent.UpdateAudioLanguage(it))
                             onAction(AudioPreferencesUiEvent.ShowDialog(value = null))
                         },
-                    ) {
-                        items(items = languages) {
-                            RadioTextButton(
-                                text = it.first,
-                                selected = it.second == state.preferences.preferredAudioLanguage,
-                                onClick = {
-                                    onAction(AudioPreferencesUiEvent.UpdateAudioLanguage(it.second))
-                                    onAction(AudioPreferencesUiEvent.ShowDialog(value = null))
-                                },
-                            )
-                        }
-                    }
+                        onDismiss = {
+                            onAction(AudioPreferencesUiEvent.ShowDialog(value = null))
+                        },
+                    )
                 }
             }
         }

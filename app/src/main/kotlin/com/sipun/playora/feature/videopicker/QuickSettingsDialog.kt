@@ -68,14 +68,6 @@ import com.sipun.playora.core.model.Sort
 import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.feature.videopicker.extensions.name
 
-private val SheetBackground = Color(0xFF121418)
-private val SegmentedContainerBackground = Color(0xFF1B1D23)
-private val SegmentedContainerBorder = Color(0xFF282B33)
-private val AccentBlue = Color(0xFF007AFF)
-private val InactiveContentColor = Color(0xFF9AA0A6)
-private val InactiveButtonBackground = Color(0xFF1F2228)
-private val InactiveButtonBorder = Color(0xFF2B2E37)
-
 @OptIn(
     ExperimentalLayoutApi::class,
     ExperimentalMaterial3Api::class,
@@ -96,10 +88,10 @@ fun QuickSettingsDialog(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        containerColor = SheetBackground,
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
         dragHandle = {
             BottomSheetDefaults.DragHandle(
-                color = Color(0xFF555964),
+                color = MaterialTheme.colorScheme.outlineVariant,
                 modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
             )
         },
@@ -125,7 +117,7 @@ fun QuickSettingsDialog(
                         fontWeight = FontWeight.Bold,
                         fontSize = 22.sp,
                     ),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
 
@@ -288,7 +280,7 @@ fun QuickSettingsDialog(
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 14.sp,
                         ),
-                        color = InactiveContentColor,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
@@ -299,8 +291,8 @@ fun QuickSettingsDialog(
                     },
                     shape = CircleShape,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = AccentBlue,
-                        contentColor = Color.White,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
                     ),
                     contentPadding = PaddingValues(horizontal = 26.dp, vertical = 10.dp),
                 ) {
@@ -334,7 +326,7 @@ private fun SectionHeader(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(18.dp),
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = title,
@@ -342,7 +334,7 @@ private fun SectionHeader(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp,
             ),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -360,10 +352,10 @@ private fun <T> SegmentedPillRow(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(SegmentedContainerBackground)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .border(
                 width = 1.dp,
-                color = SegmentedContainerBorder,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                 shape = RoundedCornerShape(24.dp),
             )
             .padding(3.dp),
@@ -376,7 +368,7 @@ private fun <T> SegmentedPillRow(
                     .weight(1f)
                     .clip(RoundedCornerShape(20.dp))
                     .background(
-                        if (isSelected) AccentBlue
+                        if (isSelected) MaterialTheme.colorScheme.primary
                         else Color.Transparent,
                     )
                     .clickable { onItemSelected(item) }
@@ -392,7 +384,7 @@ private fun <T> SegmentedPillRow(
                             imageVector = itemIcon(item),
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = if (isSelected) Color.White else InactiveContentColor,
+                            tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                     }
@@ -402,7 +394,7 @@ private fun <T> SegmentedPillRow(
                             fontSize = 13.sp,
                             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
                         ),
-                        color = if (isSelected) Color.White else InactiveContentColor,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -447,12 +439,12 @@ private fun SortCriteriaRow(
                         .height(46.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .background(
-                            if (isSelected) AccentBlue
-                            else InactiveButtonBackground,
+                            if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.surfaceContainerHighest,
                         )
                         .border(
                             width = 1.dp,
-                            color = if (isSelected) AccentBlue else InactiveButtonBorder,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                             shape = RoundedCornerShape(16.dp),
                         )
                         .clickable { onSelectBy(by) },
@@ -466,7 +458,7 @@ private fun SortCriteriaRow(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 19.sp,
                                 ),
-                                color = if (isSelected) Color.White else InactiveContentColor,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         icon is SortCriterionIcon.Vector -> {
@@ -474,7 +466,7 @@ private fun SortCriteriaRow(
                                 imageVector = icon.imageVector,
                                 contentDescription = label,
                                 modifier = Modifier.size(20.dp),
-                                tint = if (isSelected) Color.White else InactiveContentColor,
+                                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         icon is SortCriterionIcon.DrawableRes -> {
@@ -482,7 +474,7 @@ private fun SortCriteriaRow(
                                 painter = painterResource(icon.resId),
                                 contentDescription = label,
                                 modifier = Modifier.size(20.dp),
-                                tint = if (isSelected) Color.White else InactiveContentColor,
+                                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -493,7 +485,7 @@ private fun SortCriteriaRow(
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                     ),
-                    color = InactiveContentColor,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -507,8 +499,8 @@ fun QuickSettingFieldChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val borderColor = if (selected) AccentBlue else Color(0xFF2D3038)
-    val backgroundColor = if (selected) Color(0xFF0F2642) else Color(0xFF1A1C22)
+    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    val backgroundColor = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceContainerHighest
 
     Box(
         modifier = modifier
@@ -532,11 +524,11 @@ fun QuickSettingFieldChip(
                     .clip(RoundedCornerShape(4.dp))
                     .then(
                         if (selected) {
-                            Modifier.background(AccentBlue)
+                            Modifier.background(MaterialTheme.colorScheme.primary)
                         } else {
                             Modifier.border(
                                 width = 1.5.dp,
-                                color = Color(0xFF555A64),
+                                color = MaterialTheme.colorScheme.outlineVariant,
                                 shape = RoundedCornerShape(4.dp),
                             )
                         },
@@ -547,7 +539,7 @@ fun QuickSettingFieldChip(
                     Icon(
                         imageVector = Icons.Rounded.Check,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(12.dp),
                     )
                 }
@@ -559,7 +551,7 @@ fun QuickSettingFieldChip(
                     fontSize = 13.sp,
                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                 ),
-                color = if (selected) Color.White else InactiveContentColor,
+                color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

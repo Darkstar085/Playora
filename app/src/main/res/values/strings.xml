@@ -375,5 +375,14 @@
     <string name="vault_hint_title">Secret Vault</string>
     <string name="vault_hint_first_launch">Tap “Playora” here to open your private vault</string>
     <string name="vault_hint_after_hide">Video hidden! Tap “Playora” anytime to view your vault</string>
+    <string name="apply">Apply</string>
+    <string name="search_language">Search language…</string>
+    <string name="preferred_audio_lang_desc">Choose the default language for audio tracks.</string>
+    <string name="preferred_subtitle_lang_desc">Choose the default language for subtitles.</string>
+    <string name="resume_desc">Select whether to resume played videos from where you stopped.</string>
+    <string name="resume_yes_desc">Resume from the last playback position</string>
+    <string name="resume_no_desc">Always start from the beginning</string>
+    <string name="subtitle_font_desc">Choose a font style for subtitles.</string>
+    <string name="subtitle_preview_text">This is a subtitle preview</string>
 </resources>
 

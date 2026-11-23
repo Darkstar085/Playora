@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -23,7 +24,7 @@ fun AppDialog(
     confirmButton: @Composable () -> Unit,
     dismissButton: @Composable (() -> Unit)? = null,
     dialogProperties: DialogProperties = AppDialogDefaults.dialogProperties,
-    containerColor: Color = Color(0xFF16181E),
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
     shape: Shape = RoundedCornerShape(28.dp),
 ) {
     val configuration = LocalConfiguration.current

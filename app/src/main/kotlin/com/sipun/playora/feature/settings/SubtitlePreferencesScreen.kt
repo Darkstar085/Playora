@@ -37,7 +37,9 @@ import com.sipun.playora.core.ui.components.RadioTextButton
 import com.sipun.playora.core.ui.components.ResetIconButton
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.theme.PlayoraTheme
+import com.sipun.playora.settings.composables.LanguageSelectionBottomSheet
 import com.sipun.playora.settings.composables.OptionsDialog
+import com.sipun.playora.settings.composables.SubtitleFontBottomSheet
 import com.sipun.playora.settings.extensions.name
 import com.sipun.playora.settings.utils.LocalesHelper
 
@@ -200,49 +202,36 @@ private fun SubtitlePreferencesScreenContent(
         state.showDialog?.let { showDialog ->
             when (showDialog) {
                 SubtitlePreferenceDialog.SubtitleLanguageDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.preferred_subtitle_lang),
-                        onDismissClick = {
+                    LanguageSelectionBottomSheet(
+                        title = stringResource(id = R.string.preferred_subtitle_lang),
+                        subtitle = stringResource(id = R.string.preferred_subtitle_lang_desc),
+                        languages = languages,
+                        selectedLanguage = state.preferences.preferredSubtitleLanguage,
+                        onApply = {
+                            onAction(
+                                SubtitlePreferencesUiEvent.UpdateSubtitleLanguage(it),
+                            )
                             onAction(SubtitlePreferencesUiEvent.ShowDialog(value = null))
                         },
-                    ) {
-                        items(items = languages) {
-                            RadioTextButton(
-                                text = it.first,
-                                selected = it.second == state.preferences.preferredSubtitleLanguage,
-                                onClick = {
-                                    onAction(
-                                        SubtitlePreferencesUiEvent.UpdateSubtitleLanguage(
-                                            it.second,
-                                        ),
-                                    )
-                                    onAction(SubtitlePreferencesUiEvent.ShowDialog(value = null))
-                                },
-                            )
-                        }
-                    }
+                        onDismiss = {
+                            onAction(SubtitlePreferencesUiEvent.ShowDialog(value = null))
+                        },
+                    )
                 }
 
                 SubtitlePreferenceDialog.SubtitleFontDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.subtitle_font),
-                        onDismissClick = {
+                    SubtitleFontBottomSheet(
+                        selectedFont = state.preferences.subtitleFont,
+                        onApply = {
+                            onAction(
+                                SubtitlePreferencesUiEvent.UpdateSubtitleFont(value = it),
+                            )
                             onAction(SubtitlePreferencesUiEvent.ShowDialog(value = null))
                         },
-                    ) {
-                        items(Font.entries.toTypedArray()) {
-                            RadioTextButton(
-                                text = it.name(),
-                                selected = it == state.preferences.subtitleFont,
-                                onClick = {
-                                    onAction(
-                                        SubtitlePreferencesUiEvent.UpdateSubtitleFont(value = it),
-                                    )
-                                    onAction(SubtitlePreferencesUiEvent.ShowDialog(value = null))
-                                },
-                            )
-                        }
-                    }
+                        onDismiss = {
+                            onAction(SubtitlePreferencesUiEvent.ShowDialog(value = null))
+                        },
+                    )
                 }
                 else -> {}
             }

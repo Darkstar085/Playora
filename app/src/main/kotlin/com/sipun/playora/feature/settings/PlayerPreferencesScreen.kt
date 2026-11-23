@@ -33,7 +33,9 @@ import com.sipun.playora.core.ui.components.RadioTextButton
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.preview.DayNightPreview
 import com.sipun.playora.core.ui.theme.PlayoraTheme
+import com.sipun.playora.settings.composables.LanguageSelectionBottomSheet
 import com.sipun.playora.settings.composables.OptionsDialog
+import com.sipun.playora.settings.composables.ResumeSelectionBottomSheet
 import com.sipun.playora.settings.extensions.name
 import com.sipun.playora.settings.screens.player.PlayerPreferencesUiEvent.UpdatePreferredControlButtonsPosition
 import com.sipun.playora.settings.utils.LocalesHelper
@@ -169,49 +171,36 @@ private fun PlayerPreferencesScreenContent(
         state.showDialog?.let { showDialog ->
             when (showDialog) {
                 PlayerPreferenceDialog.ResumeDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.resume),
-                        onDismissClick = {
+                    ResumeSelectionBottomSheet(
+                        selected = state.preferences.resume,
+                        onApply = {
+                            onAction(
+                                PlayerPreferencesUiEvent.UpdatePlaybackResume(resume = it),
+                            )
                             onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
                         },
-                    ) {
-                        items(Resume.entries.toTypedArray()) {
-                            RadioTextButton(
-                                text = it.name(),
-                                selected = (it == state.preferences.resume),
-                                onClick = {
-                                    onAction(
-                                        PlayerPreferencesUiEvent.UpdatePlaybackResume(resume = it),
-                                    )
-                                    onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
-                                },
-                            )
-                        }
-                    }
+                        onDismiss = {
+                            onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
+                        },
+                    )
                 }
 
                 PlayerPreferenceDialog.AudioLanguageDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.preferred_audio_lang),
-                        onDismissClick = {
+                    LanguageSelectionBottomSheet(
+                        title = stringResource(id = R.string.preferred_audio_lang),
+                        subtitle = stringResource(id = R.string.preferred_audio_lang_desc),
+                        languages = languages,
+                        selectedLanguage = state.preferences.preferredAudioLanguage,
+                        onApply = {
+                            onAction(
+                                PlayerPreferencesUiEvent.UpdateAudioLanguage(it),
+                            )
                             onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
                         },
-                    ) {
-                        items(items = languages) {
-                            RadioTextButton(
-                                text = it.first,
-                                selected = it.second == state.preferences.preferredAudioLanguage,
-                                onClick = {
-                                    onAction(
-                                        PlayerPreferencesUiEvent.UpdateAudioLanguage(
-                                            it.second,
-                                        ),
-                                    )
-                                    onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
-                                },
-                            )
-                        }
-                    }
+                        onDismiss = {
+                            onAction(PlayerPreferencesUiEvent.ShowDialog(value = null))
+                        },
+                    )
                 }
 
                 PlayerPreferenceDialog.ControlButtonsDialog -> {

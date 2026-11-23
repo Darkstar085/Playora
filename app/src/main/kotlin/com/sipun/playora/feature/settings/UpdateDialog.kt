@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -84,18 +85,8 @@ private val UpdateFlowState.step: UpdateStep
         is UpdateFlowState.Error -> UpdateStep.ERROR
     }
 
-private val DialogBackground = Color(0xFF16181E)
-private val DialogBorder = Color(0xFF262B38)
-private val CardBackground = Color(0xFF191D27)
-private val CardBorder = Color(0xFF262C3A)
-private val SectionBackground = Color(0xFF12141A)
-private val SectionBorder = Color(0xFF222632)
-private val AccentBlue = Color(0xFF1D68FE)
-private val BulletBlue = Color(0xFF388AF6)
 private val SuccessGreen = Color(0xFF22C55E)
-private val PillGreenBg = Color(0xFF132E20)
-private val PillGreenText = Color(0xFF4ADE80)
-private val NeutralPillBg = Color(0xFF212532)
+private val ErrorRed = Color(0xFFEF4444)
 
 @Composable
 fun UpdateDialog(
@@ -121,8 +112,8 @@ fun UpdateDialog(
                 .fillMaxWidth(0.92f)
                 .heightIn(max = 680.dp),
             shape = RoundedCornerShape(28.dp),
-            color = DialogBackground,
-            border = androidx.compose.foundation.BorderStroke(1.dp, DialogBorder),
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
         ) {
             AnimatedContent(
                 targetState = state.step,
@@ -216,7 +207,7 @@ private fun UpdateAvailableContent(
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(NeutralPillBg)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                     .clickable(onClick = onDismiss)
                     .align(Alignment.TopEnd),
                 contentAlignment = Alignment.Center,
@@ -224,7 +215,7 @@ private fun UpdateAvailableContent(
                 Icon(
                     imageVector = AppIcons.Close,
                     contentDescription = stringResource(R.string.cancel),
-                    tint = Color.White.copy(alpha = 0.75f),
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(16.dp),
                 )
             }
@@ -255,7 +246,7 @@ private fun UpdateAvailableContent(
                     .size(24.dp)
                     .clip(CircleShape)
                     .background(SuccessGreen)
-                    .border(2.dp, DialogBackground, CircleShape)
+                    .border(2.dp, MaterialTheme.colorScheme.surfaceContainer, CircleShape)
                     .align(Alignment.BottomEnd),
                 contentAlignment = Alignment.Center,
             ) {
@@ -277,7 +268,7 @@ private fun UpdateAvailableContent(
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
             ),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
 
@@ -286,7 +277,7 @@ private fun UpdateAvailableContent(
         Text(
             text = stringResource(R.string.update_available_subtitle),
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-            color = Color.White.copy(alpha = 0.65f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
 
@@ -299,25 +290,25 @@ private fun UpdateAvailableContent(
         ) {
             Surface(
                 shape = CircleShape,
-                color = NeutralPillBg,
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
             ) {
                 Text(
                     text = "v${update.version}",
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
                 )
             }
 
             Surface(
                 shape = CircleShape,
-                color = PillGreenBg,
-                border = androidx.compose.foundation.BorderStroke(1.dp, SuccessGreen.copy(alpha = 0.35f)),
+                color = SuccessGreen.copy(alpha = 0.15f),
+                border = BorderStroke(1.dp, SuccessGreen.copy(alpha = 0.35f)),
             ) {
                 Text(
                     text = stringResource(if (update.isPrerelease) R.string.update_prerelease else R.string.update_stable),
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = PillGreenText,
+                    color = SuccessGreen,
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
                 )
             }
@@ -355,16 +346,16 @@ private fun UpdateAvailableContent(
             Text(
                 text = stringResource(R.string.update_whats_new),
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Surface(
                 shape = CircleShape,
-                color = NeutralPillBg,
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
             ) {
                 Text(
                     text = stringResource(R.string.update_changes, changelogItems.size),
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                    color = Color.White.copy(alpha = 0.75f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
                 )
             }
@@ -377,8 +368,12 @@ private fun UpdateAvailableContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(SectionBackground)
-                .border(1.dp, SectionBorder, RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .border(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                    RoundedCornerShape(16.dp),
+                )
                 .padding(14.dp),
         ) {
             Column(
@@ -396,7 +391,7 @@ private fun UpdateAvailableContent(
                     ) {
                         Text(
                             text = "•",
-                            color = BulletBlue,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 1.dp),
@@ -407,7 +402,7 @@ private fun UpdateAvailableContent(
                                 fontSize = 12.5.sp,
                                 lineHeight = 17.sp,
                             ),
-                            color = Color.White.copy(alpha = 0.85f),
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
@@ -424,8 +419,8 @@ private fun UpdateAvailableContent(
                 .height(48.dp),
             shape = RoundedCornerShape(24.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = AccentBlue,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
             ),
         ) {
             Icon(
@@ -450,10 +445,10 @@ private fun UpdateAvailableContent(
                 .height(48.dp),
             shape = RoundedCornerShape(24.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = CardBackground,
-                contentColor = Color.White.copy(alpha = 0.85f),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                contentColor = MaterialTheme.colorScheme.onSurface,
             ),
-            border = androidx.compose.foundation.BorderStroke(1.dp, CardBorder),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
         ) {
             Text(
                 text = stringResource(R.string.update_later),
@@ -474,8 +469,12 @@ private fun InfoCard(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(CardBackground)
-            .border(1.dp, CardBorder, RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                RoundedCornerShape(16.dp),
+            )
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -484,13 +483,13 @@ private fun InfoCard(
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(NeutralPillBg),
+                .background(MaterialTheme.colorScheme.surfaceContainer),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Color.White.copy(alpha = 0.85f),
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(18.dp),
             )
         }
@@ -501,14 +500,14 @@ private fun InfoCard(
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.5.sp,
                 ),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
-                color = Color.White.copy(alpha = 0.5f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -552,7 +551,7 @@ private fun UpdateDownloadingContent(
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
             ),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         Spacer(Modifier.height(4.dp))
@@ -560,7 +559,7 @@ private fun UpdateDownloadingContent(
         Text(
             text = "v${state.update.version} • $totalMB",
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
-            color = Color.White.copy(alpha = 0.6f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(Modifier.height(20.dp))
@@ -572,8 +571,8 @@ private fun UpdateDownloadingContent(
                 .fillMaxWidth()
                 .height(8.dp)
                 .clip(CircleShape),
-            color = AccentBlue,
-            trackColor = NeutralPillBg,
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
         )
 
         Spacer(Modifier.height(8.dp))
@@ -581,7 +580,7 @@ private fun UpdateDownloadingContent(
         Text(
             text = "$downloadedMB of $totalMB ($progress%)",
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp),
-            color = Color.White.copy(alpha = 0.7f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(Modifier.height(22.dp))
@@ -591,10 +590,10 @@ private fun UpdateDownloadingContent(
             modifier = Modifier.height(38.dp),
             shape = CircleShape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = NeutralPillBg,
-                contentColor = Color.White.copy(alpha = 0.85f),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                contentColor = MaterialTheme.colorScheme.onSurface,
             ),
-            border = androidx.compose.foundation.BorderStroke(1.dp, CardBorder),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
         ) {
             Text(
                 text = stringResource(R.string.cancel),
@@ -615,7 +614,7 @@ private fun UpdateInstallingContent() {
     ) {
         CircularProgressIndicator(
             modifier = Modifier.size(52.dp),
-            color = AccentBlue,
+            color = MaterialTheme.colorScheme.primary,
             strokeWidth = 4.dp,
         )
 
@@ -627,7 +626,7 @@ private fun UpdateInstallingContent() {
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
             ),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         Spacer(Modifier.height(6.dp))
@@ -635,7 +634,7 @@ private fun UpdateInstallingContent() {
         Text(
             text = stringResource(R.string.update_installing_desc),
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-            color = Color.White.copy(alpha = 0.6f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -655,7 +654,7 @@ private fun UpdateSuccessContent(
             modifier = Modifier
                 .size(56.dp)
                 .clip(CircleShape)
-                .background(PillGreenBg)
+                .background(SuccessGreen.copy(alpha = 0.15f))
                 .border(2.dp, SuccessGreen, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
@@ -675,7 +674,7 @@ private fun UpdateSuccessContent(
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
             ),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         Spacer(Modifier.height(6.dp))
@@ -683,7 +682,7 @@ private fun UpdateSuccessContent(
         Text(
             text = stringResource(R.string.update_success_desc, version),
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-            color = Color.White.copy(alpha = 0.65f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(Modifier.height(24.dp))
@@ -695,8 +694,8 @@ private fun UpdateSuccessContent(
                 .height(48.dp),
             shape = RoundedCornerShape(24.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = AccentBlue,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
             ),
         ) {
             Text(
@@ -723,7 +722,7 @@ private fun UpdateUpToDateContent(
             modifier = Modifier
                 .size(56.dp)
                 .clip(CircleShape)
-                .background(PillGreenBg)
+                .background(SuccessGreen.copy(alpha = 0.15f))
                 .border(2.dp, SuccessGreen, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
@@ -743,7 +742,7 @@ private fun UpdateUpToDateContent(
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
             ),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
 
@@ -752,7 +751,7 @@ private fun UpdateUpToDateContent(
         Text(
             text = "Playora v$version",
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-            color = Color.White.copy(alpha = 0.65f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(Modifier.height(24.dp))
@@ -764,8 +763,8 @@ private fun UpdateUpToDateContent(
                 .height(48.dp),
             shape = RoundedCornerShape(24.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = AccentBlue,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
             ),
         ) {
             Text(
@@ -792,14 +791,14 @@ private fun UpdateErrorContent(
             modifier = Modifier
                 .size(56.dp)
                 .clip(CircleShape)
-                .background(Color(0xFF351717))
-                .border(2.dp, Color(0xFFEF4444), CircleShape),
+                .background(ErrorRed.copy(alpha = 0.15f))
+                .border(2.dp, ErrorRed, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = AppIcons.Info,
                 contentDescription = null,
-                tint = Color(0xFFEF4444),
+                tint = ErrorRed,
                 modifier = Modifier.size(30.dp),
             )
         }
@@ -812,7 +811,7 @@ private fun UpdateErrorContent(
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
             ),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         Spacer(Modifier.height(6.dp))
@@ -820,7 +819,7 @@ private fun UpdateErrorContent(
         Text(
             text = message,
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-            color = Color.White.copy(alpha = 0.65f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
 
@@ -833,8 +832,8 @@ private fun UpdateErrorContent(
                 .height(48.dp),
             shape = RoundedCornerShape(24.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = AccentBlue,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
             ),
         ) {
             Text(
