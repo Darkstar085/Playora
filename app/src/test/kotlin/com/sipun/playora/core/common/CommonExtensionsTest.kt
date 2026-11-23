@@ -1,8 +1,10 @@
 package com.sipun.playora.core.common
 
 import com.sipun.playora.core.common.extensions.isSubtitle
+import com.sipun.playora.core.common.extensions.mapAsync
 import com.sipun.playora.core.common.extensions.prettyName
 import com.sipun.playora.core.common.extensions.round
+import com.sipun.playora.core.common.extensions.toString
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -17,6 +19,20 @@ class CommonExtensionsTest {
         assertEquals(3.14f, value.round(2), 0.0001f)
         assertEquals(3.1f, value.round(1), 0.0001f)
         assertEquals(3.0f, value.round(0), 0.0001f)
+    }
+
+    @Test
+    fun testFloatToString() {
+        val value = 3.14159f
+        assertEquals("3.14", value.toString(2))
+        assertEquals("3.1", value.toString(1))
+    }
+
+    @Test
+    fun testMapAsync() = kotlinx.coroutines.runBlocking {
+        val numbers = listOf(1, 2, 3, 4, 5)
+        val squared = numbers.mapAsync { it * it }
+        assertEquals(listOf(1, 4, 9, 16, 25), squared)
     }
 
     @Test

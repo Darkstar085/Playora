@@ -114,4 +114,59 @@ class MediaModelsTest {
         )
         assertFalse(playedDateVideoPositivePos.isNew())
     }
+
+    @Test
+    fun testMediaItemTypes() {
+        val videoItem: MediaItem = MediaItem.VideoItem(Video.sample)
+        val folderItem: MediaItem = MediaItem.FolderItem(Folder.sample)
+
+        assertTrue(videoItem is MediaItem.VideoItem)
+        assertTrue(folderItem is MediaItem.FolderItem)
+        assertEquals(Video.sample, (videoItem as MediaItem.VideoItem).video)
+        assertEquals(Folder.sample, (folderItem as MediaItem.FolderItem).folder)
+    }
+
+    @Test
+    fun testStreamInfoModels() {
+        val audio = AudioStreamInfo(
+            index = 1,
+            title = "Surround 5.1",
+            codecName = "aac",
+            language = "eng",
+            disposition = 1,
+            bitRate = 320_000,
+            sampleFormat = "fltp",
+            sampleRate = 48_000,
+            channels = 6,
+            channelLayout = "5.1",
+        )
+        val video = VideoStreamInfo(
+            index = 0,
+            title = "Main",
+            codecName = "hevc",
+            language = null,
+            disposition = 1,
+            bitRate = 4_500_000,
+            frameRate = 23.976,
+            frameWidth = 1920,
+            frameHeight = 1080,
+        )
+        val subtitle = SubtitleStreamInfo(
+            index = 2,
+            title = "English SDH",
+            codecName = "subrip",
+            language = "eng",
+            disposition = 0,
+        )
+        val mediaInfo = MediaInfo(
+            video = Video.sample,
+            videoStream = video,
+            audioStreams = listOf(audio),
+            subtitleStreams = listOf(subtitle),
+        )
+
+        assertEquals("hevc", mediaInfo.videoStream?.codecName)
+        assertEquals(1, mediaInfo.audioStreams.size)
+        assertEquals("English SDH", mediaInfo.subtitleStreams.first().title)
+    }
 }

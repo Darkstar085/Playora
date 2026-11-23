@@ -33,4 +33,59 @@ class PreferenceEnumsTest {
         assertEquals(1, ScreenOrientation.entries.size)
         assertNotNull(ScreenOrientation.valueOf("VIDEO_ORIENTATION"))
     }
+
+    @Test
+    fun testResumeEnum() {
+        assertEquals(2, Resume.entries.size)
+        assertEquals(Resume.YES, Resume.valueOf("YES"))
+        assertEquals(Resume.NO, Resume.valueOf("NO"))
+    }
+
+    @Test
+    fun testFontEnum() {
+        assertEquals(4, Font.entries.size)
+        assertEquals(Font.DEFAULT, Font.valueOf("DEFAULT"))
+        assertEquals(Font.MONOSPACE, Font.valueOf("MONOSPACE"))
+        assertEquals(Font.SANS_SERIF, Font.valueOf("SANS_SERIF"))
+        assertEquals(Font.SERIF, Font.valueOf("SERIF"))
+    }
+
+    @Test
+    fun testDoubleTapGesture() {
+        assertEquals(4, DoubleTapGesture.entries.size)
+        assertNotNull(DoubleTapGesture.valueOf("NONE"))
+        assertNotNull(DoubleTapGesture.valueOf("FAST_FORWARD_AND_REWIND"))
+        assertNotNull(DoubleTapGesture.valueOf("PLAY_PAUSE"))
+        assertNotNull(DoubleTapGesture.valueOf("BOTH"))
+    }
+
+    @Test
+    fun testControlButtonsPosition() {
+        assertEquals(2, ControlButtonsPosition.entries.size)
+        assertEquals(ControlButtonsPosition.LEFT, ControlButtonsPosition.valueOf("LEFT"))
+        assertEquals(ControlButtonsPosition.RIGHT, ControlButtonsPosition.valueOf("RIGHT"))
+    }
+
+    @Test
+    fun testThumbnailGenerationStrategy() {
+        assertEquals(3, ThumbnailGenerationStrategy.entries.size)
+        assertNotNull(ThumbnailGenerationStrategy.valueOf("FIRST_FRAME"))
+        assertNotNull(ThumbnailGenerationStrategy.valueOf("FRAME_AT_PERCENTAGE"))
+        assertNotNull(ThumbnailGenerationStrategy.valueOf("HYBRID"))
+    }
+
+    @Test
+    fun testVideoContentScale() {
+        assertEquals(4, VideoContentScale.entries.size)
+        assertNotNull(VideoContentScale.valueOf("BEST_FIT"))
+        assertNotNull(VideoContentScale.valueOf("STRETCH"))
+        assertNotNull(VideoContentScale.valueOf("CROP"))
+        assertNotNull(VideoContentScale.valueOf("HUNDRED_PERCENT"))
+    }
+
+    @Test
+    fun testSortEnums() {
+        assertEquals(5, Sort.By.entries.size)
+        assertEquals(2, Sort.Order.entries.size)
+    }
 }
