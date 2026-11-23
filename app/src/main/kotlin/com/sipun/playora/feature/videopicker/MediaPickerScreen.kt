@@ -402,9 +402,11 @@ internal fun MediaPickerScreenContent(
                 }
 
                 is DataState.Success -> {
+                    val fabBottomPadding = if (!selectionManager.isInSelectionMode) 88.dp else 0.dp
                     val updatedScaffoldPadding = scaffoldPadding.copy(
                         top = 0.dp,
                         start = 0.dp,
+                        bottom = scaffoldPadding.calculateBottomPadding() + fabBottomPadding,
                     )
                     val mediaHolder = state.mediaDataState.value
                     PullToRefreshBox(

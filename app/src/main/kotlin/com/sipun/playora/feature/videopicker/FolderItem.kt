@@ -217,7 +217,7 @@ fun FolderThumbnail(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
                 modifier = Modifier
-                    .size(29.dp)
+                    .size(23.dp)
                     .align(Alignment.Center)
                     .offset(y = 2.dp),
             )
@@ -227,19 +227,19 @@ fun FolderThumbnail(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .offset(x = 5.dp, y = (-4).dp)
-                    .defaultMinSize(minWidth = 19.dp)
-                    .height(19.dp)
+                    .offset(x = 4.dp, y = (-3).dp)
+                    .defaultMinSize(minWidth = 17.dp)
+                    .height(17.dp)
                     .clip(CircleShape)
                     .background(DestructiveRed)
-                    .padding(horizontal = 4.dp),
+                    .padding(horizontal = 3.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = folder.newVideosCount.toString(),
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        fontSize = 10.sp,
                     ),
                     color = Color.White,
                     maxLines = 1,
@@ -271,8 +271,8 @@ private fun FolderListItem(
         modifier = modifier,
         selected = selected,
         contentPadding = PaddingValues(
-            horizontal = 14.dp,
-            vertical = if (showPath) 8.dp else 6.dp,
+            horizontal = 10.dp,
+            vertical = if (showPath) 5.dp else 3.dp,
         ),
         colors = ListItemDefaults.segmentedColors(
             containerColor = Color.Transparent,
@@ -286,18 +286,19 @@ private fun FolderListItem(
             FolderThumbnail(
                 folder = folder,
                 modifier = Modifier
-                    .width(72.dp)
-                    .height(53.dp),
+                    .width(58.dp)
+                    .height(43.dp),
             )
         },
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     text = folder.name,
-                    maxLines = 1,
+                    maxLines = 2,
                     style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 15.sp,
+                        lineHeight = 19.sp,
                     ),
                     color = if (isHighlighted) {
                         MaterialTheme.colorScheme.primary
@@ -311,7 +312,7 @@ private fun FolderListItem(
                         text = folder.path,
                         maxLines = 1,
                         style = MaterialTheme.typography.bodySmall.copy(
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                         ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                         overflow = TextOverflow.Ellipsis,
@@ -321,7 +322,7 @@ private fun FolderListItem(
         },
         supportingContent = {
             Row(
-                modifier = Modifier.padding(top = 2.dp),
+                modifier = Modifier.padding(top = 1.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -332,8 +333,8 @@ private fun FolderListItem(
                 }
                 Text(
                     text = "${folder.videosCount} $videosLabel",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                 )
                 if (folder.foldersCount > 0) {
                     val foldersLabel = if (folder.foldersCount == 1) {
@@ -343,31 +344,16 @@ private fun FolderListItem(
                     }
                     Text(
                         text = "${folder.foldersCount} $foldersLabel",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                     )
                 }
                 if (folder.totalSize > 0) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(
-                                MaterialTheme.colorScheme.surfaceContainerHighest.copy(
-                                    alpha = 0.8f,
-                                ),
-                            )
-                            .padding(horizontal = 6.dp, vertical = 1.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = formatFolderSize(folder.totalSize),
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 11.sp,
-                            ),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
-                        )
-                    }
+                    Text(
+                        text = formatFolderSize(folder.totalSize),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                    )
                 }
             }
         },

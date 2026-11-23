@@ -65,11 +65,11 @@ fun MediaView(
 
     BoxWithConstraints {
         val contentHorizontalPadding = when (preferences.mediaLayoutMode) {
-            MediaLayoutMode.LIST -> 8.dp
+            MediaLayoutMode.LIST -> 4.dp
             MediaLayoutMode.GRID -> 8.dp
         }
         val itemSpacing = when (preferences.mediaLayoutMode) {
-            MediaLayoutMode.LIST -> 2.dp
+            MediaLayoutMode.LIST -> 0.dp
             MediaLayoutMode.GRID -> 2.dp
         }
         val maxWidth = this.maxWidth - (contentHorizontalPadding * 2) - itemSpacing
