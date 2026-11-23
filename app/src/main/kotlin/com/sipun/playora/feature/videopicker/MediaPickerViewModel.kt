@@ -377,22 +377,12 @@ class MediaPickerViewModel(
             val videoItems = selectedItems.toVideos()
             if (videoItems.isEmpty()) return@launch
             val hasPin = privacyPinRepository.hasPinSet()
-            when {
-                !hasPin -> {
-                    stateInternal.update {
-                        it.copy(hideFlow = HideFlowState.SetupPin(items = videoItems))
-                    }
+            if (!hasPin) {
+                stateInternal.update {
+                    it.copy(hideFlow = HideFlowState.SetupPin(items = videoItems))
                 }
-
-                !privacyPinRepository.hasShownHideConfirmation() -> {
-                    stateInternal.update {
-                        it.copy(hideFlow = HideFlowState.ConfirmHide(items = videoItems))
-                    }
-                }
-
-                else -> {
-                    hideVideoItems(videos = videoItems)
-                }
+            } else {
+                hideVideoItems(videos = videoItems)
             }
         }
     }
@@ -418,9 +408,16 @@ class MediaPickerViewModel(
     private fun confirmHidePendingItems() {
         val pending = (stateInternal.value.hideFlow as? HideFlowState.ConfirmHide)?.items ?: return
         viewModelScope.launch {
-            hideVideoItems(videos = pending)
-            privacyPinRepository.setHideConfirmationShown()
-            stateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
+            val hasPin = privacyPinRepository.hasPinSet()
+            if (!hasPin) {
+                stateInternal.update {
+                    it.copy(hideFlow = HideFlowState.SetupPin(items = pending))
+                }
+            } else {
+                hideVideoItems(videos = pending)
+                privacyPinRepository.setHideConfirmationShown()
+                stateInternal.update { it.copy(hideFlow = HideFlowState.Idle) }
+            }
         }
     }
 

@@ -158,6 +158,7 @@ internal fun MediaPickerScreenContent(
     var showQuickSettingsDialog by rememberSaveable { mutableStateOf(value = false) }
     var showRenameActionFor: Video? by rememberSaveable { mutableStateOf(value = null) }
     var showDeleteVideosConfirmation by rememberSaveable { mutableStateOf(value = false) }
+    var showHideVideosConfirmation by rememberSaveable { mutableStateOf(value = false) }
     var showMarkDialog by rememberSaveable { mutableStateOf(value = false) }
 
     val mediaHolder = (state.mediaDataState as? DataState.Success)?.value
@@ -345,12 +346,7 @@ internal fun MediaPickerScreenContent(
                     onAction(MediaPickerAction.MoveSelectedItems(selectionManager.selectionItems))
                     selectionManager.exitSelectionMode()
                 },
-                onHideAction = {
-                    onAction(
-                        MediaPickerAction.RequestHideSelectedItems(selectionManager.selectionItems),
-                    )
-                    selectionManager.exitSelectionMode()
-                },
+                onHideAction = { showHideVideosConfirmation = true },
                 onMarkAction = { showMarkDialog = true },
                 onDeleteAction = { showDeleteVideosConfirmation = true },
             )
@@ -513,6 +509,53 @@ internal fun MediaPickerScreenContent(
                 showDeleteVideosConfirmation = false
             },
             onCancel = { showDeleteVideosConfirmation = false },
+        )
+    }
+
+    if (showHideVideosConfirmation) {
+        val count = selectionManager.selectionItems.size
+        AppDialog(
+            onDismissRequest = { showHideVideosConfirmation = false },
+            title = {
+                Text(
+                    text = if (count == 1) {
+                        stringResource(R.string.hide_one_video_confirmation)
+                    } else {
+                        stringResource(
+                            R.string.hide_videos_confirmation,
+                            count,
+                        )
+                    },
+                )
+            },
+            content = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(text = stringResource(R.string.hide_video_info))
+                    Text(
+                        text = stringResource(R.string.hide_video_uninstall_warning),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onAction(
+                            MediaPickerAction.RequestHideSelectedItems(
+                                selectionManager.selectionItems,
+                            ),
+                        )
+                        selectionManager.exitSelectionMode()
+                        showHideVideosConfirmation = false
+                    },
+                ) {
+                    Text(text = stringResource(R.string.hide))
+                }
+            },
+            dismissButton = {
+                CancelButton(onClick = { showHideVideosConfirmation = false })
+            },
         )
     }
 
@@ -752,7 +795,16 @@ private fun HideFlowDialogs(
                         },
                     )
                 },
-                content = { Text(text = stringResource(R.string.hide_video_info)) },
+                content = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.hide_video_info))
+                        Text(
+                            text = stringResource(R.string.hide_video_uninstall_warning),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                },
                 confirmButton = {
                     TextButton(onClick = onConfirmHide) {
                         Text(text = stringResource(R.string.hide))
