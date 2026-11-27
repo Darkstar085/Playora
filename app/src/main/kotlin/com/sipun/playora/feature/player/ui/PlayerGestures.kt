@@ -3,7 +3,6 @@ package com.sipun.playora.feature.player.ui
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
@@ -36,7 +35,6 @@ import com.sipun.playora.feature.player.state.VolumeAndBrightnessGestureState
 
 private val SUBTITLE_TOUCH_PADDING = 16.dp
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PlayerGestures(
     modifier: Modifier = Modifier,
@@ -109,7 +107,7 @@ fun PlayerGestures(
                         onLongPress = {
                             if (controlsVisibilityState.controlsLocked) return@detectTapGestures
                             if (isOnSubtitle(it)) return@detectTapGestures
-                            tapGestureState.handleLongPress(offset = it)
+                            tapGestureState.handleLongPress()
                         },
                     )
                 }

@@ -72,10 +72,6 @@ fun ControlsBottomView(
     onPictureInPictureClick: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekEnd: () -> Unit,
-    onChaptersClick: () -> Unit = {},
-    onPlaybackSpeedClick: () -> Unit = {},
-    onPlayInBackgroundClick: () -> Unit = {},
-    controlsAlignment: Alignment.Horizontal = Alignment.Start,
 ) {
     val systemBarsPadding = WindowInsets.systemBars.union(
         WindowInsets.displayCutout,

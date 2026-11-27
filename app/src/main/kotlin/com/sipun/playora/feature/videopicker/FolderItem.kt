@@ -257,7 +257,6 @@ fun FolderThumbnail(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun FolderListItem(
     folder: Folder,

@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DragHandle
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
@@ -126,7 +125,6 @@ fun BoxScope.PlaylistView(modifier: Modifier = Modifier, show: Boolean, player: 
     }
 }
 
-@kotlin.OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ReorderableCollectionItemScope.PlaylistItemView(
     mediaItem: MediaItem,

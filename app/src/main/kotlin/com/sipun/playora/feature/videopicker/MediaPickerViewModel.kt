@@ -62,7 +62,7 @@ class MediaPickerViewModel(
     private val privacyRepository: PrivacyRepository,
     private val privacyPinRepository: PrivacyPinRepository,
     private val systemService: SystemService,
-    private val context: Context,
+    context: Context,
     @InjectedParam private val input: Input,
     @InjectedParam internal var output: Output,
 ) : MviViewModel<MediaPickerUiState, MediaPickerAction>() {

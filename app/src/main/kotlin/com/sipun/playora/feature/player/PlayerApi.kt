@@ -14,8 +14,6 @@ import com.sipun.playora.feature.player.model.Subtitle
 class PlayerApi(private val intent: Intent) {
     private val extras = intent.extras
     val isApiAccess: Boolean get() = extras?.keySet()?.any { it in API_KEYS } == true
-    val hasPosition: Boolean get() = position != null
-    val hasTitle: Boolean get() = title != null
     val shouldReturnResult: Boolean get() = boolean(API_RETURN_RESULT) == true
     val position: Int? get() = (value(API_POSITION) as? Int)?.takeIf { it >= 0 }
     val title: String? get() = (value(API_TITLE) as? String) ?: (value(API_FILENAME) as? String)

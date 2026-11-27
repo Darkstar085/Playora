@@ -146,8 +146,7 @@ class MediaStoreMediaService(
                 if (!cursor.moveToFirst()) return@withContext null
                 cursor.toMediaVideo()
             }
-        } catch (e: Exception) {
-
+        } catch (_: Exception) {
             null
         }
     }

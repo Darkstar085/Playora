@@ -10,13 +10,11 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.graphics.drawable.Icon
-import android.os.Build
 import android.os.Process
 import android.util.Rational
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.annotation.DrawableRes
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.DisposableEffectResult
@@ -138,54 +136,40 @@ class PictureInPictureState(
             "enterPictureInPictureMode: isInPip=$isInPictureInPictureMode, activity=$activity"
         )
         return !isInPictureInPictureMode && try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val builder = android.app.PictureInPictureParams.Builder()
-                val r = aspectRatio
-                if (r != null && r.numerator > 0 && r.denominator > 0) {
-                    val ratioFloat = r.toFloat()
-                    if (ratioFloat in 0.42f..2.39f) {
-                        builder.setAspectRatio(r)
-                    }
+            val builder = android.app.PictureInPictureParams.Builder()
+            val r = aspectRatio
+            if (r != null && r.numerator > 0 && r.denominator > 0) {
+                val ratioFloat = r.toFloat()
+                if (ratioFloat in 0.42f..2.39f) {
+                    builder.setAspectRatio(r)
                 }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    builder.setSeamlessResizeEnabled(true)
-                }
-                try {
-                    val entered = activity.enterPictureInPictureMode(builder.build())
-                    android.util.Log.d(
-                        "PlayoraPip",
-                        "enterPictureInPictureMode(builder) returned $entered"
-                    )
-                    entered
-                } catch (e1: Exception) {
-                    android.util.Log.e("PlayoraPip", "builder failed", e1)
-                    val entered = activity.enterPictureInPictureMode(
-                        android.app.PictureInPictureParams.Builder().build()
-                    )
-                    android.util.Log.d(
-                        "PlayoraPip",
-                        "enterPictureInPictureMode(empty) returned $entered"
-                    )
-                    entered
-                }
-            } else {
-                @Suppress("DEPRECATION")
-                activity.enterPictureInPictureMode()
-                true
+            }
+            builder.setSeamlessResizeEnabled(true)
+            try {
+                val entered = activity.enterPictureInPictureMode(builder.build())
+                android.util.Log.d(
+                    "PlayoraPip",
+                    "enterPictureInPictureMode(builder) returned $entered"
+                )
+                entered
+            } catch (e1: Exception) {
+                android.util.Log.e("PlayoraPip", "builder failed", e1)
+                val entered = activity.enterPictureInPictureMode(
+                    android.app.PictureInPictureParams.Builder().build()
+                )
+                android.util.Log.d(
+                    "PlayoraPip",
+                    "enterPictureInPictureMode(empty) returned $entered"
+                )
+                entered
             }
         } catch (e: Exception) {
             android.util.Log.e("PlayoraPip", "enterPictureInPictureMode top catch", e)
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    activity.enterPictureInPictureMode(
-                        android.app.PictureInPictureParams.Builder().build()
-                    )
-                } else {
-                    @Suppress("DEPRECATION")
-                    activity.enterPictureInPictureMode()
-                    true
-                }
-            } catch (e2: Exception) {
+                activity.enterPictureInPictureMode(
+                    android.app.PictureInPictureParams.Builder().build()
+                )
+            } catch (_: Exception) {
                 false
             }
         }
@@ -280,7 +264,6 @@ class PictureInPictureState(
 
     private fun updatePictureInPictureActions() {
         if (pictureInPicture == null) return
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
         actions = listOf(
             createPipAction(
@@ -333,7 +316,6 @@ class PictureInPictureState(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun createPipAction(
         context: Context,
         title: String,

@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -68,10 +67,7 @@ import com.sipun.playora.core.model.Sort
 import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.feature.videopicker.extensions.name
 
-@OptIn(
-    ExperimentalLayoutApi::class,
-    ExperimentalMaterial3Api::class,
-)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickSettingsDialog(
     applicationPreferences: ApplicationPreferences,

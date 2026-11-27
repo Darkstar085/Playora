@@ -1,8 +1,5 @@
 package com.sipun.playora.core.ui.theme
 
-import android.app.WallpaperManager
-import android.os.Build
-import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
@@ -12,19 +9,9 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.ThemeConfig
@@ -105,158 +92,6 @@ private val darkScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark,
 )
 
-private val mediumContrastLightColorScheme = lightColorScheme(
-    primary = primaryLightMediumContrast,
-    onPrimary = onPrimaryLightMediumContrast,
-    primaryContainer = primaryContainerLightMediumContrast,
-    onPrimaryContainer = onPrimaryContainerLightMediumContrast,
-    secondary = secondaryLightMediumContrast,
-    onSecondary = onSecondaryLightMediumContrast,
-    secondaryContainer = secondaryContainerLightMediumContrast,
-    onSecondaryContainer = onSecondaryContainerLightMediumContrast,
-    tertiary = tertiaryLightMediumContrast,
-    onTertiary = onTertiaryLightMediumContrast,
-    tertiaryContainer = tertiaryContainerLightMediumContrast,
-    onTertiaryContainer = onTertiaryContainerLightMediumContrast,
-    error = errorLightMediumContrast,
-    onError = onErrorLightMediumContrast,
-    errorContainer = errorContainerLightMediumContrast,
-    onErrorContainer = onErrorContainerLightMediumContrast,
-    background = backgroundLightMediumContrast,
-    onBackground = onBackgroundLightMediumContrast,
-    surface = surfaceLightMediumContrast,
-    onSurface = onSurfaceLightMediumContrast,
-    surfaceVariant = surfaceVariantLightMediumContrast,
-    onSurfaceVariant = onSurfaceVariantLightMediumContrast,
-    outline = outlineLightMediumContrast,
-    outlineVariant = outlineVariantLightMediumContrast,
-    scrim = scrimLightMediumContrast,
-    inverseSurface = inverseSurfaceLightMediumContrast,
-    inverseOnSurface = inverseOnSurfaceLightMediumContrast,
-    inversePrimary = inversePrimaryLightMediumContrast,
-    surfaceDim = surfaceDimLightMediumContrast,
-    surfaceBright = surfaceBrightLightMediumContrast,
-    surfaceContainerLowest = surfaceContainerLowestLightMediumContrast,
-    surfaceContainerLow = surfaceContainerLowLightMediumContrast,
-    surfaceContainer = surfaceContainerLightMediumContrast,
-    surfaceContainerHigh = surfaceContainerHighLightMediumContrast,
-    surfaceContainerHighest = surfaceContainerHighestLightMediumContrast,
-)
-
-private val highContrastLightColorScheme = lightColorScheme(
-    primary = primaryLightHighContrast,
-    onPrimary = onPrimaryLightHighContrast,
-    primaryContainer = primaryContainerLightHighContrast,
-    onPrimaryContainer = onPrimaryContainerLightHighContrast,
-    secondary = secondaryLightHighContrast,
-    onSecondary = onSecondaryLightHighContrast,
-    secondaryContainer = secondaryContainerLightHighContrast,
-    onSecondaryContainer = onSecondaryContainerLightHighContrast,
-    tertiary = tertiaryLightHighContrast,
-    onTertiary = onTertiaryLightHighContrast,
-    tertiaryContainer = tertiaryContainerLightHighContrast,
-    onTertiaryContainer = onTertiaryContainerLightHighContrast,
-    error = errorLightHighContrast,
-    onError = onErrorLightHighContrast,
-    errorContainer = errorContainerLightHighContrast,
-    onErrorContainer = onErrorContainerLightHighContrast,
-    background = backgroundLightHighContrast,
-    onBackground = onBackgroundLightHighContrast,
-    surface = surfaceLightHighContrast,
-    onSurface = onSurfaceLightHighContrast,
-    surfaceVariant = surfaceVariantLightHighContrast,
-    onSurfaceVariant = onSurfaceVariantLightHighContrast,
-    outline = outlineLightHighContrast,
-    outlineVariant = outlineVariantLightHighContrast,
-    scrim = scrimLightHighContrast,
-    inverseSurface = inverseSurfaceLightHighContrast,
-    inverseOnSurface = inverseOnSurfaceLightHighContrast,
-    inversePrimary = inversePrimaryLightHighContrast,
-    surfaceDim = surfaceDimLightHighContrast,
-    surfaceBright = surfaceBrightLightHighContrast,
-    surfaceContainerLowest = surfaceContainerLowestLightHighContrast,
-    surfaceContainerLow = surfaceContainerLowLightHighContrast,
-    surfaceContainer = surfaceContainerLightHighContrast,
-    surfaceContainerHigh = surfaceContainerHighLightHighContrast,
-    surfaceContainerHighest = surfaceContainerHighestLightHighContrast,
-)
-
-private val mediumContrastDarkColorScheme = darkColorScheme(
-    primary = primaryDarkMediumContrast,
-    onPrimary = onPrimaryDarkMediumContrast,
-    primaryContainer = primaryContainerDarkMediumContrast,
-    onPrimaryContainer = onPrimaryContainerDarkMediumContrast,
-    secondary = secondaryDarkMediumContrast,
-    onSecondary = onSecondaryDarkMediumContrast,
-    secondaryContainer = secondaryContainerDarkMediumContrast,
-    onSecondaryContainer = onSecondaryContainerDarkMediumContrast,
-    tertiary = tertiaryDarkMediumContrast,
-    onTertiary = onTertiaryDarkMediumContrast,
-    tertiaryContainer = tertiaryContainerDarkMediumContrast,
-    onTertiaryContainer = onTertiaryContainerDarkMediumContrast,
-    error = errorDarkMediumContrast,
-    onError = onErrorDarkMediumContrast,
-    errorContainer = errorContainerDarkMediumContrast,
-    onErrorContainer = onErrorContainerDarkMediumContrast,
-    background = backgroundDarkMediumContrast,
-    onBackground = onBackgroundDarkMediumContrast,
-    surface = surfaceDarkMediumContrast,
-    onSurface = onSurfaceDarkMediumContrast,
-    surfaceVariant = surfaceVariantDarkMediumContrast,
-    onSurfaceVariant = onSurfaceVariantDarkMediumContrast,
-    outline = outlineDarkMediumContrast,
-    outlineVariant = outlineVariantDarkMediumContrast,
-    scrim = scrimDarkMediumContrast,
-    inverseSurface = inverseSurfaceDarkMediumContrast,
-    inverseOnSurface = inverseOnSurfaceDarkMediumContrast,
-    inversePrimary = inversePrimaryDarkMediumContrast,
-    surfaceDim = surfaceDimDarkMediumContrast,
-    surfaceBright = surfaceBrightDarkMediumContrast,
-    surfaceContainerLowest = surfaceContainerLowestDarkMediumContrast,
-    surfaceContainerLow = surfaceContainerLowDarkMediumContrast,
-    surfaceContainer = surfaceContainerDarkMediumContrast,
-    surfaceContainerHigh = surfaceContainerHighDarkMediumContrast,
-    surfaceContainerHighest = surfaceContainerHighestDarkMediumContrast,
-)
-
-private val highContrastDarkColorScheme = darkColorScheme(
-    primary = primaryDarkHighContrast,
-    onPrimary = onPrimaryDarkHighContrast,
-    primaryContainer = primaryContainerDarkHighContrast,
-    onPrimaryContainer = onPrimaryContainerDarkHighContrast,
-    secondary = secondaryDarkHighContrast,
-    onSecondary = onSecondaryDarkHighContrast,
-    secondaryContainer = secondaryContainerDarkHighContrast,
-    onSecondaryContainer = onSecondaryContainerDarkHighContrast,
-    tertiary = tertiaryDarkHighContrast,
-    onTertiary = onTertiaryDarkHighContrast,
-    tertiaryContainer = tertiaryContainerDarkHighContrast,
-    onTertiaryContainer = onTertiaryContainerDarkHighContrast,
-    error = errorDarkHighContrast,
-    onError = onErrorDarkHighContrast,
-    errorContainer = errorContainerDarkHighContrast,
-    onErrorContainer = onErrorContainerDarkHighContrast,
-    background = backgroundDarkHighContrast,
-    onBackground = onBackgroundDarkHighContrast,
-    surface = surfaceDarkHighContrast,
-    onSurface = onSurfaceDarkHighContrast,
-    surfaceVariant = surfaceVariantDarkHighContrast,
-    onSurfaceVariant = onSurfaceVariantDarkHighContrast,
-    outline = outlineDarkHighContrast,
-    outlineVariant = outlineVariantDarkHighContrast,
-    scrim = scrimDarkHighContrast,
-    inverseSurface = inverseSurfaceDarkHighContrast,
-    inverseOnSurface = inverseOnSurfaceDarkHighContrast,
-    inversePrimary = inversePrimaryDarkHighContrast,
-    surfaceDim = surfaceDimDarkHighContrast,
-    surfaceBright = surfaceBrightDarkHighContrast,
-    surfaceContainerLowest = surfaceContainerLowestDarkHighContrast,
-    surfaceContainerLow = surfaceContainerLowDarkHighContrast,
-    surfaceContainer = surfaceContainerDarkHighContrast,
-    surfaceContainerHigh = surfaceContainerHighDarkHighContrast,
-    surfaceContainerHighest = surfaceContainerHighestDarkHighContrast,
-)
-
 val LocalAccentBrush = staticCompositionLocalOf {
     Brush.horizontalGradient(
         listOf(Color(0xFF2196F3), Color(0xFF2196F3)),
@@ -266,36 +101,6 @@ val LocalAccentBrush = staticCompositionLocalOf {
 val LocalAccentColor = staticCompositionLocalOf {
     Color(0xFF2196F3)
 }
-
-@Composable
-fun Modifier.accentGradientTint(): Modifier {
-    val brush = LocalAccentBrush.current
-    return this
-        .graphicsLayer {
-            compositingStrategy = CompositingStrategy.Offscreen
-        }
-        .drawWithCache {
-            onDrawWithContent {
-                drawContent()
-                drawRect(brush = brush, blendMode = BlendMode.SrcAtop)
-            }
-        }
-}
-
-fun readWallpaperSeed(context: android.content.Context): Color =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        val isDark =
-            (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
-        if (isDark) dynamicDarkColorScheme(context).primary else dynamicLightColorScheme(context).primary
-    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-        WallpaperManager.getInstance(context)
-            .getWallpaperColors(WallpaperManager.FLAG_SYSTEM)
-            ?.primaryColor
-            ?.let { Color(it.toArgb()) }
-            ?: Color(0xFF2196F3)
-    } else {
-        Color(0xFF2196F3)
-    }
 
 @Composable
 fun PlayoraTheme(
@@ -310,37 +115,13 @@ fun PlayoraTheme(
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
-    var wallpaperSeedColor by remember(context) {
-        mutableStateOf(readWallpaperSeed(context))
-    }
-
-    DisposableEffect(context, dynamicColor) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1 || !dynamicColor) {
-            onDispose { }
-        } else {
-            val manager = WallpaperManager.getInstance(context)
-            val listener = WallpaperManager.OnColorsChangedListener { colors, which ->
-                if ((which and WallpaperManager.FLAG_SYSTEM) != 0 && colors != null) {
-                    wallpaperSeedColor = Color(colors.primaryColor.toArgb())
-                }
-            }
-            val handler = android.os.Handler(android.os.Looper.getMainLooper())
-            manager.addOnColorsChangedListener(listener, handler)
-            onDispose { manager.removeOnColorsChangedListener(listener) }
-        }
-    }
-
     val isDark = highContrastDarkTheme || darkTheme
 
-    val baseDynamicScheme = if (dynamicColor && supportsDynamicTheming()) {
+    val baseDynamicScheme = if (dynamicColor) {
         if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
     } else null
 
-    val accentColor = when {
-        dynamicColor && baseDynamicScheme != null -> baseDynamicScheme.primary
-        dynamicColor -> wallpaperSeedColor
-        else -> Color(preferences.customColor)
-    }
+    val accentColor = baseDynamicScheme?.primary ?: Color(preferences.customColor)
     val accentBrush = Brush.horizontalGradient(listOf(accentColor, accentColor))
 
     val colorScheme = when {
@@ -417,6 +198,3 @@ fun PlayoraTheme(
         )
     }
 }
-
-@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.S)
-fun supportsDynamicTheming() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S

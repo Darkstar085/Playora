@@ -45,11 +45,9 @@ import com.sipun.playora.feature.videopicker.privacy.PrivacyViewModel
 import com.sipun.playora.feature.videopicker.screens.mediapicker.MediaPickerViewModel
 import com.sipun.playora.feature.videopicker.screens.search.SearchViewModel
 import com.sipun.playora.settings.screens.appearance.AppearancePreferencesViewModel
-import com.sipun.playora.settings.screens.audio.AudioPreferencesViewModel
 import com.sipun.playora.settings.screens.general.GeneralPreferencesViewModel
 import com.sipun.playora.settings.screens.gesture.GesturePreferencesViewModel
 import com.sipun.playora.settings.screens.medialibrary.FolderPreferencesViewModel
-import com.sipun.playora.settings.screens.medialibrary.MediaLibraryPreferencesViewModel
 import com.sipun.playora.settings.screens.player.PlayerPreferencesViewModel
 import com.sipun.playora.settings.screens.subtitle.SubtitlePreferencesViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -120,11 +118,9 @@ val appModule = module {
     viewModelOf(::SearchViewModel)
     viewModelOf(::PrivacyViewModel)
     viewModelOf(::AppearancePreferencesViewModel)
-    viewModelOf(::AudioPreferencesViewModel)
     viewModelOf(::GeneralPreferencesViewModel)
     viewModelOf(::GesturePreferencesViewModel)
     viewModelOf(::FolderPreferencesViewModel)
-    viewModelOf(::MediaLibraryPreferencesViewModel)
     viewModelOf(::PlayerPreferencesViewModel)
     viewModelOf(::SubtitlePreferencesViewModel)
 

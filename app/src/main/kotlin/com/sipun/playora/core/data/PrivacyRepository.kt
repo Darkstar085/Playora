@@ -3,7 +3,6 @@ package com.sipun.playora.core.data.repository
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.webkit.MimeTypeMap
@@ -116,7 +115,7 @@ class LocalPrivacyRepository(
                     hiddenVideoDao.insert(video.toHiddenVideoEntity(destination = destination))
                 } catch (e: CancellationException) {
                     throw e
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     cleanUpReservations(privacyPaths = listOf(destination.absolutePath))
                     return@mapNotNull null
                 }
@@ -231,22 +230,20 @@ class LocalPrivacyRepository(
                 privacyFile.inputStream().use { it.copyTo(out = output) }
             } ?: error(message = "Unable to open output stream for ${inserted.uri}")
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                resolver.update(
-                    inserted.uri,
-                    ContentValues().apply {
-                        put(
-                            MediaStore.MediaColumns.IS_PENDING,
-                            0,
-                        )
-                    },
-                    null,
-                    null,
-                )
-            }
+            resolver.update(
+                inserted.uri,
+                ContentValues().apply {
+                    put(
+                        MediaStore.MediaColumns.IS_PENDING,
+                        0,
+                    )
+                },
+                null,
+                null,
+            )
             privacyFile.delete()
             inserted.relocated
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             resolver.delete(
                 inserted.uri,
                 null,
@@ -260,35 +257,6 @@ class LocalPrivacyRepository(
         val resolver = context.contentResolver
         val mimeType = MimeTypeMap.getSingleton()
             .getMimeTypeFromExtension(File(entity.privacyPath).extension.lowercase()) ?: "video/*"
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            val values = ContentValues().apply {
-                put(
-                    MediaStore.MediaColumns.DISPLAY_NAME,
-                    entity.displayName,
-                )
-                put(
-                    MediaStore.MediaColumns.MIME_TYPE,
-                    mimeType,
-                )
-                put(
-                    MediaStore.MediaColumns.DATA,
-                    entity.originalPath,
-                )
-            }
-            val uri = runCatching {
-                resolver.insert(
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    values,
-                )
-            }.getOrNull()
-            return uri?.let {
-                InsertedItem(
-                    uri = it,
-                    relocated = false,
-                )
-            }
-        }
 
         val collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         val originalDir = relativePathFor(entity.originalPath)

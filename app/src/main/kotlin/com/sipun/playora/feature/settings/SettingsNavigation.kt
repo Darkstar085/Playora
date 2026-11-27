@@ -13,16 +13,12 @@ import com.sipun.playora.settings.SettingsOutput
 import com.sipun.playora.settings.SettingsScreen
 import com.sipun.playora.settings.screens.appearance.AppearancePreferencesScreen
 import com.sipun.playora.settings.screens.appearance.AppearancePreferencesViewModel
-import com.sipun.playora.settings.screens.audio.AudioPreferencesScreen
-import com.sipun.playora.settings.screens.audio.AudioPreferencesViewModel
 import com.sipun.playora.settings.screens.general.GeneralPreferencesScreen
 import com.sipun.playora.settings.screens.general.GeneralPreferencesViewModel
 import com.sipun.playora.settings.screens.gesture.GesturePreferencesScreen
 import com.sipun.playora.settings.screens.gesture.GesturePreferencesViewModel
 import com.sipun.playora.settings.screens.medialibrary.FolderPreferencesScreen
 import com.sipun.playora.settings.screens.medialibrary.FolderPreferencesViewModel
-import com.sipun.playora.settings.screens.medialibrary.MediaLibraryPreferencesScreen
-import com.sipun.playora.settings.screens.medialibrary.MediaLibraryPreferencesViewModel
 import com.sipun.playora.settings.screens.player.PlayerPreferencesScreen
 import com.sipun.playora.settings.screens.player.PlayerPreferencesViewModel
 import com.sipun.playora.settings.screens.subtitle.SubtitlePreferencesScreen
@@ -48,26 +44,6 @@ fun EntryProviderScope<NavKey>.appearancePreferencesEntry(onNavigateUp: () -> Un
         )
         SideEffect { viewModel.output = output }
         AppearancePreferencesScreen(viewModel = viewModel)
-    }
-}
-
-@Serializable
-object AudioPreferencesRoute : NavKey
-
-fun NavBackStack<NavKey>.navigateToAudioPreferences() {
-    add(element = AudioPreferencesRoute)
-}
-
-fun EntryProviderScope<NavKey>.audioPreferencesEntry(onNavigateUp: () -> Unit) {
-    entry<AudioPreferencesRoute> {
-        val output = AudioPreferencesViewModel.Output(
-            navigateUp = onNavigateUp,
-        )
-        val viewModel = koinViewModel<AudioPreferencesViewModel>(
-            parameters = { parametersOf(output) },
-        )
-        SideEffect { viewModel.output = output }
-        AudioPreferencesScreen(viewModel = viewModel)
     }
 }
 
@@ -124,34 +100,10 @@ fun EntryProviderScope<NavKey>.gesturePreferencesEntry(onNavigateUp: () -> Unit)
 }
 
 @Serializable
-object MediaLibraryPreferencesRoute : NavKey
-
-@Serializable
 object FolderPreferencesRoute : NavKey
-
-fun NavBackStack<NavKey>.navigateToMediaLibraryPreferencesScreen() {
-    add(element = MediaLibraryPreferencesRoute)
-}
 
 fun NavBackStack<NavKey>.navigateToFolderPreferencesScreen() {
     add(element = FolderPreferencesRoute)
-}
-
-fun EntryProviderScope<NavKey>.mediaLibraryPreferencesEntry(
-    onNavigateUp: () -> Unit,
-    onFolderSettingClick: () -> Unit,
-) {
-    entry<MediaLibraryPreferencesRoute> {
-        val output = MediaLibraryPreferencesViewModel.Output(
-            navigateUp = onNavigateUp,
-            openFolders = onFolderSettingClick,
-        )
-        val viewModel = koinViewModel<MediaLibraryPreferencesViewModel>(
-            parameters = { parametersOf(output) },
-        )
-        SideEffect { viewModel.output = output }
-        MediaLibraryPreferencesScreen(viewModel = viewModel)
-    }
 }
 
 fun EntryProviderScope<NavKey>.folderPreferencesEntry(onNavigateUp: () -> Unit) {

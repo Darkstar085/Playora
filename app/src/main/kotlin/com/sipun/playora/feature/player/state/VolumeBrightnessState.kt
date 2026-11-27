@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
-import android.os.Build
 import android.view.WindowManager
 import androidx.activity.compose.LocalActivity
 import androidx.annotation.OptIn
@@ -214,20 +213,6 @@ class VolumeState(
         setVolume(volume = targetVolume)
     }
 
-    fun increaseVolume(showVolumePanel: Boolean = false) {
-        setVolume(
-            volume = currentVolume + 1,
-            showVolumePanel = showVolumePanel,
-        )
-    }
-
-    fun decreaseVolume(showVolumePanel: Boolean = false) {
-        setVolume(
-            volume = currentVolume - 1,
-            showVolumePanel = showVolumePanel,
-        )
-    }
-
     fun handleLifecycle(disposableEffectScope: DisposableEffectScope): DisposableEffectResult =
         with(receiver = disposableEffectScope) {
             val receiver = object : BroadcastReceiver() {
@@ -334,10 +319,7 @@ class VolumeState(
                     device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
                     device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
                     device.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
-                    (
-                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                                    device.type == AudioDeviceInfo.TYPE_USB_HEADSET
-                            )
+                    device.type == AudioDeviceInfo.TYPE_USB_HEADSET
         }
 
     companion object {

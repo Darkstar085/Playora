@@ -1,9 +1,7 @@
 package com.sipun.playora.core.media.services
 
 import android.net.Uri
-import android.os.Build
 import androidx.activity.ComponentActivity
-import androidx.annotation.ChecksSdkIntAtLeast
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 
@@ -18,12 +16,7 @@ interface MediaOperationsService {
     fun transferMedia(uris: List<Uri>, folderUri: Uri, mode: TransferMode): Flow<TransferEvent>
 
     companion object {
-        @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
-        fun willSystemAsksForDeleteConfirmation(): Boolean =
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-
-        @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
-        fun supportsTrash(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+        fun supportsTrash(): Boolean = true
     }
 }
 

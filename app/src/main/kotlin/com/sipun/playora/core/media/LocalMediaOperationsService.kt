@@ -1,6 +1,5 @@
 package com.sipun.playora.core.media.services
 
-import android.Manifest
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.ContentValues
@@ -8,19 +7,15 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
-import android.os.Environment
 import android.os.Process
 import android.provider.BaseColumns
 import android.provider.DocumentsContract
 import android.provider.MediaStore
-import android.system.Os
 import android.webkit.MimeTypeMap
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import com.sipun.playora.core.common.extensions.deleteMedia
 import com.sipun.playora.core.common.extensions.getFilenameFromUri
 import com.sipun.playora.core.common.extensions.getPath
@@ -52,47 +47,31 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
     private val contentResolver = context.contentResolver
     private var mediaRequestLauncher:
             SuspendActivityResultLauncher<IntentSenderRequest, ActivityResult>? = null
-    private var storagePermissionLauncher: SuspendActivityResultLauncher<String, Boolean>? = null
 
     override fun initialize(activity: ComponentActivity) {
         this.activity = activity
         mediaRequestLauncher = activity.registerForSuspendActivityResult(
             contract = ActivityResultContracts.StartIntentSenderForResult(),
         )
-        storagePermissionLauncher = activity.registerForSuspendActivityResult(
-            contract = ActivityResultContracts.RequestPermission(),
-        )
     }
 
     override suspend fun deleteMedia(uris: List<Uri>, permanently: Boolean): Boolean =
         withContext(Dispatchers.IO) {
-            return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                if (permanently) deleteMediaR(uris = uris) else trashMediaR(uris = uris)
-            } else {
-                deleteMediaBelowR(uris = uris)
-            }
+            return@withContext if (permanently) deleteMediaR(uris = uris) else trashMediaR(uris = uris)
         }
 
     override suspend fun restoreMedia(uris: List<Uri>): Boolean = withContext(Dispatchers.IO) {
-        return@withContext Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
-                trashMediaR(
-                    uris = uris,
-                    trashed = false,
-                )
+        return@withContext trashMediaR(
+            uris = uris,
+            trashed = false,
+        )
     }
 
     override suspend fun renameMedia(uri: Uri, to: String): Boolean = withContext(Dispatchers.IO) {
-        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            renameMediaR(
-                uri = uri,
-                to = to,
-            )
-        } else {
-            renameMediaBelowR(
-                uri = uri,
-                to = to,
-            )
-        }
+        return@withContext renameMediaR(
+            uri = uri,
+            to = to,
+        )
     }
 
     override suspend fun shareMedia(uris: List<Uri>) {
@@ -121,18 +100,16 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         onMoveCommitted: (suspend (Uri) -> Unit)?,
     ): Map<Uri, File?> {
         val uris = targets.keys.toList()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val mediaStoreUris = uris.filter { it.authority == MediaStore.AUTHORITY }
-            if (mediaStoreUris.isNotEmpty()) {
-                val granted = try {
-                    requestWriteAccessR(uris = mediaStoreUris)
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    false
-                }
-                if (!granted) return targets.keys.associateWith { null }
+        val mediaStoreUris = uris.filter { it.authority == MediaStore.AUTHORITY }
+        if (mediaStoreUris.isNotEmpty()) {
+            val granted = try {
+                requestWriteAccessR(uris = mediaStoreUris)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                false
             }
+            if (!granted) return targets.keys.associateWith { null }
         }
 
         val callerJob = currentCoroutineContext()[Job]
@@ -160,7 +137,7 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
                         movedFiles[uri] = null
                         while (entries.hasNext()) movedFiles[entries.next().key] = null
                         return@io movedFiles
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
                     movedFiles[uri] = movedFile
@@ -204,7 +181,7 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         } catch (e: CancellationException) {
             destination.delete()
             throw e
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             destination.delete()
             return null
         }
@@ -235,15 +212,9 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         }
 
         if (mode == TransferMode.MOVE && sources.isNotEmpty()) {
-            val granted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                requestWriteAccessR(uris = sources.filter { it.authority == MediaStore.AUTHORITY })
-            } else {
-                context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
-                        PackageManager.PERMISSION_GRANTED ||
-                        storagePermissionLauncher?.launch(
-                            input = Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        ) == true
-            }
+            val granted = requestWriteAccessR(
+                uris = sources.filter { it.authority == MediaStore.AUTHORITY },
+            )
             if (!granted) {
                 emit(
                     TransferEvent.Completed(
@@ -317,7 +288,6 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
             overallCopied += copied.bytes
             context.getPath(copied.uri)?.let { createdPaths.add(element = it) }
             if (mode == TransferMode.MOVE) {
-
                 val deleted = withContext(NonCancellable) {
                     contentResolver.deleteMedia(uri = source)
                 }
@@ -340,11 +310,9 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
     }.flowOn(Dispatchers.IO)
 
     private fun isInFolder(uri: Uri, folderDocUri: Uri): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val target = folderDocUri.mediaStoreFolder()
-            val source = mediaStoreLocation(uri = uri)
-            if (target != null && source != null) return target == source.folder
-        }
+        val target = folderDocUri.mediaStoreFolder()
+        val source = mediaStoreLocation(uri = uri)
+        if (target != null && source != null) return target == source.folder
         val folderPath =
             runCatching { context.getPath(uri = folderDocUri) }.getOrNull() ?: return false
         val filePath = runCatching { context.getPath(uri = uri) }.getOrNull() ?: return false
@@ -381,7 +349,6 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         )
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     private fun mediaStoreLocation(uri: Uri): MediaStoreLocation? {
         if (uri.authority != MediaStore.AUTHORITY) return null
         return runCatching {
@@ -414,111 +381,31 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
     private suspend fun moveWithinVolume(source: Uri, destinationDir: Uri): DirectMoveResult {
         if (source.authority != MediaStore.AUTHORITY) return DirectMoveResult.FALLBACK
         val target = destinationDir.mediaStoreFolder() ?: return DirectMoveResult.FALLBACK
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val before = mediaStoreLocation(uri = source) ?: return DirectMoveResult.FALLBACK
-            if (before.folder.volume != target.volume || !File(before.path).isFile) {
-                return DirectMoveResult.FALLBACK
-            }
-            currentCoroutineContext().ensureActive()
-            return withContext(NonCancellable) {
-                val updated = contentResolver.updateMedia(
-                    uri = source,
-                    contentValues = ContentValues().apply {
-                        put(
-                            MediaStore.MediaColumns.RELATIVE_PATH,
-                            target.relativePath,
-                        )
-                    },
-                )
-                if (updated) {
-                    DirectMoveResult.MOVED
-                } else {
-
-                    val after = mediaStoreLocation(uri = source)
-                    when {
-                        after?.folder == target && File(after.path).isFile -> DirectMoveResult.MOVED
-                        after == before && File(before.path).isFile -> DirectMoveResult.FALLBACK
-                        else -> DirectMoveResult.FAILED
-                    }
-                }
-            }
+        val before = mediaStoreLocation(uri = source) ?: return DirectMoveResult.FALLBACK
+        if (before.folder.volume != target.volume || !File(before.path).isFile) {
+            return DirectMoveResult.FALLBACK
         }
-
-        if (target.volume != "external_primary") return DirectMoveResult.FALLBACK
-        val sourceFile = context.getPath(uri = source)?.let { File(it) }
-            ?: return DirectMoveResult.FALLBACK
-        val folder = File(
-            Environment.getExternalStorageDirectory(),
-            target.relativePath,
-        )
-        val sameFilesystem = runCatching {
-            Os.stat(sourceFile.path).st_dev == Os.stat(folder.path).st_dev
-        }.getOrDefault(false)
-        if (!sameFilesystem) return DirectMoveResult.FALLBACK
         currentCoroutineContext().ensureActive()
         return withContext(NonCancellable) {
-            moveLegacyFile(
-                source,
-                sourceFile,
-                folder,
+            val updated = contentResolver.updateMedia(
+                uri = source,
+                contentValues = ContentValues().apply {
+                    put(
+                        MediaStore.MediaColumns.RELATIVE_PATH,
+                        target.relativePath,
+                    )
+                },
             )
-        }
-    }
-
-    private suspend fun moveLegacyFile(uri: Uri, source: File, folder: File): DirectMoveResult {
-        var destination = File(
-            folder,
-            source.name,
-        )
-        var suffix = 0
-        var reserved = false
-        var moved = false
-        var rollbackReserved = false
-        try {
-            while (!destination.createNewFile()) {
-                suffix++
-                val extension = source.extension.takeIf {
-                    it.isNotEmpty()
-                }?.let { ".$it" }.orEmpty()
-                destination = File(
-                    folder,
-                    "${source.nameWithoutExtension} ($suffix)$extension",
-                )
+            if (updated) {
+                DirectMoveResult.MOVED
+            } else {
+                val after = mediaStoreLocation(uri = source)
+                when {
+                    after?.folder == target && File(after.path).isFile -> DirectMoveResult.MOVED
+                    after == before && File(before.path).isFile -> DirectMoveResult.FALLBACK
+                    else -> DirectMoveResult.FAILED
+                }
             }
-            reserved = true
-            if (!source.renameTo(destination)) return DirectMoveResult.FALLBACK
-            reserved = false
-            moved = true
-            if (contentResolver.updateMedia(
-                    uri = uri,
-                    contentValues = ContentValues().apply {
-                        put(
-                            MediaStore.MediaColumns.DATA,
-                            destination.path,
-                        )
-                        put(
-                            MediaStore.MediaColumns.DISPLAY_NAME,
-                            destination.name,
-                        )
-                    },
-                )
-            ) {
-                return DirectMoveResult.MOVED
-            }
-            val storedPath = runCatching { context.getPath(uri = uri) }.getOrNull()
-            if (storedPath == destination.path) return DirectMoveResult.MOVED
-            if (storedPath != source.path) return DirectMoveResult.FAILED
-
-            if (!source.createNewFile()) return DirectMoveResult.FAILED
-            rollbackReserved = true
-            if (!destination.renameTo(source)) return DirectMoveResult.FAILED
-            rollbackReserved = false
-            return DirectMoveResult.FALLBACK
-        } catch (_: Exception) {
-            return if (moved) DirectMoveResult.FAILED else DirectMoveResult.FALLBACK
-        } finally {
-            if (reserved) destination.delete()
-            if (rollbackReserved) source.delete()
         }
     }
 
@@ -563,7 +450,7 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         } catch (e: CancellationException) {
             deleteDocumentQuietly(uri = destUri)
             throw e
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             deleteDocumentQuietly(uri = destUri)
             null
         }
@@ -625,7 +512,6 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         return copied
     }
 
-    @RequiresApi(Build.VERSION_CODES.R)
     private suspend fun requestWriteAccessR(uris: List<Uri>): Boolean = runMediaWriteRequests(
         uris = uris.filter {
             context.checkUriPermission(
@@ -639,7 +525,6 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         request = ::requestWriteR,
     )
 
-    @RequiresApi(Build.VERSION_CODES.R)
     private suspend fun requestWriteR(uris: List<Uri>): Boolean = requestMediaAccess(
         pendingIntent = MediaStore.createWriteRequest(
             contentResolver,
@@ -652,14 +537,12 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
             input = IntentSenderRequest.Builder(pendingIntent = pendingIntent).build(),
         )?.resultCode == Activity.RESULT_OK
 
-    @RequiresApi(Build.VERSION_CODES.R)
     private suspend fun deleteMediaR(uris: List<Uri>): Boolean = runMediaRequests(
         items = uris,
         itemExists = ::mediaExists,
         request = ::requestDeleteR,
     )
 
-    @RequiresApi(Build.VERSION_CODES.R)
     private suspend fun trashMediaR(uris: List<Uri>, trashed: Boolean = true): Boolean =
         runMediaRequests(
             items = uris,
@@ -672,7 +555,6 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
             },
         )
 
-    @RequiresApi(Build.VERSION_CODES.R)
     private suspend fun requestTrashR(uris: List<Uri>, trashed: Boolean): Boolean =
         requestMediaAccess(
             pendingIntent = MediaStore.createTrashRequest(
@@ -682,7 +564,6 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
             ),
         )
 
-    @RequiresApi(Build.VERSION_CODES.R)
     private suspend fun requestDeleteR(uris: List<Uri>): Boolean = requestMediaAccess(
         pendingIntent = MediaStore.createDeleteRequest(
             contentResolver,
@@ -700,11 +581,6 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         )?.use { cursor -> cursor.moveToFirst() } == true
     }.getOrDefault(defaultValue = false)
 
-    private suspend fun deleteMediaBelowR(uris: List<Uri>): Boolean = uris.map { uri ->
-        contentResolver.deleteMedia(uri = uri)
-    }.all { it }
-
-    @RequiresApi(Build.VERSION_CODES.R)
     private suspend fun renameMediaR(uri: Uri, to: String): Boolean =
         requestWriteAccessR(uris = listOf(element = uri)) && contentResolver.updateMedia(
             uri = uri,
@@ -715,33 +591,4 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
                 )
             },
         )
-
-    private suspend fun renameMediaBelowR(uri: Uri, to: String): Boolean = runCatching {
-        val oldFile = context.getPath(uri = uri)?.let { File(it) } ?: throw Error()
-        val newFile = File(
-            oldFile.parentFile,
-            to,
-        )
-        oldFile.renameTo(newFile).also { success ->
-            if (success) {
-                contentResolver.updateMedia(
-                    uri = uri,
-                    contentValues = ContentValues().apply {
-                        put(
-                            MediaStore.Files.FileColumns.DISPLAY_NAME,
-                            to,
-                        )
-                        put(
-                            MediaStore.Files.FileColumns.TITLE,
-                            to,
-                        )
-                        put(
-                            MediaStore.Files.FileColumns.DATA,
-                            newFile.path,
-                        )
-                    },
-                )
-            }
-        }
-    }.getOrNull() ?: false
 }

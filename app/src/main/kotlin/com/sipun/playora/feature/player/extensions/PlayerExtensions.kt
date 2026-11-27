@@ -1,9 +1,7 @@
 package com.sipun.playora.feature.player.extensions
 
-import android.content.Context
 import android.graphics.Typeface
 import android.os.Build
-import android.widget.ImageButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.icons.Icons
@@ -17,20 +15,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.FixedScale
-import androidx.core.content.ContextCompat
 import androidx.media3.common.C
 import androidx.media3.common.TrackGroup
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.trackselection.MappingTrackSelector
-import androidx.media3.ui.PlayerView
 import com.sipun.playora.R
 import com.sipun.playora.core.model.Font
 import com.sipun.playora.core.model.VideoContentScale
 import java.util.Locale
 import kotlin.time.Duration
 
-fun Duration.formatted(): String = toComponents { hours, minutes, seconds, nanoseconds ->
+fun Duration.formatted(): String = toComponents { hours, minutes, seconds, _ ->
     if (hours > 0) {
         "$hours:${minutes.padStartWith0()}:${seconds.padStartWith0()}"
     } else {
@@ -56,24 +51,6 @@ fun Font.toTypeface(): Typeface = when (this) {
     Font.SERIF -> Typeface.SERIF
 }
 
-fun ImageButton.setImageDrawable(context: Context, id: Int) {
-    setImageDrawable(
-        ContextCompat.getDrawable(
-            context,
-            id,
-        ),
-    )
-}
-
-@UnstableApi
-fun MappingTrackSelector.MappedTrackInfo.isRendererAvailable(type: @C.TrackType Int): Boolean {
-    for (i in 0 until rendererCount) {
-        if (getTrackGroups(i).length == 0) continue
-        if (type == getRendererType(i)) return true
-    }
-    return false
-}
-
 @Composable
 fun Modifier.noRippleClickable(enabled: Boolean = true, onClick: () -> Unit): Modifier = clickable(
     interactionSource = remember { MutableInteractionSource() },
@@ -81,16 +58,6 @@ fun Modifier.noRippleClickable(enabled: Boolean = true, onClick: () -> Unit): Mo
     enabled = enabled,
     onClick = onClick,
 )
-
-@UnstableApi
-fun PlayerView.togglePlayPause() {
-    this.controllerAutoShow = this.isControllerFullyVisible
-    if (this.player?.isPlaying == true) {
-        this.player?.pause()
-    } else {
-        this.player?.play()
-    }
-}
 
 @UnstableApi
 fun TrackGroup.getName(trackType: @C.TrackType Int, index: Int): String {

@@ -1,7 +1,6 @@
 package com.sipun.playora.core.common
 
 import android.Manifest
-import android.content.res.Resources
 import android.os.Build
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -13,8 +12,6 @@ val storagePermission = when {
 }
 
 object Utils {
-
-    fun pxToDp(px: Float): Float = px / Resources.getSystem().displayMetrics.density
 
     fun formatDurationMillis(millis: Long): String {
         val hours = TimeUnit.MILLISECONDS.toHours(millis)

@@ -175,7 +175,7 @@ private fun UpdateAvailableContent(
     onUpdateNow: () -> Unit,
 ) {
     val changelogItems = remember(update.notes) {
-        val parsed = update.notes
+        update.notes
             .lines()
             .map { it.trim() }
             .filter { it.isNotEmpty() && !it.startsWith("#") }
@@ -186,18 +186,9 @@ private fun UpdateAvailableContent(
                     .trim()
             }
             .filter { it.isNotEmpty() }
-
-        parsed.ifEmpty {
-            listOf(
-                "Prepare Playora ${update.version}",
-                "Refine folder list layout and spacing",
-                "Performance optimizations and bug fixes",
-            )
-        }
     }
 
     val formattedSize = remember(update.size) { formatFileSize(update.size) }
-    val displayDate = if (update.releaseDate.isNotBlank()) update.releaseDate else "Nov 20, 2026"
 
     Column(
         modifier = Modifier
@@ -331,83 +322,87 @@ private fun UpdateAvailableContent(
                 subtitle = stringResource(R.string.update_download_size),
                 modifier = Modifier.weight(1f),
             )
-            InfoCard(
-                icon = AppIcons.Calendar,
-                title = displayDate,
-                subtitle = stringResource(R.string.update_release_date),
-                modifier = Modifier.weight(1f),
-            )
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // What's new section
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.update_whats_new),
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-            ) {
-                Text(
-                    text = stringResource(R.string.update_changes, changelogItems.size),
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+            if (update.releaseDate.isNotBlank()) {
+                InfoCard(
+                    icon = AppIcons.Calendar,
+                    title = update.releaseDate,
+                    subtitle = stringResource(R.string.update_release_date),
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        if (changelogItems.isNotEmpty()) {
+            Spacer(Modifier.height(16.dp))
 
-        // Changelog Box
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                .border(
-                    1.dp,
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-                    RoundedCornerShape(16.dp),
+            // What's new section
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.update_whats_new),
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
-                .padding(14.dp),
-        ) {
-            Column(
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                ) {
+                    Text(
+                        text = stringResource(R.string.update_changes, changelogItems.size),
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            // Changelog Box
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 60.dp, max = 180.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                        RoundedCornerShape(16.dp),
+                    )
+                    .padding(14.dp),
             ) {
-                changelogItems.forEach { item ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.Top,
-                    ) {
-                        Text(
-                            text = "•",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 1.dp),
-                        )
-                        Text(
-                            text = item,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontSize = 12.5.sp,
-                                lineHeight = 17.sp,
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 60.dp, max = 180.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    changelogItems.forEach { item ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.Top,
+                        ) {
+                            Text(
+                                text = "•",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(top = 1.dp),
+                            )
+                            Text(
+                                text = item,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontSize = 12.5.sp,
+                                    lineHeight = 17.sp,
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
                     }
                 }
             }

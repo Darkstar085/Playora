@@ -49,7 +49,6 @@ import com.sipun.nextlib.media3ext.renderer.subtitleSpeed
 import com.sipun.nextlib.mediainfo.MediaInfoBuilder
 import com.sipun.playora.R
 import com.sipun.playora.core.common.Logger
-import com.sipun.playora.core.common.di.DiQualifiers
 import com.sipun.playora.core.common.extensions.getFilenameFromUri
 import com.sipun.playora.core.common.extensions.getLocalSubtitles
 import com.sipun.playora.core.common.extensions.getPath
@@ -97,7 +96,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
-import org.koin.core.qualifier.named
 import java.io.File
 import com.sipun.playora.R as coreUiR
 
@@ -108,7 +106,6 @@ class PlayerService : MediaSessionService() {
         context =
             Dispatchers.Main + SupervisorJob(),
     )
-    private val applicationScope: CoroutineScope by inject(named(DiQualifiers.APPLICATION_SCOPE))
     private var mediaSession: MediaSession? = null
     private var artworkLoadJob: Job? = null
 

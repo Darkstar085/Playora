@@ -4,19 +4,14 @@ import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.media.MediaScannerConnection
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
-import android.util.TypedValue
-import androidx.core.graphics.drawable.toBitmapOrNull
 import androidx.core.net.toUri
 import androidx.core.text.isDigitsOnly
 import kotlinx.coroutines.Dispatchers
@@ -69,7 +64,7 @@ fun Context.getPath(uri: Uri): String? {
                             selection = null,
                             selectionArgs = null,
                         )
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
                 }
@@ -158,7 +153,7 @@ private fun Context.getDataColumn(
                 return cursor.getString(index)
             }
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         return null
     }
     return null
@@ -192,7 +187,7 @@ fun Context.getFilenameFromContentUri(uri: Uri): String? {
                 return cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
             }
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         return null
     }
     return null
@@ -220,7 +215,7 @@ fun Context.getMediaContentUri(uri: Uri): Uri? {
                 )
             }
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         return null
     }
     return null
@@ -339,40 +334,11 @@ private fun Context.convertLocalUriToUTF8(uri: Uri, sourceCharset: Charset): Uri
     return Uri.fromFile(file)
 }
 
-fun Context.hasStorageAccessFrameworkChooser(): Boolean {
-    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-    intent.addCategory(Intent.CATEGORY_OPENABLE)
-    intent.type = "video/*"
-    return intent.resolveActivity(packageManager) != null
-}
-
-fun Context.pxToDp(px: Float) = TypedValue.applyDimension(
-    TypedValue.COMPLEX_UNIT_PX,
-    px,
-    resources.displayMetrics,
-)
-
-fun Context.dpToPx(dp: Float) = TypedValue.applyDimension(
-    TypedValue.COMPLEX_UNIT_DIP,
-    dp,
-    resources.displayMetrics,
-)
-
 val Context.subtitleCacheDir: File
     get() {
         val dir = File(
             cacheDir,
             "subtitles",
-        )
-        if (!dir.exists()) dir.mkdir()
-        return dir
-    }
-
-val Context.thumbnailCacheDir: File
-    get() {
-        val dir = File(
-            cacheDir,
-            "thumbnails",
         )
         if (!dir.exists()) dir.mkdir()
         return dir
@@ -410,15 +376,9 @@ fun Context.getStorageVolumes() = try {
     getExternalFilesDirs(null)?.mapNotNull {
         File(it.path.substringBefore(delimiter = "/Android")).takeIf { file -> file.exists() }
     } ?: listOf(Environment.getExternalStorageDirectory())
-} catch (e: Exception) {
+} catch (_: Exception) {
     listOf(Environment.getExternalStorageDirectory())
 }
 
-fun Context.appIcon(): Bitmap? = packageManager.getApplicationInfo(
-    packageName,
-    0,
-).loadIcon(packageManager)?.toBitmapOrNull()
-
 val Context.isPipFeatureSupported: Boolean
-    get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-            packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+    get() = packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)

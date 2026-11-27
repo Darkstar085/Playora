@@ -83,7 +83,6 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
     }
 
     val textTracks = currentTracks.groups.filter { it.type == C.TRACK_TYPE_TEXT && it.isSupported }
-    val position = currentPosition
 
     val updateMediaItem = currentMediaItemLocal
         .buildUpon()

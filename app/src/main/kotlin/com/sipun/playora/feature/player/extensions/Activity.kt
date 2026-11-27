@@ -8,14 +8,6 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat.Type
 import androidx.core.view.WindowInsetsControllerCompat
 
-fun Activity.swipeToShowStatusBars() {
-    WindowCompat.getInsetsController(
-        window,
-        window.decorView,
-    ).systemBarsBehavior =
-        WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-}
-
 fun Activity.toggleSystemBars(showBars: Boolean, @Type.InsetsType types: Int = Type.systemBars()) {
     WindowCompat.getInsetsController(
         window,

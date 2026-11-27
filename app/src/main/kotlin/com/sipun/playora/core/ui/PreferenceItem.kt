@@ -1,8 +1,6 @@
 ﻿package com.sipun.playora.core.ui.components
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,13 +9,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -81,7 +77,6 @@ internal fun PreferenceIconBox(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PreferenceItem(
     modifier: Modifier = Modifier,
@@ -119,10 +114,7 @@ fun PreferenceItem(
     )
 }
 
-@OptIn(
-    ExperimentalFoundationApi::class,
-    ExperimentalMaterial3ExpressiveApi::class,
-)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SelectablePreference(
     title: String,
@@ -178,50 +170,6 @@ fun SelectablePreference(
     )
 }
 
-@OptIn(
-    ExperimentalFoundationApi::class,
-    ExperimentalMaterial3ExpressiveApi::class,
-)
-@Composable
-fun SingleSelectablePreference(
-    title: String,
-    modifier: Modifier = Modifier,
-    description: String? = null,
-    selected: Boolean = false,
-    onClick: () -> Unit = {},
-    onLongClick: (() -> Unit)? = null,
-    isFirstItem: Boolean = false,
-    isLastItem: Boolean = false,
-) {
-    AppSegmentedListItem(
-        modifier = modifier,
-        onClick = onClick,
-        onLongClick = onLongClick,
-        isFirstItem = isFirstItem,
-        isLastItem = isLastItem,
-        content = {
-            Text(
-                text = title,
-                maxLines = 1,
-            )
-        },
-        supportingContent = {
-            description?.let {
-                Text(
-                    text = it,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        },
-        leadingContent = {
-            RadioButton(
-                selected = selected,
-                onClick = null,
-            )
-        },
-    )
-}
-
 @Preview(showBackground = true)
 @Composable
 fun PreferenceItemPreview() {
@@ -242,13 +190,6 @@ fun SelectablePreferencePreview() {
     )
 }
 
-internal fun Color.applyAlpha(enabled: Boolean): Color =
-    if (enabled) this else this.copy(alpha = 0.6f)
-
-@OptIn(
-    ExperimentalFoundationApi::class,
-    ExperimentalMaterial3ExpressiveApi::class,
-)
 @Composable
 fun ClickablePreferenceItem(
     title: String,
@@ -484,40 +425,5 @@ fun PreferenceSwitchWithDividerPreview() {
         icon = AppIcons.DoubleTap,
         onClick = {},
         onChecked = {},
-    )
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun PreferenceCheckbox(
-    title: String,
-    description: String? = null,
-    icon: ImageVector? = null,
-    enabled: Boolean = true,
-    isChecked: Boolean = true,
-    onClick: (() -> Unit) = {},
-    onLongClick: (() -> Unit) = {},
-) {
-    PreferenceItem(
-        title = title,
-        description = description,
-        icon = icon,
-        modifier = Modifier
-            .toggleable(
-                value = isChecked,
-                enabled = enabled,
-                onValueChange = { onClick() },
-            )
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick,
-            ),
-        enabled = enabled,
-        trailingContent = {
-            Checkbox(
-                checked = isChecked,
-                onCheckedChange = null,
-            )
-        },
     )
 }

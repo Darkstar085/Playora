@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.state.ProgressStateWithTickInterval
-import com.sipun.playora.core.model.ControlButtonsPosition
 import com.sipun.playora.core.model.PlayerPreferences
 import com.sipun.playora.feature.player.model.DecoderMode
 import com.sipun.playora.feature.player.state.ChaptersState
@@ -48,7 +47,6 @@ fun PlayerControls(
     onToggleTimeDisplay: () -> Unit,
     onPictureInPictureClick: () -> Unit,
     modifier: Modifier = Modifier,
-    middleControlsModifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
@@ -67,8 +65,6 @@ fun PlayerControls(
                     onDecoderClick = { onShowOverlay(OverlayView.DECODER_SELECTOR) },
                     onAudioClick = { onShowOverlay(OverlayView.AUDIO_SELECTOR) },
                     onSubtitleClick = { onShowOverlay(OverlayView.SUBTITLE_SELECTOR) },
-                    onPlaylistClick = { onShowOverlay(OverlayView.PLAYLIST) },
-                    onChaptersClick = { onShowOverlay(OverlayView.CHAPTERS) },
                     onPlaybackSpeedClick = { onShowOverlay(OverlayView.PLAYBACK_SPEED) },
                     onPlayInBackgroundClick = onPlayInBackgroundClick,
                     onBackClick = onBackClick,
@@ -86,19 +82,12 @@ fun PlayerControls(
                     player = player,
                     progressState = progressState,
                     chaptersState = chaptersState,
-                    onChaptersClick = { onShowOverlay(OverlayView.CHAPTERS) },
-                    controlsAlignment = when (playerPreferences.controlButtonsPosition) {
-                        ControlButtonsPosition.LEFT -> Alignment.Start
-                        ControlButtonsPosition.RIGHT -> Alignment.End
-                    },
                     videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                     isPipSupported = isPipSupported,
                     showRemainingTime = playerPreferences.showRemainingTime,
                     onToggleTimeDisplay = onToggleTimeDisplay,
                     onSeek = seekGestureState::onSeek,
                     onSeekEnd = seekGestureState::onSeekEnd,
-                    onPlaybackSpeedClick = { onShowOverlay(OverlayView.PLAYBACK_SPEED) },
-                    onPlayInBackgroundClick = onPlayInBackgroundClick,
                     onLockControlsClick = {
                         controlsVisibilityState.showControls()
                         controlsVisibilityState.lockControls()

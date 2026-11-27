@@ -8,7 +8,6 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -19,7 +18,6 @@ import androidx.media3.common.Timeline
 import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.state.observeState
-import kotlinx.coroutines.CoroutineScope
 
 @UnstableApi
 @Composable
@@ -81,19 +79,15 @@ class MediaPresentationState(private val player: Player?) {
 @UnstableApi
 @Composable
 fun rememberPlaybackParametersState(player: Player): PlaybackParametersState {
-    val scope = rememberCoroutineScope()
     val playbackParametersState = remember {
-        PlaybackParametersState(
-            player = player,
-            scope = scope,
-        )
+        PlaybackParametersState(player = player)
     }
     LaunchedEffect(key1 = player) { playbackParametersState.observe() }
     return playbackParametersState
 }
 
 @UnstableApi
-class PlaybackParametersState(private val player: Player, private val scope: CoroutineScope) {
+class PlaybackParametersState(private val player: Player) {
     var speed: Float by mutableFloatStateOf(value = 1f)
         private set
 

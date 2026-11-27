@@ -1,6 +1,5 @@
 package com.sipun.playora.feature.player.extensions
 
-import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
@@ -30,12 +29,6 @@ fun Uri.getSubtitleMime(): String = when {
         MimeTypes.APPLICATION_SUBRIP
     }
 }
-
-val Uri.isSchemaContent: Boolean
-    get() = ContentResolver.SCHEME_CONTENT.equals(
-        other = scheme,
-        ignoreCase = true,
-    )
 
 suspend fun Context.uriToSubtitleConfiguration(
     uri: Uri,

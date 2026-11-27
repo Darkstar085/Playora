@@ -1,6 +1,5 @@
 package com.sipun.playora.navigation
 
-import android.os.Build
 import android.view.RoundedCorner
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterExitState
@@ -121,7 +120,6 @@ internal fun navigationTransitionModifier(entry: NavEntry<NavKey>): Modifier {
 
 @Composable
 private fun rememberDisplayCornerShape(): Shape? {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
     val insets = LocalView.current.rootWindowInsets ?: return null
     return remember(insets) {
         fun radius(position: Int) = insets.getRoundedCorner(position)?.radius?.toFloat() ?: 0f

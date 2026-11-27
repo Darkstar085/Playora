@@ -514,7 +514,6 @@ private fun SubtitleLivePreviewCard(font: Font) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val w = size.width
             val h = size.height
-            val primary = Color(0xFF38BDF8)
 
             // Dusk sky gradient
             drawRect(

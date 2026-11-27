@@ -40,27 +40,9 @@ suspend fun File.getLocalSubtitles(
     }
 }
 
-fun String.getThumbnail(): File? {
-    val filePathWithoutExtension = this.substringBeforeLast(delimiter = ".")
-    val imageExtensions = listOf("png", "jpg", "jpeg")
-    for (imageExtension in imageExtensions) {
-        val file = File("$filePathWithoutExtension.$imageExtension")
-        if (file.exists()) return file
-    }
-    return null
-}
-
 fun File.isSubtitle(): Boolean {
     val subtitleExtensions = listOf("srt", "ssa", "ass", "vtt", "ttml")
     return extension.lowercase() in subtitleExtensions
-}
-
-fun File.deleteFiles() {
-    try {
-        listFiles()?.onEach { it.delete() }
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
 }
 
 val File.prettyName: String

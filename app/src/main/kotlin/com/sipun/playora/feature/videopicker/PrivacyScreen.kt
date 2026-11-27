@@ -32,7 +32,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -178,7 +177,6 @@ internal fun PrivacyScreenContent(state: PrivacyUiState, onAction: (PrivacyActio
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PrivacyPinContent(
     title: String,
@@ -333,10 +331,7 @@ private fun PinEntryHeader(
     }
 }
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class,
-)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun PrivacyGalleryContent(state: PrivacyUiState, onAction: (PrivacyAction) -> Unit) {
     val selectionManager = rememberSelectionManager()

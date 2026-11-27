@@ -27,12 +27,6 @@ internal fun NextDecoderMode.playerMode(): DecoderMode = when (this) {
     else -> DecoderMode.HARDWARE
 }
 
-val selectableDecoderModes = listOf(
-    DecoderMode.HARDWARE,
-    DecoderMode.HW_PLUS,
-    DecoderMode.FFMPEG,
-)
-
 @get:StringRes
 val DecoderMode.labelRes: Int
     get() = when (this) {

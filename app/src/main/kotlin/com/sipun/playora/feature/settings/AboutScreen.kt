@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -51,9 +52,7 @@ import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.theme.LocalAccentBrush
 import com.sipun.playora.core.ui.theme.LocalAccentColor
-import com.sipun.playora.core.update.AppUpdate
 import com.sipun.playora.core.update.UpdateManager
-import com.sipun.playora.feature.onboarding.WelcomeScreen
 import kotlinx.coroutines.launch
 
 private const val REPOSITORY_URL = "https://github.com/Darkstar085/playora"
@@ -74,7 +73,6 @@ fun AboutScreen(output: AboutOutput) {
     var isChecking by remember { mutableStateOf(false) }
     var updateFlowState by remember { mutableStateOf<UpdateFlowState?>(null) }
     var downloadJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
-    var showWelcomeTour by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -134,33 +132,6 @@ fun AboutScreen(output: AboutOutput) {
                 Surface(
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.clickable {
-                        // Allows instant UI review of the new updater flow
-                        updateFlowState = UpdateFlowState.Available(
-                            AppUpdate(
-                                version = "1.0.0",
-                                name = "Playora 1.0.0",
-                                notes = """
-                                    - Prepare Playora 1.0.0
-                                    - Refine folder list layout and spacing
-                                    - Migrate sliders to stable Material 3
-                                    - Add in-app GitHub release updates
-                                    - Add app about page
-                                    - Use device accent for launcher icon
-                                    - Improve playback performance
-                                    - Memory optimization for video lists
-                                    - Modern audio and gesture settings
-                                    - Refined player gesture controls
-                                """.trimIndent(),
-                                downloadUrl = "https://github.com/Darkstar085/playora/releases/latest",
-                                fileName = "playora-1.0.0.apk",
-                                size = 51065651L,
-                                digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-                                releaseDate = "Nov 20, 2026",
-                                isPrerelease = false,
-                            ),
-                        )
-                    },
                 ) {
                     Text(
                         text = stringResource(R.string.about_version, BuildConfig.VERSION_NAME),
@@ -240,7 +211,7 @@ fun AboutScreen(output: AboutOutput) {
                 modifier = Modifier.padding(start = 4.dp, top = 2.dp),
             )
             AboutLinkCard(
-                icon = AppIcons.Link,
+                icon = ImageVector.vectorResource(R.drawable.ic_github),
                 title = stringResource(R.string.about_source),
                 description = stringResource(R.string.about_source_description),
                 onClick = {
@@ -266,7 +237,7 @@ fun AboutScreen(output: AboutOutput) {
                 },
             )
             AboutLinkCard(
-                icon = AppIcons.Headset,
+                icon = AppIcons.Favorite,
                 title = stringResource(R.string.about_support),
                 description = stringResource(R.string.about_support_description),
                 onClick = {
@@ -278,38 +249,24 @@ fun AboutScreen(output: AboutOutput) {
                     )
                 },
             )
-            AboutLinkCard(
-                icon = AppIcons.DoubleTap,
-                title = stringResource(R.string.about_welcome_tour),
-                description = stringResource(R.string.about_welcome_tour_description),
-                onClick = { showWelcomeTour = true },
-            )
-
-            Text(
-                text = stringResource(R.string.about_section).uppercase(),
-                style = MaterialTheme.typography.labelLarge,
-                color = accent,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 4.dp, top = 4.dp),
-            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
+                    .clip(RoundedCornerShape(22.dp))
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                     .border(
                         1.dp,
                         MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
-                        RoundedCornerShape(18.dp),
+                        RoundedCornerShape(22.dp),
                     )
                     .clickable {
                         context.startActivity(Intent(Intent.ACTION_VIEW, LICENSE_URL.toUri()))
                     }
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                AboutIconTile(icon = AppIcons.Info, compact = true)
-                Spacer(Modifier.width(10.dp))
+                AboutIconTile(icon = AppIcons.Info)
+                Spacer(Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.license),
@@ -392,15 +349,6 @@ fun AboutScreen(output: AboutOutput) {
             },
         )
     }
-
-    if (showWelcomeTour) {
-        androidx.compose.ui.window.Dialog(
-            onDismissRequest = { showWelcomeTour = false },
-            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
-        ) {
-            WelcomeScreen(onFinish = { showWelcomeTour = false })
-        }
-    }
 }
 
 @Composable
@@ -430,7 +378,7 @@ private fun AboutLinkCard(
             Text(
                 title,
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
             Text(
                 description,
@@ -442,10 +390,10 @@ private fun AboutLinkCard(
 }
 
 @Composable
-private fun AboutIconTile(icon: ImageVector, compact: Boolean = false) {
+private fun AboutIconTile(icon: ImageVector) {
     Box(
         modifier = Modifier
-            .size(if (compact) 44.dp else 46.dp)
+            .size(46.dp)
             .clip(RoundedCornerShape(14.dp))
             .background(LocalAccentBrush.current),
         contentAlignment = Alignment.Center,

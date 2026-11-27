@@ -160,7 +160,7 @@ private fun Context.findActivity(): Activity? = when (this) {
     else -> null
 }
 
-fun openEqualizer(context: Context, player: Player?) {
+fun openEqualizer(context: Context) {
     val activity = context.findActivity()
     try {
         val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
@@ -296,8 +296,6 @@ fun ControlsTopView(
     onDecoderClick: () -> Unit = {},
     onAudioClick: () -> Unit = {},
     onSubtitleClick: () -> Unit = {},
-    onPlaylistClick: () -> Unit = {},
-    onChaptersClick: () -> Unit = {},
     onPlaybackSpeedClick: () -> Unit = {},
     onPlayInBackgroundClick: () -> Unit = {},
 ) {
@@ -414,7 +412,7 @@ fun ControlsTopView(
             // Equalizer
             PlayerButton(
                 modifier = Modifier.size(40.dp),
-                onClick = { openEqualizer(context, player) },
+                onClick = { openEqualizer(context) },
                 containerColor = PlayerButtonBlackAlpha,
             ) {
                 Icon(

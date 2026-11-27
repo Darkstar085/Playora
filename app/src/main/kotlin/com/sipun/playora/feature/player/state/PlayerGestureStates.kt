@@ -295,7 +295,7 @@ class TapGestureState(
         resetDoubleTapSeekState()
     }
 
-    fun handleLongPress(offset: Offset) {
+    fun handleLongPress() {
         if (!useLongPressGesture) return
         if (!player.isPlaying) return
 
