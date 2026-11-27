@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.ThemeConfig
+import io.github.itshedimisawi.vitro.LocalGlassDarkTheme
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -189,6 +190,9 @@ fun PlayoraTheme(
     CompositionLocalProvider(
         LocalAccentBrush provides accentBrush,
         LocalAccentColor provides accentColor,
+        LocalGlassDarkTheme provides isDark,
+        LocalLiquidGlassEnabled provides preferences.useLiquidGlass,
+        LocalIsHighContrastDarkTheme provides (isDark && highContrastDarkTheme),
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

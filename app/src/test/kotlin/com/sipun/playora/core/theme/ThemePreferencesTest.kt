@@ -33,6 +33,7 @@ class ThemePreferencesTest {
         assertEquals(ThemeConfig.SYSTEM, prefs.themeConfig)
         assertFalse(prefs.useHighContrastDarkTheme)
         assertFalse(prefs.useDynamicColors)
+        assertTrue(prefs.useLiquidGlass)
         assertEquals(DynamicPalette.TONAL_SPOT, prefs.dynamicPalette)
         assertEquals(0xFF2196F3.toInt(), prefs.customColor)
     }
@@ -43,6 +44,7 @@ class ThemePreferencesTest {
             themeConfig = ThemeConfig.ON,
             useHighContrastDarkTheme = true,
             useDynamicColors = false,
+            useLiquidGlass = false,
             dynamicPalette = DynamicPalette.VIBRANT,
             customColor = 0xFF42A5F5.toInt(),
         )
@@ -56,9 +58,21 @@ class ThemePreferencesTest {
         assertEquals(original.themeConfig, deserialized.themeConfig)
         assertEquals(original.useHighContrastDarkTheme, deserialized.useHighContrastDarkTheme)
         assertEquals(original.useDynamicColors, deserialized.useDynamicColors)
+        assertEquals(original.useLiquidGlass, deserialized.useLiquidGlass)
         assertEquals(original.dynamicPalette, deserialized.dynamicPalette)
         assertEquals(original.customColor, deserialized.customColor)
         assertEquals(original, deserialized)
+    }
+
+    @Test
+    fun testLegacyPreferencesWithoutLiquidGlassKeyDefaultsToTrue() = runBlocking {
+        val legacyJson = """{"themeConfig":"ON","useDynamicColors":false}"""
+        val deserialized = ApplicationPreferencesSerializer.readFrom(
+            ByteArrayInputStream(legacyJson.toByteArray()),
+        )
+
+        assertEquals(ThemeConfig.ON, deserialized.themeConfig)
+        assertTrue(deserialized.useLiquidGlass)
     }
 
     @Test

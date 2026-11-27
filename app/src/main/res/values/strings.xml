@@ -220,6 +220,8 @@
     <string name="theme_pure_black_desc">True black surfaces for dark mode</string>
     <string name="dynamic_color">Dynamic color</string>
     <string name="dynamic_color_desc">Use colors from your wallpaper</string>
+    <string name="liquid_glass">Liquid Glass</string>
+    <string name="liquid_glass_desc">Refractive glass effect for bars and floating controls</string>
     <string name="custom_colour">Custom colour</string>
     <string name="custom_colour_desc">Pick a colour or adjust the hue</string>
 

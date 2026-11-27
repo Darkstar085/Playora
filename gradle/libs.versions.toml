@@ -24,6 +24,7 @@ reorderable = "3.1.0"
 room = "2.8.5"
 nextlibExtended = "1.1.0"
 universalChardet = "2.5.2"
+vitro = "0.1.0"
 junit = "4.13.2"
 
 [libraries]
@@ -68,6 +69,7 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
+vitro = { module = "io.github.itshedimisawi:vitro", version.ref = "vitro" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "androidGradlePlugin" }

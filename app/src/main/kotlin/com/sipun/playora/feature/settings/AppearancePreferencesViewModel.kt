@@ -48,6 +48,8 @@ class AppearancePreferencesViewModel(
 
             is AppearancePreferencesEvent.SetDynamicColor -> setDynamicColor(action.enabled)
 
+            is AppearancePreferencesEvent.SetLiquidGlass -> setLiquidGlass(action.enabled)
+
             is AppearancePreferencesEvent.SetCustomColor -> setCustomColor(action.color)
         }
     }
@@ -67,6 +69,14 @@ class AppearancePreferencesViewModel(
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(useDynamicColors = enabled)
+            }
+        }
+    }
+
+    private fun setLiquidGlass(enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.updateApplicationPreferences {
+                it.copy(useLiquidGlass = enabled)
             }
         }
     }
@@ -94,5 +104,6 @@ sealed interface AppearancePreferencesEvent {
     ) : AppearancePreferencesEvent
 
     data class SetDynamicColor(val enabled: Boolean) : AppearancePreferencesEvent
+    data class SetLiquidGlass(val enabled: Boolean) : AppearancePreferencesEvent
     data class SetCustomColor(val color: Int) : AppearancePreferencesEvent
 }

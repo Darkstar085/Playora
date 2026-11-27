@@ -14,11 +14,8 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
-import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sipun.playora.core.ui.designsystem.AppIcons
+import com.sipun.playora.core.ui.theme.AppGlassSlider
 import com.sipun.playora.core.ui.theme.LocalAccentBrush
 import kotlin.math.roundToInt
 
@@ -98,6 +96,7 @@ fun PreferenceItem(
         enabled = enabled,
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
+        enableGlassCard = true,
         leadingContent = icon?.let {
             {
                 PreferenceIconBox(icon = icon, enabled = enabled, isDestructive = isDestructive)
@@ -114,7 +113,6 @@ fun PreferenceItem(
     )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SelectablePreference(
     title: String,
@@ -132,6 +130,7 @@ fun SelectablePreference(
         onLongClick = onLongClick,
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
+        enableGlassCard = true,
         content = {
             Text(
                 text = title,
@@ -302,17 +301,14 @@ fun PreferenceSlider(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Slider(
-                        state = rememberSliderState(
-                            value = value,
-                            steps = steps,
-                            trackRange = valueRange,
-                        ),
+                    AppGlassSlider(
+                        value = value,
                         onValueChange = onValueChange,
                         modifier = Modifier.weight(1f),
                         enabled = enabled,
+                        valueRange = valueRange,
+                        steps = steps,
                         onValueChangeFinished = onValueChangeFinished,
-                        colors = SliderDefaults.colors(),
                     )
                     trailingContent()
                 }

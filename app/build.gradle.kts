@@ -121,6 +121,7 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.reorderable)
+    implementation(libs.vitro)
 
     // Material Icons Extended
     implementation(libs.androidx.compose.material.iconsExtended)

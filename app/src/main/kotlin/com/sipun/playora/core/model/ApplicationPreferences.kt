@@ -11,6 +11,7 @@ data class ApplicationPreferences(
     val useDynamicColors: Boolean = false,
     val dynamicPalette: DynamicPalette = DynamicPalette.TONAL_SPOT,
     val customColor: Int = 0xFF2196F3.toInt(),
+    val useLiquidGlass: Boolean = true,
     val markLastPlayedMedia: Boolean = true,
     val isHistoryPaused: Boolean = false,
     val excludeFolders: List<String> = emptyList(),
