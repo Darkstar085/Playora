@@ -6,14 +6,61 @@ import android.content.pm.PackageManager
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlin.time.Duration.Companion.seconds
+
+@Serializable
+internal data class GithubRelease(
+    @SerialName("tag_name") val tagName: String,
+    val name: String = "",
+    val body: String = "",
+    @SerialName("published_at") val publishedAt: String? = null,
+    @SerialName("created_at") val createdAt: String? = null,
+    val draft: Boolean = false,
+    val prerelease: Boolean = false,
+    val assets: List<GithubAsset> = emptyList(),
+)
+
+@Serializable
+internal data class GithubAsset(
+    @SerialName("url") val apiUrl: String = "",
+    val name: String,
+    @SerialName("browser_download_url") val downloadUrl: String,
+    @SerialName("content_type") val contentType: String = "",
+    val size: Long = 0,
+    val digest: String? = null,
+)
+
+@Serializable
+internal data class UpdateManifest(
+    val version: String,
+    val tag: String = "",
+    val name: String = "",
+    val description: String = "",
+    @SerialName("download_url") val downloadUrl: String,
+    val size: Long = 0,
+    val sha256: String,
+    @SerialName("published_at") val publishedAt: String? = null,
+)
 
 data class AppUpdate(
     val version: String,
@@ -28,58 +75,123 @@ data class AppUpdate(
 )
 
 object UpdateManager {
+    private const val REPOSITORY = "Darkstar085/playora"
+    private const val MANIFEST_URL =
+        "https://github.com/$REPOSITORY/releases/latest/download/app-release.json"
     private const val RELEASE_API =
-        "https://api.github.com/repos/Darkstar085/playora/releases/latest"
+        "https://api.github.com/repos/$REPOSITORY/releases/latest"
+    private val TRUSTED_DOWNLOAD_HOSTS = setOf("github.com", "api.github.com")
+    private val json = Json { ignoreUnknownKeys = true }
+
+    internal sealed interface ManifestLookupResult {
+        data class Success(val update: AppUpdate?) : ManifestLookupResult
+        data object Unavailable : ManifestLookupResult
+    }
 
     suspend fun findLatestUpdate(context: Context): AppUpdate? = withContext(Dispatchers.IO) {
-        val connection = (URL(RELEASE_API).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 10_000
-            readTimeout = 15_000
-            setRequestProperty("Accept", "application/vnd.github+json")
-            setRequestProperty("User-Agent", "Playora")
+        val current = currentVersion(context)
+        when (val manifestResult = loadManifest(current)) {
+            is ManifestLookupResult.Success -> return@withContext manifestResult.update
+            ManifestLookupResult.Unavailable -> Unit
         }
+        loadLatestRelease(current)
+    }
+
+    private fun loadManifest(currentVersion: String): ManifestLookupResult {
+        val connection = openMetadataConnection(MANIFEST_URL)
+        return try {
+            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                return ManifestLookupResult.Unavailable
+            }
+            val raw = connection.inputStream.bufferedReader().use { it.readText() }
+            parseManifestLookup(raw, currentVersion)
+        } catch (_: Exception) {
+            ManifestLookupResult.Unavailable
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    private fun loadLatestRelease(currentVersion: String): AppUpdate? {
+        val connection = openMetadataConnection(RELEASE_API)
         try {
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {
                 throw IllegalStateException("GitHub returned HTTP ${connection.responseCode}")
             }
-            val release = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
-            if (release.optBoolean("draft") || release.optBoolean("prerelease")) return@withContext null
-
-            val version = release.getString("tag_name").removePrefix("v")
-            if (!isNewerVersion(currentVersion(context), version)) return@withContext null
-
-            val isPrerelease = release.optBoolean("prerelease")
-            val publishedAt =
-                release.optString("published_at").ifBlank { release.optString("created_at") }
-            val formattedDate = formatReleaseDate(publishedAt)
-
-            val assets = release.getJSONArray("assets")
-            for (index in 0 until assets.length()) {
-                val asset = assets.getJSONObject(index)
-                val name = asset.optString("name")
-                val digest = asset.optString("digest")
-                if (
-                    name.endsWith(".apk", ignoreCase = true) &&
-                    digest.startsWith("sha256:") &&
-                    asset.optString("content_type") == "application/vnd.android.package-archive"
-                ) {
-                    return@withContext AppUpdate(
-                        version = version,
-                        name = release.optString("name").ifBlank { "Playora $version" },
-                        notes = release.optString("body"),
-                        downloadUrl = asset.getString("browser_download_url"),
-                        fileName = name,
-                        size = asset.optLong("size"),
-                        digest = digest,
-                        releaseDate = formattedDate,
-                        isPrerelease = isPrerelease,
-                    )
-                }
-            }
-            throw IllegalStateException("Latest release has no APK with a SHA-256 digest")
+            val raw = connection.inputStream.bufferedReader().use { it.readText() }
+            return parseRelease(raw, currentVersion)
         } finally {
             connection.disconnect()
         }
+    }
+
+    internal fun parseManifestLookup(
+        rawJson: String,
+        currentVersion: String,
+    ): ManifestLookupResult {
+        val manifest = runCatching { json.decodeFromString<UpdateManifest>(rawJson) }.getOrNull()
+            ?: return ManifestLookupResult.Unavailable
+        val normalizedDigest = normalizeSha256(manifest.sha256)
+            ?: return ManifestLookupResult.Unavailable
+        val version = manifest.version.removePrefix("v").trim()
+        if (version.isBlank() || manifest.downloadUrl.isBlank()) {
+            return ManifestLookupResult.Unavailable
+        }
+        if (!isNewerVersion(currentVersion, version)) {
+            return ManifestLookupResult.Success(null)
+        }
+
+        val fileName = manifest.downloadUrl
+            .substringBefore('?')
+            .substringAfterLast('/')
+            .ifBlank { "Playora_v$version.apk" }
+
+        return ManifestLookupResult.Success(
+            AppUpdate(
+                version = version,
+                name = manifest.name.ifBlank { "Playora $version" },
+                notes = formatReleaseNotes(manifest.description),
+                downloadUrl = manifest.downloadUrl,
+                fileName = fileName,
+                size = manifest.size,
+                digest = normalizedDigest,
+                releaseDate = formatReleaseDate(manifest.publishedAt.orEmpty()),
+                isPrerelease = false,
+            ),
+        )
+    }
+
+    internal fun parseRelease(rawJson: String, currentVersion: String): AppUpdate? {
+        val release = json.decodeFromString<GithubRelease>(rawJson)
+        if (release.draft || release.prerelease) return null
+
+        val version = release.tagName.removePrefix("v").trim()
+        if (!isNewerVersion(currentVersion, version)) return null
+
+        val publishedAt = release.publishedAt?.takeIf { it.isNotBlank() }
+            ?: release.createdAt.orEmpty()
+        val formattedDate = formatReleaseDate(publishedAt)
+
+        val asset = release.assets.firstOrNull { asset ->
+            asset.name.endsWith(".apk", ignoreCase = true) &&
+                asset.contentType.equals("application/vnd.android.package-archive", ignoreCase = true) &&
+                normalizeSha256(asset.digest.orEmpty()) != null
+        } ?: throw IllegalStateException("Latest release has no APK with a SHA-256 digest")
+
+        val normalizedDigest = normalizeSha256(asset.digest.orEmpty())
+            ?: throw IllegalStateException("Latest release has no APK with a SHA-256 digest")
+
+        return AppUpdate(
+            version = version,
+            name = release.name.ifBlank { "Playora $version" },
+            notes = formatReleaseNotes(release.body),
+            downloadUrl = asset.downloadUrl,
+            fileName = asset.name,
+            size = asset.size,
+            digest = normalizedDigest,
+            releaseDate = formattedDate,
+            isPrerelease = release.prerelease,
+        )
     }
 
     suspend fun download(
@@ -90,44 +202,17 @@ object UpdateManager {
         require(update.fileName.matches(Regex("[A-Za-z0-9._-]+\\.apk", RegexOption.IGNORE_CASE))) {
             "Invalid APK filename"
         }
-        val downloadUri = update.downloadUrl.toUri()
-        require(downloadUri.scheme == "https" && downloadUri.host == "github.com") {
-            "Update download URL is not a trusted GitHub release URL"
-        }
+        validateDownloadUrl(update.downloadUrl)
+
         val directory = File(context.filesDir, "updates").apply { mkdirs() }
         val partial = File(directory, update.fileName + ".part")
         val apk = File(directory, update.fileName)
-        partial.delete()
 
-        val connection = (URL(update.downloadUrl).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 15_000
-            readTimeout = 30_000
-            setRequestProperty("Accept", "application/octet-stream")
-            setRequestProperty("User-Agent", "Playora")
-        }
         try {
-            if (connection.responseCode !in 200..299) {
-                throw IllegalStateException("Download failed: HTTP ${connection.responseCode}")
-            }
-            val total = connection.contentLengthLong.takeIf { it > 0 } ?: update.size
-            var downloaded = 0L
-            connection.inputStream.use { input ->
-                FileOutputStream(partial).use { output ->
-                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                    while (true) {
-                        val count = input.read(buffer)
-                        if (count < 0) break
-                        output.write(buffer, 0, count)
-                        downloaded += count
-                        onProgress(downloaded, total)
-                    }
-                }
-            }
+            downloadWithFallback(update.downloadUrl, partial, update.size, onProgress)
         } catch (error: Exception) {
             partial.delete()
             throw error
-        } finally {
-            connection.disconnect()
         }
 
         if (!verifyDigest(partial, update.digest) || !verifyPackage(context, partial)) {
@@ -142,42 +227,164 @@ object UpdateManager {
         apk
     }
 
+    private suspend fun downloadWithFallback(
+        url: String,
+        destination: File,
+        expectedSize: Long,
+        onProgress: (downloadedBytes: Long, totalBytes: Long) -> Unit,
+    ) {
+        var lastError: Exception? = null
+        repeat(3) { attempt ->
+            try {
+                destination.delete()
+                downloadFile(url, destination, expectedSize, onProgress)
+                return
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                lastError = error
+                if (attempt < 2) delay((attempt + 1).seconds)
+            }
+        }
+
+        val fallbackUrl = resolveDownloadUrl(url)
+        if (fallbackUrl != url) {
+            validateDownloadUrl(fallbackUrl)
+            destination.delete()
+            downloadFile(fallbackUrl, destination, expectedSize, onProgress)
+            return
+        }
+
+        throw lastError ?: IllegalStateException("Download failed")
+    }
+
+    private fun downloadFile(
+        url: String,
+        destination: File,
+        expectedSize: Long,
+        onProgress: (downloadedBytes: Long, totalBytes: Long) -> Unit,
+    ) {
+        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 15_000
+            readTimeout = 30_000
+            instanceFollowRedirects = true
+            setRequestProperty("Accept", "application/octet-stream")
+            setRequestProperty("User-Agent", "Playora")
+        }
+        try {
+            if (connection.responseCode !in 200..299) {
+                throw IllegalStateException("Download failed: HTTP ${connection.responseCode}")
+            }
+            val total = connection.contentLengthLong.takeIf { it > 0 } ?: expectedSize
+            var downloaded = 0L
+            connection.inputStream.use { input ->
+                FileOutputStream(destination).use { output ->
+                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    while (true) {
+                        val count = input.read(buffer)
+                        if (count < 0) break
+                        output.write(buffer, 0, count)
+                        downloaded += count
+                        onProgress(downloaded, total)
+                    }
+                }
+            }
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    private fun resolveDownloadUrl(browserDownloadUrl: String): String {
+        val direct = URL(browserDownloadUrl)
+        val path = direct.path.trim('/').split('/')
+        if (path.size < 5 || path[2] != "releases" || path[3] != "download") {
+            return browserDownloadUrl
+        }
+
+        val owner = path[0]
+        val repository = path[1]
+        val tag = URLDecoder.decode(path[4], StandardCharsets.UTF_8.name())
+        val fileName = URLDecoder.decode(path.last(), StandardCharsets.UTF_8.name())
+        val endpoint =
+            "https://api.github.com/repos/$owner/$repository/releases/tags/${encodePath(tag)}"
+        val connection = openMetadataConnection(endpoint)
+        return try {
+            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                return browserDownloadUrl
+            }
+            val release = connection.inputStream.bufferedReader().use {
+                json.decodeFromString<GithubRelease>(it.readText())
+            }
+            release.assets.firstOrNull { it.name == fileName }?.apiUrl?.takeIf { it.isNotBlank() }
+                ?: browserDownloadUrl
+        } catch (_: Exception) {
+            browserDownloadUrl
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    private fun validateDownloadUrl(url: String) {
+        val downloadUri = url.toUri()
+        require(downloadUri.scheme == "https" && downloadUri.host in TRUSTED_DOWNLOAD_HOSTS) {
+            "Update download URL is not a trusted GitHub release URL"
+        }
+    }
+
+    private fun openMetadataConnection(url: String): HttpURLConnection =
+        (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 10_000
+            readTimeout = 15_000
+            instanceFollowRedirects = true
+            setRequestProperty("Accept", "application/vnd.github+json")
+            setRequestProperty("User-Agent", "Playora")
+        }
+
+    private fun encodePath(value: String): String =
+        value.split('/').joinToString("/") {
+            URLEncoder.encode(it, StandardCharsets.UTF_8.name()).replace("+", "%20")
+        }
+
+    internal fun formatReleaseNotes(raw: String): String {
+        val bulletLines = raw.lineSequence()
+            .map { it.trim() }
+            .filter { it.startsWith("-") || it.startsWith("*") || it.startsWith("•") }
+            .filterNot { it.startsWith("**") }
+            .map { line ->
+                line.removePrefix("-")
+                    .removePrefix("*")
+                    .removePrefix("•")
+                    .trim()
+                    .replace(Regex("\\[([^]]+)]\\([^)]*\\)"), "$1")
+            }
+            .filter { it.isNotEmpty() }
+            .toList()
+        if (bulletLines.isNotEmpty()) return bulletLines.joinToString("\n")
+        return raw.lineSequence()
+            .map { it.trim() }
+            .filter {
+                it.isNotEmpty() &&
+                    !it.startsWith("#") &&
+                    !it.startsWith("**Full Changelog:**")
+            }
+            .map { it.replace(Regex("\\[([^]]+)]\\([^)]*\\)"), "$1") }
+            .joinToString("\n")
+    }
+
     private fun formatReleaseDate(isoDate: String): String {
         if (isoDate.isBlank()) return "Recently"
-        return try {
-            val parser =
-                java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
-                    timeZone = java.util.TimeZone.getTimeZone("UTC")
-                }
-            val date = parser.parse(isoDate) ?: return "Recently"
-            val formatter = java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.US)
-            formatter.format(date)
-        } catch (_: Exception) {
-            try {
-                val datePart = isoDate.take(10)
-                val parts = datePart.split("-")
-                val year = parts.getOrNull(0) ?: ""
-                val monthNum = parts.getOrNull(1)?.toIntOrNull() ?: 1
-                val day = parts.getOrNull(2)?.toIntOrNull() ?: 1
-                val months = listOf(
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sep",
-                    "Oct",
-                    "Nov",
-                    "Dec",
-                )
-                val month = months.getOrElse(monthNum - 1) { "Jan" }
-                "$month $day, $year"
-            } catch (_: Exception) {
-                "Recently"
-            }
+        return runCatching {
+            Instant.parse(isoDate)
+                .atZone(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.US))
+        }.getOrElse {
+            runCatching {
+                val parts = isoDate.take(10).split("-")
+                LocalDate.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+                    .format(DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.US))
+            }.getOrDefault("Recently")
         }
     }
 
@@ -225,9 +432,14 @@ object UpdateManager {
         return false
     }
 
+    private fun normalizeSha256(value: String): String? {
+        val hash = value.removePrefix("sha256:").trim().lowercase()
+        if (hash.length != 64 || hash.any { it !in "0123456789abcdef" }) return null
+        return "sha256:$hash"
+    }
+
     private fun verifyDigest(file: File, expected: String): Boolean {
-        val hash = expected.removePrefix("sha256:").lowercase()
-        if (hash.length != 64 || hash.any { it !in "0123456789abcdef" }) return false
+        val hash = normalizeSha256(expected)?.removePrefix("sha256:") ?: return false
         val digest = MessageDigest.getInstance("SHA-256")
         file.inputStream().use { input ->
             val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
@@ -240,18 +452,19 @@ object UpdateManager {
         return digest.digest().joinToString("") { "%02x".format(it) } == hash
     }
 
-    @Suppress("DEPRECATION")
     private fun verifyPackage(context: Context, apk: File): Boolean {
-        val flags = PackageManager.GET_SIGNATURES
+        val flags = PackageManager.GET_SIGNING_CERTIFICATES
         val installed = context.packageManager.getPackageInfo(context.packageName, flags)
         val archived =
             context.packageManager.getPackageArchiveInfo(apk.absolutePath, flags) ?: return false
-        val installedSignatures = installed.signatures ?: return false
-        val archivedSignatures = archived.signatures ?: return false
-        return archived.packageName == context.packageName &&
-                installedSignatures.size == archivedSignatures.size &&
-                installedSignatures.zip(archivedSignatures).all { (left, right) ->
-                    left.toByteArray().contentEquals(right.toByteArray())
-                }
+        if (archived.packageName != context.packageName) return false
+
+        val installedSignatures = installed.signingInfo?.apkContentsSigners ?: return false
+        val archivedSignatures = archived.signingInfo?.apkContentsSigners ?: return false
+        return installedSignatures.isNotEmpty() &&
+            installedSignatures.size == archivedSignatures.size &&
+            installedSignatures.zip(archivedSignatures).all { (left, right) ->
+                left.toByteArray().contentEquals(right.toByteArray())
+            }
     }
 }
