@@ -3,10 +3,9 @@ package com.sipun.playora.core.update
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
 import android.provider.Settings
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -91,7 +90,7 @@ object UpdateManager {
         require(update.fileName.matches(Regex("[A-Za-z0-9._-]+\\.apk", RegexOption.IGNORE_CASE))) {
             "Invalid APK filename"
         }
-        val downloadUri = Uri.parse(update.downloadUrl)
+        val downloadUri = update.downloadUrl.toUri()
         require(downloadUri.scheme == "https" && downloadUri.host == "github.com") {
             "Update download URL is not a trusted GitHub release URL"
         }
@@ -172,7 +171,7 @@ object UpdateManager {
                     "Sep",
                     "Oct",
                     "Nov",
-                    "Dec"
+                    "Dec",
                 )
                 val month = months.getOrElse(monthNum - 1) { "Jan" }
                 "$month $day, $year"
@@ -184,14 +183,11 @@ object UpdateManager {
 
     fun install(context: Context, apk: File): Boolean {
         if (!apk.isFile) return false
-        if (
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-            !context.packageManager.canRequestPackageInstalls()
-        ) {
+        if (!context.packageManager.canRequestPackageInstalls()) {
             context.startActivity(
                 Intent(
                     Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                    Uri.parse("package:${context.packageName}"),
+                    "package:${context.packageName}".toUri(),
                 ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             )
             return false

@@ -1,17 +1,20 @@
 package com.sipun.playora.feature.player.ui
 
 import android.content.res.Configuration
+import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.extractor.metadata.Chapter
 import com.sipun.playora.core.model.VideoContentScale
 import com.sipun.playora.feature.player.extensions.noRippleClickable
 import com.sipun.playora.feature.player.model.DecoderMode
 import com.sipun.playora.feature.player.state.SubtitleOptionsEvent
 
+@OptIn(UnstableApi::class)
 @Composable
 fun BoxScope.OverlayShowView(
     player: Player,

@@ -26,6 +26,9 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -41,10 +44,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,6 +70,7 @@ import com.sipun.playora.core.model.Font
 import com.sipun.playora.core.model.Resume
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.settings.extensions.name
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -636,6 +643,15 @@ private fun SettingsSearchBar(
     onQueryChange: (String) -> Unit,
     placeholder: String,
 ) {
+    val textFieldState = rememberTextFieldState(initialText = query)
+    val currentOnQueryChange by rememberUpdatedState(onQueryChange)
+
+    LaunchedEffect(textFieldState) {
+        snapshotFlow { textFieldState.text.toString() }.collectLatest { currentText ->
+            currentOnQueryChange(currentText)
+        }
+    }
+
     Surface(
         shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
@@ -655,7 +671,7 @@ private fun SettingsSearchBar(
             )
 
             Box(modifier = Modifier.weight(1f)) {
-                if (query.isEmpty()) {
+                if (textFieldState.text.isEmpty()) {
                     Text(
                         text = placeholder,
                         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
@@ -663,21 +679,20 @@ private fun SettingsSearchBar(
                     )
                 }
                 BasicTextField(
-                    value = query,
-                    onValueChange = onQueryChange,
+                    state = textFieldState,
                     textStyle = TextStyle(
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 14.sp,
                     ),
-                    singleLine = true,
+                    lineLimits = TextFieldLineLimits.SingleLine,
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
 
-            if (query.isNotEmpty()) {
+            if (textFieldState.text.isNotEmpty()) {
                 IconButton(
-                    onClick = { onQueryChange("") },
+                    onClick = { textFieldState.clearText() },
                     modifier = Modifier.size(20.dp),
                 ) {
                     Icon(

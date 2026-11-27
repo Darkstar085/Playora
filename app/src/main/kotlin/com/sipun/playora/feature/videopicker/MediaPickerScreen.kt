@@ -38,8 +38,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -54,6 +52,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -146,11 +145,7 @@ fun MediaPickerScreen(viewModel: MediaPickerViewModel) {
     )
 }
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class,
-    ExperimentalPermissionsApi::class,
-)
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 internal fun MediaPickerScreenContent(
     state: MediaPickerUiState,
@@ -965,7 +960,7 @@ private fun HideFlowDialogs(
 private fun SetupPrivacyPinDialog(onDismiss: () -> Unit, onPinConfirmed: (String) -> Unit) {
     var firstPin: String? by rememberSaveable { mutableStateOf(value = null) }
     var currentPin by rememberSaveable { mutableStateOf(value = "") }
-    var errorCount by rememberSaveable { mutableStateOf(value = 0) }
+    var errorCount by rememberSaveable { mutableIntStateOf(value = 0) }
 
     val isConfirmStep = firstPin != null
     val showError = errorCount > 0
@@ -1092,7 +1087,6 @@ private fun SetupPinHeader(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun SelectionActionsSheet(
     modifier: Modifier = Modifier,

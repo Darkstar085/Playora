@@ -22,7 +22,6 @@ import androidx.compose.material.icons.rounded.RepeatOne
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -178,15 +177,7 @@ fun PlayerButton(
         containerColor = containerColor,
     )
 
-    val rippleConfiguration = RippleConfiguration(
-        color = Color.White,
-        rippleAlpha = RippleAlpha(
-            pressedAlpha = 0.5f,
-            focusedAlpha = 0.5f,
-            draggedAlpha = 0.5f,
-            hoveredAlpha = 0.5f,
-        ),
-    )
+    val rippleConfiguration = RippleConfiguration(color = Color.White)
 
     CompositionLocalProvider(
         LocalContentColor provides if (enabled) {

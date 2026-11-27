@@ -1,6 +1,7 @@
 package com.sipun.playora.feature.player.state
 
 import androidx.activity.compose.LocalActivity
+import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -11,6 +12,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.media3.common.Player
 import androidx.media3.common.listen
+import androidx.media3.common.util.UnstableApi
 import com.sipun.playora.feature.player.extensions.toggleSystemBars
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -80,6 +82,7 @@ class ControlsVisibilityState(
         showControls()
     }
 
+    @OptIn(UnstableApi::class)
     suspend fun observe() {
         player.listen { events ->
             if (events.contains(Player.EVENT_IS_PLAYING_CHANGED)) {

@@ -5,11 +5,9 @@ import android.content.Context
 import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.LruCache
-import androidx.annotation.RequiresApi
 import com.sipun.nextlib.mediainfo.MediaInfoBuilder
 import com.sipun.playora.core.common.di.DiQualifiers
 import com.sipun.playora.core.common.extensions.VIDEO_COLLECTION_URI
@@ -90,7 +88,7 @@ class MediaStoreMediaService(
     }
 
     override fun observeTrashVideos(): Flow<List<MediaVideo>> = observeMedia {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) queryTrashVideos() else emptyList()
+        queryTrashVideos()
     }
 
     private fun <T> observeMedia(query: suspend () -> List<T>): Flow<List<T>> = mediaChanges
@@ -181,7 +179,6 @@ class MediaStoreMediaService(
 
     private fun File.walkUp() = generateSequence(seed = parentFile) { it.parentFile }
 
-    @RequiresApi(Build.VERSION_CODES.R)
     private fun queryTrashVideos(): List<MediaVideo> {
         val queryArgs = Bundle().apply {
             putInt(

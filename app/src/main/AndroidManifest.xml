@@ -31,8 +31,7 @@
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Playora.Splash"
-        tools:targetApi="s">
+        android:theme="@style/Theme.Playora.Splash">
         <activity
             android:name=".MainActivity"
             android:exported="true"

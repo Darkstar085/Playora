@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
@@ -71,15 +72,15 @@ fun Bundle.getParcelableUriArray(key: String): List<Uri?>? {
     @Suppress("DEPRECATION")
     return when (val value = get(key)) {
         is Uri -> listOf(value)
-        is CharSequence -> listOf(runCatching { Uri.parse(value.toString()) }.getOrNull())
+        is CharSequence -> listOf(runCatching { value.toString().toUri() }.getOrNull())
         is Array<*> -> value.map {
             (it as? Uri)
-                ?: (it as? CharSequence)?.let { s -> runCatching { Uri.parse(s.toString()) }.getOrNull() }
+                ?: (it as? CharSequence)?.let { s -> runCatching { s.toString().toUri() }.getOrNull() }
         }
 
         is Iterable<*> -> value.map {
             (it as? Uri)
-                ?: (it as? CharSequence)?.let { s -> runCatching { Uri.parse(s.toString()) }.getOrNull() }
+                ?: (it as? CharSequence)?.let { s -> runCatching { s.toString().toUri() }.getOrNull() }
         }
 
         else -> null

@@ -1,7 +1,6 @@
 package com.sipun.playora.feature.player.ui
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Typeface
 import android.util.TypedValue
@@ -28,6 +27,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.graphics.createBitmap
 import androidx.core.view.doOnPreDraw
 import androidx.media3.common.text.Cue
 import androidx.media3.common.util.UnstableApi
@@ -161,11 +161,7 @@ private fun measureDrawnBounds(view: View): Rect? {
     val height = view.height / BOUNDS_SCALE
     if (width == 0 || height == 0) return null
 
-    val bitmap = Bitmap.createBitmap(
-        width,
-        height,
-        Bitmap.Config.ARGB_8888,
-    )
+    val bitmap = createBitmap(width, height)
     val canvas = Canvas(bitmap)
     canvas.scale(
         1f / BOUNDS_SCALE,

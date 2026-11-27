@@ -1,7 +1,6 @@
 package com.sipun.playora.settings
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -44,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.sipun.playora.BuildConfig
 import com.sipun.playora.R
 import com.sipun.playora.core.ui.components.AppBackButton
@@ -57,8 +57,6 @@ import com.sipun.playora.feature.onboarding.WelcomeScreen
 import kotlinx.coroutines.launch
 
 private const val REPOSITORY_URL = "https://github.com/Darkstar085/playora"
-private const val RELEASES_URL = "$REPOSITORY_URL/releases/latest"
-private const val ISSUES_URL = "$REPOSITORY_URL/issues"
 private const val LICENSE_URL = "$REPOSITORY_URL/blob/main/LICENSE"
 private const val CONTACT_URL = "https://t.me/Darkstar085"
 private const val SUPPORT_URL = "upi://pay?pa=darkstar085@upi&pn=Playora&cu=INR"
@@ -68,6 +66,9 @@ data class AboutOutput(val navigateUp: () -> Unit)
 @Composable
 fun AboutScreen(output: AboutOutput) {
     val context = LocalContext.current
+    val updateCheckFailedText = stringResource(R.string.update_check_failed)
+    val updateInstallPermissionText = stringResource(R.string.update_install_permission)
+    val updateDownloadFailedText = stringResource(R.string.update_download_failed)
     val accent = LocalAccentColor.current
     val scope = rememberCoroutineScope()
     var isChecking by remember { mutableStateOf(false) }
@@ -189,8 +190,7 @@ fun AboutScreen(output: AboutOutput) {
                                     }
                                 } catch (error: Exception) {
                                     updateFlowState = UpdateFlowState.Error(
-                                        error.message
-                                            ?: context.getString(R.string.update_check_failed),
+                                        error.message ?: updateCheckFailedText,
                                     )
                                 } finally {
                                     isChecking = false
@@ -247,8 +247,8 @@ fun AboutScreen(output: AboutOutput) {
                     context.startActivity(
                         Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse(REPOSITORY_URL)
-                        )
+                            REPOSITORY_URL.toUri(),
+                        ),
                     )
                 },
             )
@@ -260,8 +260,8 @@ fun AboutScreen(output: AboutOutput) {
                     context.startActivity(
                         Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse(CONTACT_URL)
-                        )
+                            CONTACT_URL.toUri(),
+                        ),
                     )
                 },
             )
@@ -273,8 +273,8 @@ fun AboutScreen(output: AboutOutput) {
                     context.startActivity(
                         Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse(SUPPORT_URL)
-                        )
+                            SUPPORT_URL.toUri(),
+                        ),
                     )
                 },
             )
@@ -303,7 +303,7 @@ fun AboutScreen(output: AboutOutput) {
                         RoundedCornerShape(18.dp),
                     )
                     .clickable {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(LICENSE_URL)))
+                        context.startActivity(Intent(Intent.ACTION_VIEW, LICENSE_URL.toUri()))
                     }
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -371,18 +371,16 @@ fun AboutScreen(output: AboutOutput) {
                                 )
                             }
                         updateFlowState = UpdateFlowState.Installing(selectedUpdate)
-                        if (UpdateManager.install(context, apk)) {
-                            updateFlowState = UpdateFlowState.Success(selectedUpdate.version)
+                        updateFlowState = if (UpdateManager.install(context, apk)) {
+                            UpdateFlowState.Success(selectedUpdate.version)
                         } else {
-                            updateFlowState = UpdateFlowState.Error(
-                                context.getString(R.string.update_install_permission),
-                            )
+                            UpdateFlowState.Error(updateInstallPermissionText)
                         }
                     } catch (_: kotlinx.coroutines.CancellationException) {
                         updateFlowState = null
                     } catch (e: Exception) {
                         updateFlowState = UpdateFlowState.Error(
-                            e.message ?: context.getString(R.string.update_download_failed),
+                            e.message ?: updateDownloadFailedText,
                         )
                     }
                 }

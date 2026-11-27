@@ -84,6 +84,7 @@ class SubtitleOptionsState(
         }
     }
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     suspend fun observe() {
         updateSubtitleDelayMilliseconds()
         updateSubtitleSpeed()
@@ -168,7 +169,7 @@ fun rememberSubtitlePositionState(
 
 @Stable
 class SubtitlePositionState(initialOffsetY: Float, private val onPositionSaved: (Float) -> Unit) {
-    var offsetY by mutableStateOf(initialOffsetY)
+    var offsetY by mutableFloatStateOf(initialOffsetY)
         private set
     var isDragging by mutableStateOf(false)
         private set

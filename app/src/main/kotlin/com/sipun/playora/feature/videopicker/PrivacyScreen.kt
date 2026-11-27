@@ -53,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -93,6 +94,7 @@ import com.sipun.playora.feature.videopicker.state.rememberSelectionManager
 fun PrivacyScreen(viewModel: PrivacyViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(
@@ -103,7 +105,7 @@ fun PrivacyScreen(viewModel: PrivacyViewModel) {
             viewModel.events.collect { event ->
                 when (event) {
                     is PrivacyEvent.VideosRelocated -> {
-                        val message = context.resources.getQuantityString(
+                        val message = resources.getQuantityString(
                             R.plurals.videos_relocated_to_movies,
                             event.count,
                             event.count,

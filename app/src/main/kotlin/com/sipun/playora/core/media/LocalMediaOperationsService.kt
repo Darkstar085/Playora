@@ -100,6 +100,7 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
             Intent().apply {
                 type = "video/*"
                 action = Intent.ACTION_SEND_MULTIPLE
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 putParcelableArrayListExtra(
                     Intent.EXTRA_STREAM,
                     ArrayList(uris),

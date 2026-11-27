@@ -97,7 +97,10 @@ internal fun PlayerSeekbar(
     }
 }
 
-@kotlin.OptIn(ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    UnstableApi::class,
+)
 @Composable
 private fun SimpleSlider(
     modifier: Modifier = Modifier,

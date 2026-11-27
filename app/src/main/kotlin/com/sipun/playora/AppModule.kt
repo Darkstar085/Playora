@@ -1,7 +1,9 @@
 package com.sipun.playora
 
 import android.content.Context
+import androidx.annotation.OptIn
 import androidx.datastore.core.DataStore
+import androidx.media3.common.util.UnstableApi
 import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.request.CachePolicy
@@ -61,6 +63,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
+@OptIn(UnstableApi::class)
 val appModule = module {
 
     single<CoroutineDispatcher>(named(DiQualifiers.IO_DISPATCHER)) { Dispatchers.IO }
@@ -100,7 +103,7 @@ val appModule = module {
     singleOf(::LocalMediaOperationsService) bind MediaOperationsService::class
     singleOf(::LocalMediaSynchronizer) bind MediaSynchronizer::class
     singleOf(::LocalSystemService) bind SystemService::class
-    single { LocalDataSourceFactory(get()) }
+    single { provideLocalDataSourceFactory(get()) }
 
     singleOf(::GetSortedMediaUseCase)
     singleOf(::GetFolderTreeMediaUseCase)
@@ -147,3 +150,7 @@ val appModule = module {
             .build()
     }
 }
+
+@OptIn(UnstableApi::class)
+private fun provideLocalDataSourceFactory(context: Context): LocalDataSourceFactory =
+    LocalDataSourceFactory(context)

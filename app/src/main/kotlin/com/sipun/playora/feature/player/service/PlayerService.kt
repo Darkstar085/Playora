@@ -734,9 +734,9 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_VIDEO_DECODER_MODE -> {
                     val mode = args.decoderMode(CustomCommands.VIDEO_DECODER_MODE_KEY)
-                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_UNKNOWN)
+                        ?: return@future SessionResult(SessionError.ERROR_UNKNOWN)
                     val player = mediaSession?.player as? ExoPlayer
-                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
+                        ?: return@future SessionResult(SessionError.ERROR_INVALID_STATE)
                     decoderRecoveryManager.onUserSelection(
                         DecoderTrackType.VIDEO,
                         mode = mode,
@@ -761,9 +761,9 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.SET_AUDIO_DECODER_MODE -> {
                     val mode = args.decoderMode(CustomCommands.AUDIO_DECODER_MODE_KEY)
-                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE)
+                        ?: return@future SessionResult(SessionError.ERROR_BAD_VALUE)
                     val player = mediaSession?.player as? ExoPlayer
-                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
+                        ?: return@future SessionResult(SessionError.ERROR_INVALID_STATE)
                     decoderRecoveryManager.onUserSelection(
                         DecoderTrackType.AUDIO,
                         mode = mode,
@@ -783,9 +783,9 @@ class PlayerService : MediaSessionService() {
 
                 CustomCommands.TRY_DECODER_FALLBACK -> {
                     val retry = decoderRecoveryManager.confirmFallback()
-                        ?: return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
+                        ?: return@future SessionResult(SessionError.ERROR_INVALID_STATE)
                     if (!retryDecoderWith(retry)) {
-                        return@future SessionResult(SessionResult.RESULT_ERROR_INVALID_STATE)
+                        return@future SessionResult(SessionError.ERROR_INVALID_STATE)
                     }
                     return@future SessionResult(SessionResult.RESULT_SUCCESS)
                 }

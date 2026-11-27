@@ -18,7 +18,11 @@ val signingProperties = Properties().apply {
 android {
     namespace = "com.sipun.playora"
 
-    compileSdk = 37
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 2
+        }
+    }
     defaultConfig {
         minSdk = 31
         targetSdk = 37

@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Paint
 import android.media.MediaMetadataRetriever
-import android.os.Build.VERSION.SDK_INT
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
@@ -49,7 +48,6 @@ class VideoThumbnailDecoder(
             }
         }
 
-    @OptIn(ExperimentalCoilApi::class)
     override suspend fun decode(): DecodeResult {
         readFromDiskCache()?.use { snapshot ->
             val file = snapshot.data.toFile()
@@ -339,12 +337,7 @@ private inline fun <T> MediaMetadataRetriever.use(block: (MediaMetadataRetriever
     try {
         return block(this)
     } finally {
-
-        if (SDK_INT >= 29) {
-            close()
-        } else {
-            release()
-        }
+        close()
     }
 }
 

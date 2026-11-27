@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.sipun.playora.feature.videopicker.privacy.PRIVACY_PIN_LENGTH
 
@@ -50,7 +51,7 @@ fun PinDotsIndicator(filledCount: Int, error: Boolean, modifier: Modifier = Modi
     }
 
     Row(
-        modifier = modifier.offset(x = offsetX.value.dp),
+        modifier = modifier.offset { IntOffset(x = offsetX.value.dp.roundToPx(), y = 0) },
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         repeat(times = PRIVACY_PIN_LENGTH) { index ->

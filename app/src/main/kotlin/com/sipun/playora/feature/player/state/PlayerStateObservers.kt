@@ -37,6 +37,7 @@ class ErrorState(private val player: Player) {
         playbackError = null
     }
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     suspend fun observe() {
         playbackError = player.playerError
         player.listen { events ->
@@ -64,6 +65,7 @@ class MediaPresentationState(private val player: Player?) {
     var isBuffering: Boolean by mutableStateOf(value = false)
         private set
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     suspend fun observe() {
         isBuffering = player?.playbackState == Player.STATE_BUFFERING
 

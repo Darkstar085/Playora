@@ -24,14 +24,16 @@ object Utils {
                 TimeUnit.HOURS.toSeconds(hours)
         return if (hours > 0) {
             String.format(
-                format = "%02d:%02d:%02d",
+                Locale.US,
+                "%02d:%02d:%02d",
                 hours,
                 minutes,
                 seconds,
             )
         } else {
             String.format(
-                format = "%02d:%02d",
+                Locale.US,
+                "%02d:%02d",
                 minutes,
                 seconds,
             )
@@ -51,9 +53,9 @@ object Utils {
 
         return when {
             size < kb -> "$size B"
-            size < mb -> "%.2f KB".format(size / kb.toDouble())
-            size < gb -> "%.2f MB".format(size / mb.toDouble())
-            else -> "%.2f GB".format(size / gb.toDouble())
+            size < mb -> String.format(Locale.US, "%.2f KB", size / kb.toDouble())
+            size < gb -> String.format(Locale.US, "%.2f MB", size / mb.toDouble())
+            else -> String.format(Locale.US, "%.2f GB", size / gb.toDouble())
         }
     }
 
@@ -68,22 +70,26 @@ object Utils {
 
         return when {
             gigaBitrate >= 1.0 -> String.format(
-                format = "%.1f Gbps",
+                Locale.US,
+                "%.1f Gbps",
                 gigaBitrate,
             )
 
             megaBitrate >= 1.0 -> String.format(
-                format = "%.1f Mbps",
+                Locale.US,
+                "%.1f Mbps",
                 megaBitrate,
             )
 
             kiloBitrate >= 1.0 -> String.format(
-                format = "%.1f kbps",
+                Locale.US,
+                "%.1f kbps",
                 kiloBitrate,
             )
 
             else -> String.format(
-                format = "%d bps",
+                Locale.US,
+                "%d bps",
                 bitrate,
             )
         }

@@ -249,6 +249,7 @@ class VolumeState(
             onDispose { context.unregisterReceiver(receiver) }
         }
 
+    @OptIn(UnstableApi::class)
     suspend fun initialize() {
         val player = player as? MediaController ?: return
         isLoudnessGainSupported = player.getIsLoudnessGainSupported()

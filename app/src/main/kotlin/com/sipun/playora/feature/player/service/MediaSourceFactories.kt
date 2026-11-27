@@ -93,6 +93,7 @@ internal fun MediaItem.withVideoDecoder(
     },
 )
 
+@androidx.annotation.OptIn(UnstableApi::class)
 internal fun MediaItem.hasPrimaryParserError(error: Throwable): Boolean {
     val config = localConfiguration ?: return false
     val parserError = generateSequence(error) {

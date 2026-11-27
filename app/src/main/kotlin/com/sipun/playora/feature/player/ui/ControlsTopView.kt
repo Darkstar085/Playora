@@ -13,7 +13,6 @@ import android.graphics.Rect
 import android.media.MediaMetadataRetriever
 import android.media.audiofx.AudioEffect
 import android.os.BatteryManager
-import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
@@ -74,6 +73,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.createBitmap
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.sipun.playora.R
@@ -231,11 +231,7 @@ suspend fun captureVideoFrame(context: Context, player: Player?): Boolean {
                 val window = activity.window ?: return@withContext
                 val bounds = window.decorView.let { Rect(0, 0, it.width, it.height) }
                 if (bounds.width() > 0 && bounds.height() > 0) {
-                    val bmp = Bitmap.createBitmap(
-                        bounds.width(),
-                        bounds.height(),
-                        Bitmap.Config.ARGB_8888
-                    )
+                    val bmp = createBitmap(bounds.width(), bounds.height())
                     val latch = CountDownLatch(1)
                     var success = false
                     PixelCopy.request(window, bmp, { copyResult ->
@@ -262,13 +258,11 @@ private fun saveBitmapToGallery(context: Context, bitmap: Bitmap): Boolean {
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
             put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(
-                    MediaStore.MediaColumns.RELATIVE_PATH,
-                    Environment.DIRECTORY_PICTURES + "/Playora"
-                )
-                put(MediaStore.MediaColumns.IS_PENDING, 1)
-            }
+            put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
+                Environment.DIRECTORY_PICTURES + "/Playora"
+            )
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
         val uri = context.contentResolver.insert(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -278,11 +272,9 @@ private fun saveBitmapToGallery(context: Context, bitmap: Bitmap): Boolean {
             context.contentResolver.openOutputStream(uri)?.use { os ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, os)
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                contentValues.clear()
-                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                context.contentResolver.update(uri, contentValues, null, null)
-            }
+            contentValues.clear()
+            contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+            context.contentResolver.update(uri, contentValues, null, null)
             true
         } else {
             false

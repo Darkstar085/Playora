@@ -150,6 +150,7 @@ class VideoZoomAndContentScaleState(
         updateVideoScaleMetadataAndSendEvent()
     }
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     suspend fun observe() {
         zoom = player.currentMediaItem?.mediaMetadata?.videoZoom ?: 1f
         player.listen { events ->

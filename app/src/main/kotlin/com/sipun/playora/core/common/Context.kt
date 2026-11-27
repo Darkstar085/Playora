@@ -17,6 +17,7 @@ import android.provider.OpenableColumns
 import android.util.Log
 import android.util.TypedValue
 import androidx.core.graphics.drawable.toBitmapOrNull
+import androidx.core.net.toUri
 import androidx.core.text.isDigitsOnly
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -60,7 +61,7 @@ fun Context.getPath(uri: Uri): String? {
                 if (docId.isDigitsOnly()) {
                     return try {
                         val contentUri = ContentUris.withAppendedId(
-                            Uri.parse("content://downloads/public_downloads"),
+                            "content://downloads/public_downloads".toUri(),
                             docId.toLong(),
                         )
                         getDataColumn(
@@ -262,11 +263,7 @@ suspend fun Context.scanStorage(
     storagePath: String? = Environment.getExternalStorageDirectory()?.path,
 ): Boolean = withContext(Dispatchers.IO) {
     if (storagePath != null) {
-        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            scanPaths(paths = listOf(element = storagePath))
-        } else {
-            scanPath(file = File(storagePath))
-        }
+        return@withContext scanPaths(paths = listOf(element = storagePath))
     } else {
         false
     }

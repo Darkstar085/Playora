@@ -228,14 +228,8 @@ class PlayerActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
         hideSystemBars()
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-            window.attributes.layoutInDisplayCutoutMode =
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-                } else {
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-                }
-        }
+        window.attributes.layoutInDisplayCutoutMode =
+            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
 
         viewModel.output = playerOutput()
         playerApi = PlayerApi(intent)
@@ -437,7 +431,7 @@ class PlayerActivity : ComponentActivity() {
         val returningFromBackground = !isIntentNew
         val currentUri = controller.currentMediaItem?.localConfiguration?.uri
         val hasExplicitPlaylist =
-            playerApi.isApiAccess || intent.hasExtra(PlayerApi.API_PLAYLIST) || false
+            playerApi.isApiAccess || intent.hasExtra(PlayerApi.API_PLAYLIST)
         isIntentNew = false
 
         if (shouldResumeExistingPlayback(

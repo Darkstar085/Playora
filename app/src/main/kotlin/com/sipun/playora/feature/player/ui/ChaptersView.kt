@@ -1,5 +1,6 @@
 ﻿package com.sipun.playora.feature.player.ui
 
+import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,13 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.extractor.metadata.Chapter
 import com.sipun.playora.R
 import com.sipun.playora.core.ui.components.AppSegmentedListItem
 import com.sipun.playora.feature.player.extensions.formatted
 import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(UnstableApi::class)
 @Composable
 fun BoxScope.ChaptersView(
     show: Boolean,
@@ -73,6 +74,7 @@ fun BoxScope.ChaptersView(
     }
 }
 
+@OptIn(UnstableApi::class)
 @Composable
 internal fun Chapter.titleOrDefault(index: Int): String =
     title?.value?.takeIf { it.isNotBlank() } ?: stringResource(
