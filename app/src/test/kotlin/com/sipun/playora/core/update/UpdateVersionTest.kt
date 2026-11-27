@@ -107,6 +107,117 @@ class UpdateVersionTest {
     }
 
     @Test
+    fun parsesManifestWithBlankDateAndNormalizedUppercaseDigest() {
+        val manifestJson = """
+            {
+              "version": "v1.3.0",
+              "download_url": "https://github.com/Darkstar085/playora/releases/download/v1.3.0/app-release.apk",
+              "sha256": "SHA256:F3B69A4EA5AAE98B94640B7BD7D7AD412B045C4D81D40DFB436DCBD78B0004A7"
+            }
+        """.trimIndent()
+
+        val result = UpdateManager.parseManifestLookup(manifestJson, "1.1.0")
+        assertTrue(result is UpdateManager.ManifestLookupResult.Success)
+        val update = (result as UpdateManager.ManifestLookupResult.Success).update
+        assertNotNull(update)
+        assertEquals("1.3.0", update!!.version)
+        assertEquals("Playora 1.3.0", update.name)
+        assertEquals("Recently", update.releaseDate)
+        assertEquals(
+            "sha256:f3b69a4ea5aae98b94640b7bd7d7ad412b045c4d81d40dfb436dcbd78b0004a7",
+            update.digest,
+        )
+    }
+
+    @Test
+    fun manifestMissingVersionOrDownloadUrlTriggersFallback() {
+        val noVersion = """
+            {
+              "version": " ",
+              "download_url": "https://github.com/Darkstar085/playora/releases/download/v1.2.0/app.apk",
+              "sha256": "f3b69a4ea5aae98b94640b7bd7d7ad412b045c4d81d40dfb436dcbd78b0004a7"
+            }
+        """.trimIndent()
+        val noUrl = """
+            {
+              "version": "1.2.0",
+              "download_url": "",
+              "sha256": "f3b69a4ea5aae98b94640b7bd7d7ad412b045c4d81d40dfb436dcbd78b0004a7"
+            }
+        """.trimIndent()
+
+        assertTrue(UpdateManager.parseManifestLookup(noVersion, "1.1.0") is UpdateManager.ManifestLookupResult.Unavailable)
+        assertTrue(UpdateManager.parseManifestLookup(noUrl, "1.1.0") is UpdateManager.ManifestLookupResult.Unavailable)
+    }
+
+    @Test
+    fun draftAndPrereleaseGithubReleasesAreIgnored() {
+        val draftJson = """
+            {
+              "tag_name": "v2.0.0",
+              "draft": true,
+              "prerelease": false,
+              "assets": []
+            }
+        """.trimIndent()
+        val prereleaseJson = """
+            {
+              "tag_name": "v2.0.0",
+              "draft": false,
+              "prerelease": true,
+              "assets": []
+            }
+        """.trimIndent()
+
+        assertNull(UpdateManager.parseRelease(draftJson, "1.0.0"))
+        assertNull(UpdateManager.parseRelease(prereleaseJson, "1.0.0"))
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun releaseWithoutVerifiedApkAssetThrows() {
+        val releaseWithoutDigest = """
+            {
+              "tag_name": "v2.0.0",
+              "draft": false,
+              "prerelease": false,
+              "assets": [
+                {
+                  "name": "Playora_v2.0.0.apk",
+                  "browser_download_url": "https://github.com/Darkstar085/playora/releases/download/v2.0.0/Playora_v2.0.0.apk",
+                  "content_type": "application/vnd.android.package-archive",
+                  "size": 1000
+                }
+              ]
+            }
+        """.trimIndent()
+
+        UpdateManager.parseRelease(releaseWithoutDigest, "1.0.0")
+    }
+
+    @Test
+    fun formatReleaseNotesCleansMarkdownAndLinks() {
+        val notes = """
+            # Release v1.2.0
+            - Added [Liquid Glass](https://github.com/itshedimisawi/vitro) UI
+            * Fixed [Crash](https://example.com) on launch
+            • Improved seekbar precision
+            **Full Changelog:** https://github.com/Darkstar085/playora/compare/v1.1.0...v1.2.0
+        """.trimIndent()
+
+        assertEquals(
+            "Added Liquid Glass UI\nFixed Crash on launch\nImproved seekbar precision",
+            UpdateManager.formatReleaseNotes(notes),
+        )
+
+        val proseOnly = """
+            ## Summary
+            Updated [player](https://example.com) engine
+            **Full Changelog:** https://example.com/diff
+        """.trimIndent()
+        assertEquals("Updated player engine", UpdateManager.formatReleaseNotes(proseOnly))
+    }
+
+    @Test
     fun testAppUpdateModel() {
         val update = AppUpdate(
             version = "1.0.1",

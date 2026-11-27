@@ -190,7 +190,7 @@ object UpdateManager {
             size = asset.size,
             digest = normalizedDigest,
             releaseDate = formattedDate,
-            isPrerelease = release.prerelease,
+            isPrerelease = false,
         )
     }
 
@@ -433,7 +433,7 @@ object UpdateManager {
     }
 
     private fun normalizeSha256(value: String): String? {
-        val hash = value.removePrefix("sha256:").trim().lowercase()
+        val hash = value.trim().lowercase().removePrefix("sha256:").trim()
         if (hash.length != 64 || hash.any { it !in "0123456789abcdef" }) return null
         return "sha256:$hash"
     }
