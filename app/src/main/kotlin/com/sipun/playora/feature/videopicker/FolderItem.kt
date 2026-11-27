@@ -387,6 +387,7 @@ private fun FolderGridItem(
         selected = selected,
         contentPadding = PaddingValues(8.dp),
         colors = ListItemDefaults.segmentedColors(
+            containerColor = Color.Transparent,
             selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
         ),
         isFirstItem = isFirstItem,

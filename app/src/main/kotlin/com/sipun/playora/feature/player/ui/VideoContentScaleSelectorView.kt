@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sipun.playora.R
 import com.sipun.playora.core.model.VideoContentScale
+import com.sipun.playora.core.ui.theme.AppDarkGlassSheet
 import com.sipun.playora.feature.player.extensions.descriptionRes
 import com.sipun.playora.feature.player.extensions.nameRes
 
@@ -110,32 +111,24 @@ fun BoxScope.VideoContentScaleSelectorView(
                 },
                 modifier = Modifier.align(if (isPortrait) Alignment.BottomCenter else Alignment.CenterEnd),
             ) {
-                Surface(
+                AppDarkGlassSheet(
                     shape = if (isPortrait) {
                         RoundedCornerShape(24.dp)
                     } else {
                         RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp)
                     },
-                    color = Color(0xF012171E),
-                    border = BorderStroke(1.dp, Color(0xFF26323D)),
-                    shadowElevation = 12.dp,
-                    modifier = modifier
-                        .then(
-                            if (isPortrait) {
-                                Modifier
-                                    .padding(bottom = 32.dp, start = 16.dp, end = 16.dp)
-                                    .fillMaxWidth()
-                                    .widthIn(max = 440.dp)
-                            } else {
-                                Modifier
-                                    .fillMaxHeight()
-                                    .width(350.dp)
-                            }
-                        )
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                        ) {},
+                    modifier = modifier.then(
+                        if (isPortrait) {
+                            Modifier
+                                .padding(bottom = 32.dp, start = 16.dp, end = 16.dp)
+                                .fillMaxWidth()
+                                .widthIn(max = 440.dp)
+                        } else {
+                            Modifier
+                                .fillMaxHeight()
+                                .width(350.dp)
+                        },
+                    ),
                 ) {
                     Column(
                         modifier = Modifier

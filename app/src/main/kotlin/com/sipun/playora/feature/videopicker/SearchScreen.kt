@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -65,9 +67,15 @@ import com.sipun.playora.core.ui.components.ListSectionTitle
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.extensions.copy
 import com.sipun.playora.core.ui.extensions.plus
+import com.sipun.playora.core.ui.theme.AppGlassBackdropBox
+import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
 import com.sipun.playora.core.ui.theme.PlayoraTheme
+import com.sipun.playora.core.ui.theme.appGlassSurface
+import com.sipun.playora.core.ui.theme.rememberGlassBarBorderStroke
 import com.sipun.playora.feature.videopicker.composables.FolderItem
 import com.sipun.playora.feature.videopicker.composables.MediaView
+import io.github.itshedimisawi.vitro.rememberGlassBackdrop
 
 @Composable
 fun SearchScreen(viewModel: SearchViewModel) {
@@ -86,118 +94,169 @@ internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent)
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     var isSearchFocused by remember { mutableStateOf(value = false) }
+    val liquidGlassEnabled = LocalLiquidGlassEnabled.current
+    val backdrop = rememberGlassBackdrop()
 
     LaunchedEffect(key1 = Unit) { focusRequester.requestFocus() }
 
-    Scaffold(
-        topBar = {
-            AppTopAppBar(
-                title = {
-                    AppOutlinedTextField(
-                        value = state.query,
-                        onValueChange = { onAction(SearchUiEvent.OnQueryChange(query = it)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester = focusRequester)
-                            .onFocusChanged { isSearchFocused = it.hasFocus },
-                        placeholder = {
-                            Text(
-                                text = stringResource(R.string.search_videos_and_folders),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            )
-                        },
-                        textStyle = MaterialTheme.typography.bodyLarge,
-                        trailingIcon = {
-                            if (state.query.isNotEmpty()) {
-                                IconButton(onClick = {
-                                    onAction(SearchUiEvent.OnQueryChange(query = ""))
-                                }) {
-                                    Icon(
-                                        imageVector = AppIcons.Close,
-                                        contentDescription = stringResource(R.string.clear_history),
+    CompositionLocalProvider(
+        LocalGlassBackdrop provides if (liquidGlassEnabled) backdrop else null,
+    ) {
+        Scaffold(
+            topBar = {
+                AppTopAppBar(
+                    title = {
+                        AppOutlinedTextField(
+                            value = state.query,
+                            onValueChange = { onAction(SearchUiEvent.OnQueryChange(query = it)) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 4.dp)
+                                .then(
+                                    if (liquidGlassEnabled) {
+                                        Modifier
+                                            .appGlassSurface(
+                                                shape = CircleShape,
+                                                fallbackBackground = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                            )
+                                            .border(rememberGlassBarBorderStroke(), CircleShape)
+                                    } else {
+                                        Modifier
+                                    },
+                                )
+                                .focusRequester(focusRequester = focusRequester)
+                                .onFocusChanged { isSearchFocused = it.hasFocus },
+                            placeholder = {
+                                Text(
+                                    text = stringResource(R.string.search_videos_and_folders),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                )
+                            },
+                            textStyle = MaterialTheme.typography.bodyLarge,
+                            trailingIcon = {
+                                if (state.query.isNotEmpty()) {
+                                    IconButton(onClick = {
+                                        onAction(SearchUiEvent.OnQueryChange(query = ""))
+                                    }) {
+                                        Icon(
+                                            imageVector = AppIcons.Close,
+                                            contentDescription = stringResource(R.string.clear_history),
+                                        )
+                                    }
+                                } else if (state.isSearching) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 2.dp,
                                     )
                                 }
-                            } else if (state.isSearching) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    strokeWidth = 2.dp,
-                                )
-                            }
-                        },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(
-                            onSearch = {
-                                onAction(SearchUiEvent.OnSearch(state.query))
-                                keyboardController?.hide()
                             },
-                        ),
-                        shape = CircleShape,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = Color.Transparent,
-                            focusedBorderColor = Color.Transparent,
-                            errorBorderColor = Color.Transparent,
-                            disabledBorderColor = Color.Transparent,
-                        ),
-                    )
-                },
-                navigationIcon = {
-                    AppBackButton(onClick = { onAction(SearchUiEvent.NavigateUp) })
-                },
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ) { scaffoldPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = scaffoldPadding.calculateTopPadding())
-                .padding(
-                    start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current),
-                ),
-        ) {
-            Box(
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            keyboardActions = KeyboardActions(
+                                onSearch = {
+                                    onAction(SearchUiEvent.OnSearch(state.query))
+                                    keyboardController?.hide()
+                                },
+                            ),
+                            shape = CircleShape,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedBorderColor = Color.Transparent,
+                                focusedBorderColor = Color.Transparent,
+                                errorBorderColor = Color.Transparent,
+                                disabledBorderColor = Color.Transparent,
+                            ),
+                        )
+                    },
+                    navigationIcon = {
+                        AppBackButton(onClick = { onAction(SearchUiEvent.NavigateUp) })
+                    },
+                )
+            },
+            containerColor = if (liquidGlassEnabled) {
+                MaterialTheme.colorScheme.background
+            } else {
+                MaterialTheme.colorScheme.surfaceContainer
+            },
+        ) { scaffoldPadding ->
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(
-                        shape = RoundedCornerShape(
-                            topStart = 24.dp,
-                            topEnd = 24.dp,
-                        ),
-                    )
-                    .background(MaterialTheme.colorScheme.background),
+                    .then(
+                        if (liquidGlassEnabled) {
+                            Modifier
+                        } else {
+                            Modifier
+                                .padding(top = scaffoldPadding.calculateTopPadding())
+                                .padding(
+                                    start = scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current),
+                                )
+                        },
+                    ),
             ) {
-                val updatedScaffoldPadding = scaffoldPadding.copy(
-                    top = 0.dp,
-                    start = 0.dp,
-                )
-                if (state.query.isBlank()) {
-                    SuggestionsContent(
-                        popularFolders = state.popularFolders,
-                        preferences = state.preferences,
-                        contentPadding = updatedScaffoldPadding,
-                        onFolderClick = { onAction(SearchUiEvent.OpenFolder(path = it)) },
-                    )
-                } else {
-                    SearchResultsContent(
-                        searchResults = state.searchResults,
-                        preferences = state.preferences,
-                        isSearching = state.isSearching,
-                        contentPadding = updatedScaffoldPadding,
-                        onFolderClick = { onAction(SearchUiEvent.OpenFolder(path = it)) },
-                        onVideoClick = { clickedUri ->
-                            val playlist = state.searchResults.videos.map { it.uriString.toUri() }
-                            onAction(
-                                SearchUiEvent.PlayVideo(
-                                    uri = clickedUri,
-                                    playlist = playlist.takeIf { it.isNotEmpty() },
-                                ),
-                            )
+                val searchBody: @Composable () -> Unit = {
+                    val updatedScaffoldPadding = scaffoldPadding.copy(
+                        top = if (liquidGlassEnabled) scaffoldPadding.calculateTopPadding() else 0.dp,
+                        start = if (liquidGlassEnabled) {
+                            scaffoldPadding.calculateStartPadding(LocalLayoutDirection.current)
+                        } else {
+                            0.dp
                         },
                     )
+                    if (state.query.isBlank()) {
+                        SuggestionsContent(
+                            popularFolders = state.popularFolders,
+                            preferences = state.preferences,
+                            contentPadding = updatedScaffoldPadding,
+                            onFolderClick = { onAction(SearchUiEvent.OpenFolder(path = it)) },
+                        )
+                    } else {
+                        SearchResultsContent(
+                            searchResults = state.searchResults,
+                            preferences = state.preferences,
+                            isSearching = state.isSearching,
+                            contentPadding = updatedScaffoldPadding,
+                            onFolderClick = { onAction(SearchUiEvent.OpenFolder(path = it)) },
+                            onVideoClick = { clickedUri ->
+                                val playlist = state.searchResults.videos.map { it.uriString.toUri() }
+                                onAction(
+                                    SearchUiEvent.PlayVideo(
+                                        uri = clickedUri,
+                                        playlist = playlist.takeIf { it.isNotEmpty() },
+                                    ),
+                                )
+                            },
+                        )
+                    }
+                }
+
+                if (liquidGlassEnabled) {
+                    AppGlassBackdropBox(
+                        backdrop = backdrop,
+                        enabled = true,
+                        pageColor = MaterialTheme.colorScheme.background,
+                        topPadding = scaffoldPadding.calculateTopPadding(),
+                        bottomPadding = scaffoldPadding.calculateBottomPadding(),
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        searchBody()
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(
+                                shape = RoundedCornerShape(
+                                    topStart = 24.dp,
+                                    topEnd = 24.dp,
+                                ),
+                            )
+                            .background(MaterialTheme.colorScheme.background),
+                    ) {
+                        searchBody()
+                    }
                 }
             }
         }

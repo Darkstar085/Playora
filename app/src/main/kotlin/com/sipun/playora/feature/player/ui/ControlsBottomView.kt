@@ -42,7 +42,10 @@ import androidx.media3.ui.compose.state.ProgressStateWithTickInterval
 import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
 import com.sipun.playora.core.model.VideoContentScale
 import com.sipun.playora.core.ui.extensions.copy
+import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
 import com.sipun.playora.core.ui.theme.PlayoraTheme
+import com.sipun.playora.core.ui.theme.appGlassContainer
 import com.sipun.playora.feature.player.buttons.NextButton
 import com.sipun.playora.feature.player.buttons.PlayPauseButton
 import com.sipun.playora.feature.player.buttons.PlayerButton
@@ -76,6 +79,7 @@ fun ControlsBottomView(
     val systemBarsPadding = WindowInsets.systemBars.union(
         WindowInsets.displayCutout,
     ).asPaddingValues()
+    val useGlass = LocalLiquidGlassEnabled.current && LocalGlassBackdrop.current != null
 
     val timeTextPositionMs by remember(progressState) {
         derivedStateOf {
@@ -92,8 +96,8 @@ fun ControlsBottomView(
                 Brush.verticalGradient(
                     colors = listOf(
                         Color.Transparent,
-                        Color.Black.copy(alpha = 0.45f),
-                        Color.Black.copy(alpha = 0.8f),
+                        Color.Black.copy(alpha = if (useGlass) 0.28f else 0.45f),
+                        Color.Black.copy(alpha = if (useGlass) 0.58f else 0.8f),
                     ),
                 ),
             )
@@ -171,7 +175,9 @@ fun ControlsBottomView(
             }
 
             Row(
-                modifier = Modifier.align(Alignment.Center),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .appGlassContainer(enabled = useGlass),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(if (isLandscape) 24.dp else 10.dp),
             ) {
@@ -193,7 +199,9 @@ fun ControlsBottomView(
             }
 
             Row(
-                modifier = Modifier.align(Alignment.CenterEnd),
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .appGlassContainer(enabled = useGlass),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(if (isLandscape) 12.dp else 16.dp),
             ) {

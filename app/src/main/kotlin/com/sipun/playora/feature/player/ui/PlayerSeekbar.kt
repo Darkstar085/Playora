@@ -2,9 +2,15 @@ package com.sipun.playora.feature.player.ui.controls
 
 import androidx.annotation.OptIn
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -39,6 +45,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.extractor.metadata.Chapter
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
+import com.sipun.playora.core.ui.theme.appGlassSurface
 import com.sipun.playora.feature.player.state.currentChapterIndex
 
 @OptIn(
@@ -112,10 +120,27 @@ private fun SimpleSlider(
     isScrubbing: Boolean = false,
     chapters: List<Chapter> = emptyList(),
 ) {
+    val useGlass = LocalLiquidGlassEnabled.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val isDragged by interactionSource.collectIsDraggedAsState()
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val isActive = isScrubbing || isFocused || isDragged || isPressed
+
     val thumbSize by animateDpAsState(
         targetValue = if (isFocused) 22.dp else 16.dp,
         label = "thumbSize",
     )
+    val glassThumbWidth by animateDpAsState(
+        targetValue = if (isActive) 32.dp else 26.dp,
+        animationSpec = spring(dampingRatio = 0.72f, stiffness = 480f),
+        label = "glassThumbWidth",
+    )
+    val glassThumbHeight by animateDpAsState(
+        targetValue = if (isActive) 22.dp else 17.dp,
+        animationSpec = spring(dampingRatio = 0.72f, stiffness = 480f),
+        label = "glassThumbHeight",
+    )
+
     val sliderState =
         key(valueRange) { rememberSliderState(value = value, trackRange = valueRange) }
     SideEffect {
@@ -125,48 +150,94 @@ private fun SimpleSlider(
         state = sliderState,
         onValueChange = onValueChange,
         onValueChangeFinished = onValueChangeFinished,
-        modifier = modifier.height(24.dp),
+        interactionSource = interactionSource,
+        modifier = modifier.height(if (useGlass) 30.dp else 24.dp),
         thumb = {
-            Box(
-                modifier = Modifier
-                    .size(size = thumbSize)
-                    .shadow(
-                        4.dp,
-                        shape = CircleShape,
-                    )
-                    .background(MaterialTheme.colorScheme.primary)
-                    .then(
-                        other = if (isFocused) {
-                            Modifier.border(
-                                2.dp,
-                                Color.White,
-                                shape = CircleShape,
-                            )
-                        } else {
-                            Modifier
-                        },
-                    ),
-            )
+            if (useGlass) {
+                Box(
+                    modifier = Modifier
+                        .size(width = glassThumbWidth, height = glassThumbHeight)
+                        .appGlassSurface(
+                            shape = CircleShape,
+                            clear = true,
+                            tint = Color.White.copy(alpha = if (isActive) 0.34f else 0.72f),
+                            dimmed = 0.14f,
+                            forceDark = true,
+                            interactive = true,
+                            interactionSource = interactionSource,
+                            fallbackBackground = Color.White.copy(alpha = 0.88f),
+                            fallbackBorder = BorderStroke(0.75.dp, Color.White.copy(alpha = 0.75f)),
+                        )
+                        .border(0.75.dp, Color.White.copy(alpha = 0.75f), CircleShape),
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(size = thumbSize)
+                        .shadow(
+                            4.dp,
+                            shape = CircleShape,
+                        )
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        .then(
+                            other = if (isFocused) {
+                                Modifier.border(
+                                    2.dp,
+                                    Color.White,
+                                    shape = CircleShape,
+                                )
+                            } else {
+                                Modifier
+                            },
+                        ),
+                )
+            }
         },
         track = { state ->
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .chapterGaps(
-                        chapters = chapters,
-                        valueRange.endInclusive,
-                    )
-                    .clip(MaterialTheme.shapes.extraSmall)
-                    .background(Color.White.copy(alpha = 0.5f)),
-            ) {
-                if (valueRange.endInclusive > 0f) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(fraction = state.value / valueRange.endInclusive)
-                            .height(4.dp)
-                            .background(MaterialTheme.colorScheme.primary),
-                    )
+            if (useGlass) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .chapterGaps(
+                            chapters = chapters,
+                            valueRange.endInclusive,
+                        )
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.24f))
+                        .border(0.5.dp, Color.White.copy(alpha = 0.24f), CircleShape),
+                ) {
+                    if (valueRange.endInclusive > 0f) {
+                        val fraction = (state.value / valueRange.endInclusive).coerceIn(0f, 1f)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = fraction)
+                                .fillMaxHeight()
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.90f)),
+                        )
+                    }
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .chapterGaps(
+                            chapters = chapters,
+                            valueRange.endInclusive,
+                        )
+                        .clip(MaterialTheme.shapes.extraSmall)
+                        .background(Color.White.copy(alpha = 0.5f)),
+                ) {
+                    if (valueRange.endInclusive > 0f) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = state.value / valueRange.endInclusive)
+                                .height(4.dp)
+                                .background(MaterialTheme.colorScheme.primary),
+                        )
+                    }
                 }
             }
         },

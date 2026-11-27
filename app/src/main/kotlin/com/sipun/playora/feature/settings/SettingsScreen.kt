@@ -10,6 +10,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -21,6 +22,10 @@ import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.ClickablePreferenceItem
 import com.sipun.playora.core.ui.designsystem.AppIcons
+import com.sipun.playora.core.ui.theme.AppGlassBackdropBox
+import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
+import io.github.itshedimisawi.vitro.rememberGlassBackdrop
 
 data class SettingsOutput(val navigateUp: () -> Unit, val openSetting: (Setting) -> Unit)
 
@@ -42,37 +47,57 @@ fun SettingsScreen(output: SettingsOutput) {
 @Composable
 private fun SettingsScreenContent(onAction: (SettingsAction) -> Unit) {
     val settingRows = remember { SettingRow.entries }
+    val liquidGlassEnabled = LocalLiquidGlassEnabled.current
+    val backdrop = rememberGlassBackdrop()
+    val containerColor = if (liquidGlassEnabled) {
+        MaterialTheme.colorScheme.background
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer
+    }
 
-    Scaffold(
-        topBar = {
-            AppTopAppBar(
-                title = stringResource(id = R.string.settings),
-                navigationIcon = {
-                    AppBackButton(onClick = { onAction(SettingsAction.NavigateUp) })
-                },
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(state = rememberScrollState())
-                .padding(paddingValues = innerPadding)
-                .padding(horizontal = 16.dp)
-                .padding(vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
-        ) {
-            settingRows.forEachIndexed { index, row ->
-                key(row) {
-                    ClickablePreferenceItem(
-                        title = stringResource(id = row.titleResId),
-                        description = stringResource(id = row.descriptionResId),
-                        icon = row.icon,
-                        onClick = { onAction(SettingsAction.OpenSetting(row.setting)) },
-                        isFirstItem = index == 0,
-                        isLastItem = index == settingRows.lastIndex,
-                    )
+    CompositionLocalProvider(
+        LocalGlassBackdrop provides if (liquidGlassEnabled) backdrop else null,
+    ) {
+        Scaffold(
+            topBar = {
+                AppTopAppBar(
+                    title = stringResource(id = R.string.settings),
+                    navigationIcon = {
+                        AppBackButton(onClick = { onAction(SettingsAction.NavigateUp) })
+                    },
+                )
+            },
+            containerColor = containerColor,
+        ) { innerPadding ->
+            AppGlassBackdropBox(
+                backdrop = backdrop,
+                enabled = liquidGlassEnabled,
+                pageColor = containerColor,
+                topPadding = innerPadding.calculateTopPadding(),
+                bottomPadding = innerPadding.calculateBottomPadding(),
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(state = rememberScrollState())
+                        .padding(paddingValues = innerPadding)
+                        .padding(horizontal = 16.dp)
+                        .padding(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+                ) {
+                    settingRows.forEachIndexed { index, row ->
+                        key(row) {
+                            ClickablePreferenceItem(
+                                title = stringResource(id = row.titleResId),
+                                description = stringResource(id = row.descriptionResId),
+                                icon = row.icon,
+                                onClick = { onAction(SettingsAction.OpenSetting(row.setting)) },
+                                isFirstItem = index == 0,
+                                isLastItem = index == settingRows.lastIndex,
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,12 +45,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.sipun.playora.R
 import com.sipun.playora.core.ui.designsystem.AppIcons
+import com.sipun.playora.core.ui.theme.AppGlassModalOverlay
 import com.sipun.playora.core.ui.theme.LocalAccentBrush
+import com.sipun.playora.core.ui.theme.appGlassSurface
+import com.sipun.playora.core.ui.theme.isAppGlassActive
+import com.sipun.playora.core.ui.theme.rememberGlassContentColor
+import com.sipun.playora.core.ui.theme.rememberGlassInnerBorderColor
+import com.sipun.playora.core.ui.theme.rememberGlassInnerContainerColor
 import com.sipun.playora.core.update.AppUpdate
+import io.github.itshedimisawi.vitro.rememberGlassEffectState
 import java.util.Locale
 
 sealed interface UpdateFlowState {
@@ -96,72 +102,73 @@ fun UpdateDialog(
     onUpdateNow: (AppUpdate) -> Unit,
     onCancelDownload: () -> Unit,
 ) {
-    Dialog(
+    val canDismiss = state !is UpdateFlowState.Downloading && state !is UpdateFlowState.Installing
+    val useGlass = isAppGlassActive()
+
+    AppGlassModalOverlay(
         onDismissRequest = {
-            if (state !is UpdateFlowState.Downloading && state !is UpdateFlowState.Installing) {
+            if (canDismiss) {
                 onDismiss()
             }
         },
-        properties = DialogProperties(
-            dismissOnBackPress = state !is UpdateFlowState.Downloading && state !is UpdateFlowState.Installing,
-            dismissOnClickOutside = state !is UpdateFlowState.Downloading && state !is UpdateFlowState.Installing,
-            usePlatformDefaultWidth = false,
-        ),
-    ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth(0.92f)
-                .heightIn(max = 680.dp),
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            border = BorderStroke(
+        modifier = Modifier
+            .fillMaxWidth(0.92f)
+            .heightIn(max = 680.dp),
+        shape = RoundedCornerShape(28.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        border = if (useGlass) {
+            null
+        } else {
+            BorderStroke(
                 1.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-            ),
-        ) {
-            AnimatedContent(
-                targetState = state.step,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "update_flow_animation",
-            ) { targetStep ->
-                when (targetStep) {
-                    UpdateStep.AVAILABLE -> (state as? UpdateFlowState.Available)?.let {
-                        UpdateAvailableContent(
-                            update = it.update,
-                            onDismiss = onDismiss,
-                            onUpdateNow = { onUpdateNow(it.update) },
-                        )
-                    }
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+            )
+        },
+        dismissOnBackPress = canDismiss,
+        dismissOnClickOutside = canDismiss,
+    ) {
+        AnimatedContent(
+            targetState = state.step,
+            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            label = "update_flow_animation",
+        ) { targetStep ->
+            when (targetStep) {
+                UpdateStep.AVAILABLE -> (state as? UpdateFlowState.Available)?.let {
+                    UpdateAvailableContent(
+                        update = it.update,
+                        onDismiss = onDismiss,
+                        onUpdateNow = { onUpdateNow(it.update) },
+                    )
+                }
 
-                    UpdateStep.DOWNLOADING -> (state as? UpdateFlowState.Downloading)?.let {
-                        UpdateDownloadingContent(
-                            state = it,
-                            onCancel = onCancelDownload,
-                        )
-                    }
+                UpdateStep.DOWNLOADING -> (state as? UpdateFlowState.Downloading)?.let {
+                    UpdateDownloadingContent(
+                        state = it,
+                        onCancel = onCancelDownload,
+                    )
+                }
 
-                    UpdateStep.INSTALLING -> UpdateInstallingContent()
+                UpdateStep.INSTALLING -> UpdateInstallingContent()
 
-                    UpdateStep.SUCCESS -> (state as? UpdateFlowState.Success)?.let {
-                        UpdateSuccessContent(
-                            version = it.version,
-                            onDismiss = onDismiss,
-                        )
-                    }
+                UpdateStep.SUCCESS -> (state as? UpdateFlowState.Success)?.let {
+                    UpdateSuccessContent(
+                        version = it.version,
+                        onDismiss = onDismiss,
+                    )
+                }
 
-                    UpdateStep.UP_TO_DATE -> (state as? UpdateFlowState.UpToDate)?.let {
-                        UpdateUpToDateContent(
-                            version = it.version,
-                            onDismiss = onDismiss,
-                        )
-                    }
+                UpdateStep.UP_TO_DATE -> (state as? UpdateFlowState.UpToDate)?.let {
+                    UpdateUpToDateContent(
+                        version = it.version,
+                        onDismiss = onDismiss,
+                    )
+                }
 
-                    UpdateStep.ERROR -> (state as? UpdateFlowState.Error)?.let {
-                        UpdateErrorContent(
-                            message = it.message,
-                            onDismiss = onDismiss,
-                        )
-                    }
+                UpdateStep.ERROR -> (state as? UpdateFlowState.Error)?.let {
+                    UpdateErrorContent(
+                        message = it.message,
+                        onDismiss = onDismiss,
+                    )
                 }
             }
         }
@@ -174,6 +181,11 @@ private fun UpdateAvailableContent(
     onDismiss: () -> Unit,
     onUpdateNow: () -> Unit,
 ) {
+    val useGlass = isAppGlassActive()
+    val innerBg = if (useGlass) rememberGlassInnerContainerColor() else MaterialTheme.colorScheme.surfaceContainerLow
+    val innerBorder = if (useGlass) rememberGlassInnerBorderColor() else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+    val pillBg = if (useGlass) rememberGlassInnerContainerColor() else MaterialTheme.colorScheme.surfaceContainerHighest
+
     val changelogItems = remember(update.notes) {
         update.notes
             .lines()
@@ -198,19 +210,43 @@ private fun UpdateAvailableContent(
     ) {
         // Top row with close X button
         Box(modifier = Modifier.fillMaxWidth()) {
+            val closeInteraction = remember { MutableInteractionSource() }
+            val closeState = rememberGlassEffectState()
             Box(
                 modifier = Modifier
                     .size(32.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                    .clickable(onClick = onDismiss)
-                    .align(Alignment.TopEnd),
+                    .align(Alignment.TopEnd)
+                    .then(
+                        if (useGlass) {
+                            Modifier.appGlassSurface(
+                                shape = CircleShape,
+                                interactive = true,
+                                state = closeState,
+                                interactionSource = closeInteraction,
+                                fallbackBackground = innerBg,
+                                fallbackBorder = BorderStroke(0.85.dp, innerBorder),
+                            )
+                        } else {
+                            Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                        },
+                    )
+                    .clickable(
+                        interactionSource = closeInteraction,
+                        indication = if (useGlass) null else androidx.compose.material3.ripple(),
+                        onClick = onDismiss,
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = AppIcons.Close,
                     contentDescription = stringResource(R.string.cancel),
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    tint = if (useGlass) {
+                        rememberGlassContentColor(closeState, MaterialTheme.colorScheme.onSurface)
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
                     modifier = Modifier.size(16.dp),
                 )
             }
@@ -285,7 +321,8 @@ private fun UpdateAvailableContent(
         ) {
             Surface(
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                color = pillBg,
+                border = if (useGlass) BorderStroke(1.dp, innerBorder) else null,
             ) {
                 Text(
                     text = "v${update.version}",
@@ -348,7 +385,8 @@ private fun UpdateAvailableContent(
                 )
                 Surface(
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    color = pillBg,
+                    border = if (useGlass) BorderStroke(1.dp, innerBorder) else null,
                 ) {
                     Text(
                         text = stringResource(R.string.update_changes, changelogItems.size),
@@ -366,10 +404,10 @@ private fun UpdateAvailableContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                    .background(innerBg)
                     .border(
                         1.dp,
-                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                        innerBorder,
                         RoundedCornerShape(16.dp),
                     )
                     .padding(14.dp),
@@ -411,53 +449,18 @@ private fun UpdateAvailableContent(
         Spacer(Modifier.height(20.dp))
 
         // Action Buttons
-        Button(
+        UpdatePrimaryButton(
+            text = stringResource(R.string.update_now),
+            icon = AppIcons.ArrowDownward,
             onClick = onUpdateNow,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-        ) {
-            Icon(
-                imageVector = AppIcons.ArrowDownward,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = stringResource(R.string.update_now),
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-            )
-        }
+        )
 
         Spacer(Modifier.height(8.dp))
 
-        Button(
+        UpdateSecondaryButton(
+            text = stringResource(R.string.update_later),
             onClick = onDismiss,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-            ),
-            border = BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
-            ),
-        ) {
-            Text(
-                text = stringResource(R.string.update_later),
-                fontWeight = FontWeight.Medium,
-                fontSize = 15.sp,
-            )
-        }
+        )
     }
 }
 
@@ -468,13 +471,18 @@ private fun InfoCard(
     subtitle: String,
     modifier: Modifier = Modifier,
 ) {
+    val useGlass = isAppGlassActive()
+    val cardBg = if (useGlass) rememberGlassInnerContainerColor() else MaterialTheme.colorScheme.surfaceContainerHighest
+    val cardBorder = if (useGlass) rememberGlassInnerBorderColor() else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+    val iconCircleBg = if (useGlass) rememberGlassInnerContainerColor() else MaterialTheme.colorScheme.surfaceContainer
+
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .background(cardBg)
             .border(
                 1.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                cardBorder,
                 RoundedCornerShape(16.dp),
             )
             .padding(horizontal = 12.dp, vertical = 10.dp),
@@ -485,7 +493,7 @@ private fun InfoCard(
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceContainer),
+                .background(iconCircleBg),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -520,6 +528,7 @@ private fun UpdateDownloadingContent(
     state: UpdateFlowState.Downloading,
     onCancel: () -> Unit,
 ) {
+    val useGlass = isAppGlassActive()
     val downloadedMB = formatFileSize(state.downloadedBytes)
     val totalMB = formatFileSize(state.totalBytes.takeIf { it > 0 } ?: state.update.size)
     val progress = state.progressPercent
@@ -574,7 +583,7 @@ private fun UpdateDownloadingContent(
                 .height(8.dp)
                 .clip(CircleShape),
             color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            trackColor = if (useGlass) rememberGlassInnerContainerColor() else MaterialTheme.colorScheme.surfaceContainerHighest,
         )
 
         Spacer(Modifier.height(8.dp))
@@ -587,24 +596,56 @@ private fun UpdateDownloadingContent(
 
         Spacer(Modifier.height(22.dp))
 
-        Button(
-            onClick = onCancel,
-            modifier = Modifier.height(38.dp),
-            shape = CircleShape,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-            ),
-            border = BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
-            ),
-        ) {
-            Text(
-                text = stringResource(R.string.cancel),
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-            )
+        if (useGlass) {
+            val cancelInteraction = remember { MutableInteractionSource() }
+            val cancelState = rememberGlassEffectState()
+            val innerBorder = rememberGlassInnerBorderColor()
+            Box(
+                modifier = Modifier
+                    .height(38.dp)
+                    .appGlassSurface(
+                        shape = CircleShape,
+                        interactive = true,
+                        state = cancelState,
+                        interactionSource = cancelInteraction,
+                        fallbackBackground = rememberGlassInnerContainerColor(),
+                        fallbackBorder = BorderStroke(0.85.dp, innerBorder),
+                    )
+                    .clickable(
+                        interactionSource = cancelInteraction,
+                        indication = null,
+                        onClick = onCancel,
+                    )
+                    .padding(horizontal = 24.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.cancel),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = rememberGlassContentColor(cancelState, MaterialTheme.colorScheme.onSurface),
+                )
+            }
+        } else {
+            Button(
+                onClick = onCancel,
+                modifier = Modifier.height(38.dp),
+                shape = CircleShape,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ),
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
+                ),
+            ) {
+                Text(
+                    text = stringResource(R.string.cancel),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
         }
     }
 }
@@ -692,23 +733,10 @@ private fun UpdateSuccessContent(
 
         Spacer(Modifier.height(24.dp))
 
-        Button(
+        UpdatePrimaryButton(
+            text = stringResource(R.string.okay),
             onClick = onDismiss,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-        ) {
-            Text(
-                text = stringResource(R.string.okay),
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-            )
-        }
+        )
     }
 }
 
@@ -761,23 +789,10 @@ private fun UpdateUpToDateContent(
 
         Spacer(Modifier.height(24.dp))
 
-        Button(
+        UpdatePrimaryButton(
+            text = stringResource(R.string.okay),
             onClick = onDismiss,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-        ) {
-            Text(
-                text = stringResource(R.string.okay),
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-            )
-        }
+        )
     }
 }
 
@@ -830,8 +845,66 @@ private fun UpdateErrorContent(
 
         Spacer(Modifier.height(24.dp))
 
-        Button(
+        UpdatePrimaryButton(
+            text = stringResource(R.string.okay),
             onClick = onDismiss,
+        )
+    }
+}
+
+@Composable
+private fun UpdatePrimaryButton(
+    text: String,
+    onClick: () -> Unit,
+    icon: ImageVector? = null,
+) {
+    val useGlass = isAppGlassActive()
+    if (useGlass) {
+        val interaction = remember { MutableInteractionSource() }
+        val glassState = rememberGlassEffectState()
+        val contentColor = rememberGlassContentColor(
+            state = glassState,
+            fallback = MaterialTheme.colorScheme.onPrimary,
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .appGlassSurface(
+                    shape = CircleShape,
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.56f),
+                    interactive = true,
+                    state = glassState,
+                    interactionSource = interaction,
+                    fallbackBackground = MaterialTheme.colorScheme.primary,
+                )
+                .clickable(
+                    interactionSource = interaction,
+                    indication = null,
+                    onClick = onClick,
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(8.dp))
+            }
+            Text(
+                text = text,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                color = contentColor,
+            )
+        }
+    } else {
+        Button(
+            onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
@@ -841,9 +914,82 @@ private fun UpdateErrorContent(
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ),
         ) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(8.dp))
+            }
             Text(
-                text = stringResource(R.string.okay),
+                text = text,
                 fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+            )
+        }
+    }
+}
+
+@Composable
+private fun UpdateSecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+) {
+    val useGlass = isAppGlassActive()
+    if (useGlass) {
+        val interaction = remember { MutableInteractionSource() }
+        val glassState = rememberGlassEffectState()
+        val innerBorder = rememberGlassInnerBorderColor()
+        val contentColor = rememberGlassContentColor(
+            state = glassState,
+            fallback = MaterialTheme.colorScheme.onSurface,
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .appGlassSurface(
+                    shape = CircleShape,
+                    interactive = true,
+                    state = glassState,
+                    interactionSource = interaction,
+                    fallbackBackground = rememberGlassInnerContainerColor(),
+                    fallbackBorder = BorderStroke(0.85.dp, innerBorder),
+                )
+                .clickable(
+                    interactionSource = interaction,
+                    indication = null,
+                    onClick = onClick,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = text,
+                fontWeight = FontWeight.Medium,
+                fontSize = 15.sp,
+                color = contentColor,
+            )
+        }
+    } else {
+        Button(
+            onClick = onClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+            ),
+            border = BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
+            ),
+        ) {
+            Text(
+                text = text,
+                fontWeight = FontWeight.Medium,
                 fontSize = 15.sp,
             )
         }

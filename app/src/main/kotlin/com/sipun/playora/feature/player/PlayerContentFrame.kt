@@ -19,8 +19,11 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
+import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
+import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
 import com.sipun.playora.feature.player.extensions.toContentScale
 import com.sipun.playora.feature.player.state.CuesState
 import com.sipun.playora.feature.player.state.PictureInPictureState
@@ -44,6 +47,7 @@ fun PlayerContentFrame(
     displayAspectRatio: Float? = null,
 ) {
     val presentationState = rememberPresentationState(player = player)
+    val useGlassSurface = LocalLiquidGlassEnabled.current && LocalGlassBackdrop.current != null
     val videoModifier = Modifier
         .resizeWithContentScale(
             contentScale = videoZoomAndContentScaleState.videoContentScale
@@ -71,7 +75,11 @@ fun PlayerContentFrame(
         if (videoVisible) {
             PlayerSurface(
                 player = player,
-                surfaceType = SURFACE_TYPE_SURFACE_VIEW,
+                surfaceType = if (useGlassSurface) {
+                    SURFACE_TYPE_TEXTURE_VIEW
+                } else {
+                    SURFACE_TYPE_SURFACE_VIEW
+                },
                 modifier = videoModifier
                     .onGloballyPositioned {
                         val bounds = it.boundsInWindow()

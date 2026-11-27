@@ -60,6 +60,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.sipun.playora.R
 import com.sipun.playora.core.common.extensions.getFilenameFromUri
+import com.sipun.playora.core.ui.theme.AppDarkGlassSheet
 import com.sipun.playora.feature.player.extensions.externalAudio
 import com.sipun.playora.feature.player.extensions.externalAudioIndex
 import com.sipun.playora.feature.player.extensions.getName
@@ -137,32 +138,24 @@ fun BoxScope.AudioTrackSelectorView(
                 },
                 modifier = Modifier.align(if (isPortrait) Alignment.BottomCenter else Alignment.CenterEnd),
             ) {
-                Surface(
+                AppDarkGlassSheet(
                     shape = if (isPortrait) {
                         RoundedCornerShape(24.dp)
                     } else {
                         RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp)
                     },
-                    color = Color(0xF012171E),
-                    border = BorderStroke(1.dp, Color(0xFF26323D)),
-                    shadowElevation = 12.dp,
-                    modifier = modifier
-                        .then(
-                            if (isPortrait) {
-                                Modifier
-                                    .padding(bottom = 32.dp, start = 16.dp, end = 16.dp)
-                                    .widthIn(max = 440.dp)
-                                    .fillMaxWidth()
-                            } else {
-                                Modifier
-                                    .fillMaxHeight()
-                                    .width(350.dp)
-                            }
-                        )
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                        ) {},
+                    modifier = modifier.then(
+                        if (isPortrait) {
+                            Modifier
+                                .padding(bottom = 32.dp, start = 16.dp, end = 16.dp)
+                                .widthIn(max = 440.dp)
+                                .fillMaxWidth()
+                        } else {
+                            Modifier
+                                .fillMaxHeight()
+                                .width(350.dp)
+                        },
+                    ),
                 ) {
                     Column(
                         modifier = Modifier

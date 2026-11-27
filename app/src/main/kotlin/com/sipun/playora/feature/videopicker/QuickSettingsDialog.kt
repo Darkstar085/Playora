@@ -3,6 +3,7 @@
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,17 +34,12 @@ import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.SmartDisplay
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.rounded.Timer
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,10 +61,16 @@ import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.MediaLayoutMode
 import com.sipun.playora.core.model.MediaViewMode
 import com.sipun.playora.core.model.Sort
+import com.sipun.playora.core.ui.theme.AppGlassBottomSheetOverlay
 import com.sipun.playora.core.ui.theme.PlayoraTheme
+import com.sipun.playora.core.ui.theme.appGlassSurface
+import com.sipun.playora.core.ui.theme.isAppGlassActive
+import com.sipun.playora.core.ui.theme.rememberGlassContentColor
+import com.sipun.playora.core.ui.theme.rememberGlassInnerBorderColor
+import com.sipun.playora.core.ui.theme.rememberGlassInnerContainerColor
 import com.sipun.playora.feature.videopicker.extensions.name
+import io.github.itshedimisawi.vitro.rememberGlassEffectState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickSettingsDialog(
     applicationPreferences: ApplicationPreferences,
@@ -75,29 +78,19 @@ fun QuickSettingsDialog(
     updatePreferences: (ApplicationPreferences) -> Unit,
 ) {
     var preferences by remember { mutableStateOf(value = applicationPreferences) }
-    val sheetState = rememberBottomSheetState(
-        initialValue = SheetValue.Hidden,
-        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-    )
+    val useGlass = isAppGlassActive()
 
-    ModalBottomSheet(
+    AppGlassBottomSheetOverlay(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        dragHandle = {
-            BottomSheetDefaults.DragHandle(
-                color = MaterialTheme.colorScheme.outlineVariant,
-                modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
-            )
-        },
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(max = 580.dp)
                 .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
-                .navigationBarsPadding(),
+                .then(if (useGlass) Modifier else Modifier.navigationBarsPadding()),
         ) {
             // Header: Title
             Row(
@@ -269,38 +262,117 @@ fun QuickSettingsDialog(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TextButton(
-                    onClick = onDismiss,
-                ) {
-                    Text(
-                        text = stringResource(R.string.cancel),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 14.sp,
+                if (useGlass) {
+                    val cancelInteraction = remember { MutableInteractionSource() }
+                    val cancelState = rememberGlassEffectState()
+                    val innerBorder = rememberGlassInnerBorderColor()
+                    Box(
+                        modifier = Modifier
+                            .appGlassSurface(
+                                shape = CircleShape,
+                                interactive = true,
+                                state = cancelState,
+                                interactionSource = cancelInteraction,
+                                fallbackBackground = rememberGlassInnerContainerColor(),
+                                fallbackBorder = androidx.compose.foundation.BorderStroke(
+                                    width = 0.85.dp,
+                                    color = innerBorder,
+                                ),
+                            )
+                            .clickable(
+                                interactionSource = cancelInteraction,
+                                indication = null,
+                                onClick = onDismiss,
+                            )
+                            .padding(horizontal = 20.dp, vertical = 10.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.cancel),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp,
+                            ),
+                            color = rememberGlassContentColor(
+                                state = cancelState,
+                                fallback = MaterialTheme.colorScheme.onSurfaceVariant,
+                            ),
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    val doneInteraction = remember { MutableInteractionSource() }
+                    val doneState = rememberGlassEffectState()
+                    Box(
+                        modifier = Modifier
+                            .appGlassSurface(
+                                shape = CircleShape,
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.56f),
+                                interactive = true,
+                                state = doneState,
+                                interactionSource = doneInteraction,
+                                fallbackBackground = MaterialTheme.colorScheme.primary,
+                                fallbackBorder = androidx.compose.foundation.BorderStroke(
+                                    width = 0.75.dp,
+                                    color = Color.White.copy(alpha = 0.28f),
+                                ),
+                            )
+                            .clickable(
+                                interactionSource = doneInteraction,
+                                indication = null,
+                                onClick = {
+                                    updatePreferences(preferences)
+                                    onDismiss()
+                                },
+                            )
+                            .padding(horizontal = 26.dp, vertical = 10.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.done),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                            ),
+                            color = rememberGlassContentColor(
+                                state = doneState,
+                                fallback = MaterialTheme.colorScheme.onPrimary,
+                            ),
+                        )
+                    }
+                } else {
+                    TextButton(
+                        onClick = onDismiss,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.cancel),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp,
+                            ),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            updatePreferences(preferences)
+                            onDismiss()
+                        },
+                        shape = CircleShape,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
                         ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = {
-                        updatePreferences(preferences)
-                        onDismiss()
-                    },
-                    shape = CircleShape,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
-                    contentPadding = PaddingValues(horizontal = 26.dp, vertical = 10.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.done),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                        ),
-                    )
+                        contentPadding = PaddingValues(horizontal = 26.dp, vertical = 10.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.done),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                            ),
+                        )
+                    }
                 }
             }
         }
@@ -346,14 +418,26 @@ private fun <T> SegmentedPillRow(
     itemLabel: @Composable (T) -> String,
     itemIcon: @Composable ((T) -> ImageVector)? = null,
 ) {
+    val useGlass = isAppGlassActive()
+    val trackColor = if (useGlass) {
+        rememberGlassInnerContainerColor()
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHighest
+    }
+    val trackBorder = if (useGlass) {
+        rememberGlassInnerBorderColor()
+    } else {
+        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .background(trackColor)
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                color = trackBorder,
                 shape = RoundedCornerShape(24.dp),
             )
             .padding(3.dp),
@@ -361,18 +445,45 @@ private fun <T> SegmentedPillRow(
     ) {
         items.forEach { item ->
             val isSelected = item == selectedItem
+            val pillInteraction = remember { MutableInteractionSource() }
+            val pillState = rememberGlassEffectState()
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(
-                        if (isSelected) MaterialTheme.colorScheme.primary
-                        else Color.Transparent,
+                    .then(
+                        if (isSelected && useGlass) {
+                            Modifier.appGlassSurface(
+                                shape = RoundedCornerShape(20.dp),
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.56f),
+                                interactive = true,
+                                state = pillState,
+                                interactionSource = pillInteraction,
+                                fallbackBackground = MaterialTheme.colorScheme.primary,
+                            )
+                        } else {
+                            Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(
+                                    if (isSelected) MaterialTheme.colorScheme.primary
+                                    else Color.Transparent,
+                                )
+                        },
                     )
-                    .clickable { onItemSelected(item) }
+                    .clickable(
+                        interactionSource = pillInteraction,
+                        indication = if (isSelected && useGlass) null else androidx.compose.material3.ripple(),
+                    ) { onItemSelected(item) }
                     .padding(vertical = 9.dp),
                 contentAlignment = Alignment.Center,
             ) {
+                val contentColor = when {
+                    isSelected && useGlass -> rememberGlassContentColor(
+                        state = pillState,
+                        fallback = MaterialTheme.colorScheme.onPrimary,
+                    )
+                    isSelected -> MaterialTheme.colorScheme.onPrimary
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
@@ -382,7 +493,7 @@ private fun <T> SegmentedPillRow(
                             imageVector = itemIcon(item),
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = contentColor,
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                     }
@@ -392,7 +503,7 @@ private fun <T> SegmentedPillRow(
                             fontSize = 13.sp,
                             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
                         ),
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = contentColor,
                     )
                 }
             }
@@ -411,27 +522,39 @@ private fun SortCriteriaRow(
     onSelectBy: (Sort.By) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val useGlass = isAppGlassActive()
+    val unselectedBg = if (useGlass) {
+        rememberGlassInnerContainerColor()
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHighest
+    }
+    val unselectedBorder = if (useGlass) {
+        rememberGlassInnerBorderColor()
+    } else {
+        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    }
+
     val items = listOf(
         Triple(Sort.By.TITLE, stringResource(R.string.title), null),
         Triple(
             Sort.By.LENGTH,
             stringResource(R.string.duration),
-            SortCriterionIcon.Vector(Icons.Rounded.Timer)
+            SortCriterionIcon.Vector(Icons.Rounded.Timer),
         ),
         Triple(
             Sort.By.DATE,
             stringResource(R.string.date),
-            SortCriterionIcon.Vector(Icons.Rounded.CalendarMonth)
+            SortCriterionIcon.Vector(Icons.Rounded.CalendarMonth),
         ),
         Triple(
             Sort.By.SIZE,
             stringResource(R.string.size),
-            SortCriterionIcon.DrawableRes(R.drawable.ic_storage_disks)
+            SortCriterionIcon.DrawableRes(R.drawable.ic_storage_disks),
         ),
         Triple(
             Sort.By.PATH,
             stringResource(R.string.location),
-            SortCriterionIcon.Vector(Icons.Rounded.LocationOn)
+            SortCriterionIcon.Vector(Icons.Rounded.LocationOn),
         ),
     )
 
@@ -441,6 +564,16 @@ private fun SortCriteriaRow(
     ) {
         items.forEach { (by, label, icon) ->
             val isSelected = by == selectedBy
+            val tileInteraction = remember { MutableInteractionSource() }
+            val tileState = rememberGlassEffectState()
+            val iconTint = when {
+                isSelected && useGlass -> rememberGlassContentColor(
+                    state = tileState,
+                    fallback = MaterialTheme.colorScheme.onPrimary,
+                )
+                isSelected -> MaterialTheme.colorScheme.onPrimary
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
+            }
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(5.dp),
@@ -451,19 +584,34 @@ private fun SortCriteriaRow(
                         .padding(horizontal = 4.dp)
                         .fillMaxWidth()
                         .height(46.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            if (isSelected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surfaceContainerHighest,
+                        .then(
+                            if (isSelected && useGlass) {
+                                Modifier.appGlassSurface(
+                                    shape = RoundedCornerShape(16.dp),
+                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.56f),
+                                    interactive = true,
+                                    state = tileState,
+                                    interactionSource = tileInteraction,
+                                    fallbackBackground = MaterialTheme.colorScheme.primary,
+                                )
+                            } else {
+                                Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(
+                                        if (isSelected) MaterialTheme.colorScheme.primary
+                                        else unselectedBg,
+                                    )
+                                    .border(
+                                        width = 1.dp,
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else unselectedBorder,
+                                        shape = RoundedCornerShape(16.dp),
+                                    )
+                            },
                         )
-                        .border(
-                            width = 1.dp,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(
-                                alpha = 0.4f
-                            ),
-                            shape = RoundedCornerShape(16.dp),
-                        )
-                        .clickable { onSelectBy(by) },
+                        .clickable(
+                            interactionSource = tileInteraction,
+                            indication = if (isSelected && useGlass) null else androidx.compose.material3.ripple(),
+                        ) { onSelectBy(by) },
                     contentAlignment = Alignment.Center,
                 ) {
                     when {
@@ -474,7 +622,7 @@ private fun SortCriteriaRow(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 19.sp,
                                 ),
-                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = iconTint,
                             )
                         }
 
@@ -483,7 +631,7 @@ private fun SortCriteriaRow(
                                 imageVector = icon.imageVector,
                                 contentDescription = label,
                                 modifier = Modifier.size(20.dp),
-                                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                tint = iconTint,
                             )
                         }
 
@@ -492,7 +640,7 @@ private fun SortCriteriaRow(
                                 painter = painterResource(icon.resId),
                                 contentDescription = label,
                                 modifier = Modifier.size(20.dp),
-                                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                tint = iconTint,
                             )
                         }
                     }
@@ -517,12 +665,21 @@ fun QuickSettingFieldChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val borderColor =
-        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(
-            alpha = 0.4f
-        )
-    val backgroundColor =
-        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceContainerHighest
+    val useGlass = isAppGlassActive()
+    val borderColor = if (selected) {
+        MaterialTheme.colorScheme.primary
+    } else if (useGlass) {
+        rememberGlassInnerBorderColor()
+    } else {
+        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    }
+    val backgroundColor = if (selected) {
+        MaterialTheme.colorScheme.primary.copy(alpha = if (useGlass) 0.22f else 0.15f)
+    } else if (useGlass) {
+        rememberGlassInnerContainerColor()
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHighest
+    }
 
     Box(
         modifier = modifier

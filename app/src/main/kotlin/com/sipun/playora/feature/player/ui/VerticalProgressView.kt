@@ -26,7 +26,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
 import com.sipun.playora.core.ui.theme.PlayoraTheme
+import com.sipun.playora.core.ui.theme.appGlassSurface
 import com.sipun.playora.feature.player.buttons.PlayerButtonBlackAlpha
 
 private const val NORMAL_MAX_PERCENTAGE = 100
@@ -49,12 +52,19 @@ fun VerticalProgressView(
     )
     val fillFraction = normalizedValue.toFloat() / maxValue.toFloat()
     val isBoostActive = maxValue > NORMAL_MAX_PERCENTAGE && value > NORMAL_MAX_PERCENTAGE
+    val useGlass = LocalLiquidGlassEnabled.current && LocalGlassBackdrop.current != null
+    val contentTint = if (useGlass) Color.White else MaterialTheme.colorScheme.onBackground
 
     Column(
         modifier = modifier
             .heightIn(max = 250.dp)
-            .clip(shape = CircleShape)
-            .background(PlayerButtonBlackAlpha)
+            .appGlassSurface(
+                shape = CircleShape,
+                clear = true,
+                dimmed = 0.28f,
+                forceDark = true,
+                fallbackBackground = PlayerButtonBlackAlpha,
+            )
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -66,7 +76,7 @@ fun VerticalProgressView(
             BasicText(
                 text = normalizedValue.toString(),
                 style = MaterialTheme.typography.labelLarge.copy(
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = contentTint,
                 ),
                 autoSize = TextAutoSize.StepBased(
                     maxFontSize = MaterialTheme.typography.labelLarge.fontSize,
@@ -78,7 +88,9 @@ fun VerticalProgressView(
                 .weight(weight = 1f)
                 .width(width = width)
                 .clip(MaterialTheme.shapes.medium)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+                .background(
+                    if (useGlass) Color.White.copy(alpha = 0.22f) else MaterialTheme.colorScheme.surfaceVariant,
+                ),
             contentAlignment = Alignment.BottomCenter,
         ) {
             Box(
@@ -101,7 +113,7 @@ fun VerticalProgressView(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onBackground,
+                tint = contentTint,
             )
         }
     }

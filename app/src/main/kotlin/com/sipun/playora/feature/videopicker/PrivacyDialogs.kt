@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -20,10 +19,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.sipun.playora.R
 import com.sipun.playora.core.ui.components.AppDialog
 import com.sipun.playora.core.ui.components.PreferenceSwitch
+import com.sipun.playora.core.ui.theme.AppGlassModalOverlay
 
 @Composable
 internal fun PrivacyBiometricSetupDialog(onComplete: (Boolean) -> Unit) {
@@ -66,28 +65,29 @@ internal fun PrivacyBiometricSetupDialog(onComplete: (Boolean) -> Unit) {
 
 @Composable
 fun PrivacyProgressDialog(message: String) {
-    Dialog(onDismissRequest = {}) {
-        Surface(
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    AppGlassModalOverlay(
+        onDismissRequest = {},
+        shape = RoundedCornerShape(28.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        dismissOnBackPress = false,
+        dismissOnClickOutside = false,
+    ) {
+        Row(
+            modifier = Modifier.padding(
+                horizontal = 24.dp,
+                vertical = 20.dp,
+            ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Row(
-                modifier = Modifier.padding(
-                    horizontal = 24.dp,
-                    vertical = 20.dp,
-                ),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 3.dp,
-                )
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-            }
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                strokeWidth = 3.dp,
+            )
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge,
+            )
         }
     }
 }

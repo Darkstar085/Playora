@@ -5,6 +5,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,20 +30,15 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -69,10 +65,16 @@ import com.sipun.playora.R
 import com.sipun.playora.core.model.Font
 import com.sipun.playora.core.model.Resume
 import com.sipun.playora.core.ui.designsystem.AppIcons
+import com.sipun.playora.core.ui.theme.AppGlassBottomSheetOverlay
+import com.sipun.playora.core.ui.theme.appGlassSurface
+import com.sipun.playora.core.ui.theme.isAppGlassActive
+import com.sipun.playora.core.ui.theme.rememberGlassContentColor
+import com.sipun.playora.core.ui.theme.rememberGlassInnerBorderColor
+import com.sipun.playora.core.ui.theme.rememberGlassInnerContainerColor
 import com.sipun.playora.settings.extensions.name
+import io.github.itshedimisawi.vitro.rememberGlassEffectState
 import kotlinx.coroutines.flow.collectLatest
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguageSelectionBottomSheet(
     title: String,
@@ -93,22 +95,9 @@ fun LanguageSelectionBottomSheet(
         }
     }
 
-    val sheetState = rememberBottomSheetState(
-        initialValue = SheetValue.Hidden,
-        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-    )
-
-    ModalBottomSheet(
+    AppGlassBottomSheetOverlay(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        dragHandle = {
-            BottomSheetDefaults.DragHandle(
-                color = MaterialTheme.colorScheme.outlineVariant,
-                modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
-            )
-        },
     ) {
         Column(
             modifier = Modifier
@@ -211,7 +200,6 @@ fun LanguageSelectionBottomSheet(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResumeSelectionBottomSheet(
     selected: Resume,
@@ -220,22 +208,9 @@ fun ResumeSelectionBottomSheet(
 ) {
     var tempSelected by remember(selected) { mutableStateOf(selected) }
 
-    val sheetState = rememberBottomSheetState(
-        initialValue = SheetValue.Hidden,
-        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-    )
-
-    ModalBottomSheet(
+    AppGlassBottomSheetOverlay(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        dragHandle = {
-            BottomSheetDefaults.DragHandle(
-                color = MaterialTheme.colorScheme.outlineVariant,
-                modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
-            )
-        },
     ) {
         Column(
             modifier = Modifier
@@ -289,11 +264,19 @@ private fun ResumeOptionCard(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
+    val useGlass = isAppGlassActive()
     val primaryColor = MaterialTheme.colorScheme.primary
-    val borderColor =
-        if (isSelected) primaryColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    val borderColor = if (isSelected) {
+        primaryColor
+    } else if (useGlass) {
+        rememberGlassInnerBorderColor()
+    } else {
+        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    }
     val bgColor = if (isSelected) {
         primaryColor.copy(alpha = 0.18f)
+    } else if (useGlass) {
+        rememberGlassInnerContainerColor()
     } else {
         MaterialTheme.colorScheme.surfaceContainerLow
     }
@@ -317,6 +300,8 @@ private fun ResumeOptionCard(
                     .background(
                         if (isSelected) {
                             primaryColor.copy(alpha = 0.25f)
+                        } else if (useGlass) {
+                            rememberGlassInnerContainerColor()
                         } else {
                             MaterialTheme.colorScheme.surfaceContainerHigh
                         },
@@ -365,7 +350,6 @@ private fun ResumeOptionCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubtitleFontBottomSheet(
     selectedFont: Font,
@@ -373,23 +357,11 @@ fun SubtitleFontBottomSheet(
     onDismiss: () -> Unit,
 ) {
     var tempSelected by remember(selectedFont) { mutableStateOf(selectedFont) }
+    val useGlass = isAppGlassActive()
 
-    val sheetState = rememberBottomSheetState(
-        initialValue = SheetValue.Hidden,
-        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-    )
-
-    ModalBottomSheet(
+    AppGlassBottomSheetOverlay(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        dragHandle = {
-            BottomSheetDefaults.DragHandle(
-                color = MaterialTheme.colorScheme.outlineVariant,
-                modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
-            )
-        },
     ) {
         Column(
             modifier = Modifier
@@ -409,12 +381,17 @@ fun SubtitleFontBottomSheet(
                 fonts.forEach { font ->
                     val isSelected = font == tempSelected
                     val primaryColor = MaterialTheme.colorScheme.primary
-                    val borderColor =
-                        if (isSelected) primaryColor else MaterialTheme.colorScheme.outlineVariant.copy(
-                            alpha = 0.35f
-                        )
+                    val borderColor = if (isSelected) {
+                        primaryColor
+                    } else if (useGlass) {
+                        rememberGlassInnerBorderColor()
+                    } else {
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                    }
                     val bgColor = if (isSelected) {
                         primaryColor.copy(alpha = 0.18f)
+                    } else if (useGlass) {
+                        rememberGlassInnerContainerColor()
                     } else {
                         MaterialTheme.colorScheme.surfaceContainerLow
                     }
@@ -438,6 +415,8 @@ fun SubtitleFontBottomSheet(
                                     .background(
                                         if (isSelected) {
                                             primaryColor.copy(alpha = 0.25f)
+                                        } else if (useGlass) {
+                                            rememberGlassInnerContainerColor()
                                         } else {
                                             MaterialTheme.colorScheme.surfaceContainerHigh
                                         },
@@ -642,6 +621,7 @@ private fun SettingsSearchBar(
     onQueryChange: (String) -> Unit,
     placeholder: String,
 ) {
+    val useGlass = isAppGlassActive()
     val textFieldState = rememberTextFieldState(initialText = query)
     val currentOnQueryChange by rememberUpdatedState(onQueryChange)
 
@@ -653,8 +633,15 @@ private fun SettingsSearchBar(
 
     Surface(
         shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+        color = if (useGlass) {
+            rememberGlassInnerContainerColor()
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
+        },
+        border = BorderStroke(
+            1.dp,
+            if (useGlass) rememberGlassInnerBorderColor() else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+        ),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
@@ -711,59 +698,123 @@ private fun SettingsBottomSheetActions(
     onCancel: () -> Unit,
     onApply: () -> Unit,
 ) {
+    val useGlass = isAppGlassActive()
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp, bottom = 16.dp)
-            .navigationBarsPadding(),
+            .then(if (useGlass) Modifier else Modifier.navigationBarsPadding()),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Cancel button
-        Surface(
-            onClick = onCancel,
-            modifier = Modifier
-                .weight(1f)
-                .height(48.dp),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-            border = BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
-            ),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
+        if (useGlass) {
+            val cancelInteraction = remember { MutableInteractionSource() }
+            val cancelState = rememberGlassEffectState()
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+                    .appGlassSurface(
+                        shape = CircleShape,
+                        interactive = true,
+                        state = cancelState,
+                        interactionSource = cancelInteraction,
+                        fallbackBackground = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    )
+                    .clickable(
+                        interactionSource = cancelInteraction,
+                        indication = null,
+                        onClick = onCancel,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
                 Text(
                     text = stringResource(R.string.cancel),
                     style = MaterialTheme.typography.labelLarge.copy(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
                     ),
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = rememberGlassContentColor(cancelState, MaterialTheme.colorScheme.onSurface),
                 )
             }
-        }
 
-        // Apply button
-        Button(
-            onClick = onApply,
-            modifier = Modifier
-                .weight(1f)
-                .height(48.dp),
-            shape = CircleShape,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-        ) {
-            Text(
-                text = stringResource(R.string.apply),
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
+            val applyInteraction = remember { MutableInteractionSource() }
+            val applyState = rememberGlassEffectState()
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+                    .appGlassSurface(
+                        shape = CircleShape,
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.56f),
+                        interactive = true,
+                        state = applyState,
+                        interactionSource = applyInteraction,
+                        fallbackBackground = MaterialTheme.colorScheme.primary,
+                    )
+                    .clickable(
+                        interactionSource = applyInteraction,
+                        indication = null,
+                        onClick = onApply,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.apply),
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                    ),
+                    color = rememberGlassContentColor(applyState, MaterialTheme.colorScheme.onPrimary),
+                )
+            }
+        } else {
+            // Cancel button
+            Surface(
+                onClick = onCancel,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
                 ),
-                color = MaterialTheme.colorScheme.onPrimary,
-            )
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.sp,
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
+
+            // Apply button
+            Button(
+                onClick = onApply,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = CircleShape,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+            ) {
+                Text(
+                    text = stringResource(R.string.apply),
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                    ),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                )
+            }
         }
     }
 }
@@ -771,29 +822,17 @@ private fun SettingsBottomSheetActions(
 /**
  * Modern Bottom Sheet replacement for any other option dialogs.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OptionsDialog(
     text: String,
     onDismissClick: () -> Unit,
     options: LazyListScope.() -> Unit,
 ) {
-    val sheetState = rememberBottomSheetState(
-        initialValue = SheetValue.Hidden,
-        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-    )
+    val useGlass = isAppGlassActive()
 
-    ModalBottomSheet(
+    AppGlassBottomSheetOverlay(
         onDismissRequest = onDismissClick,
-        sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        dragHandle = {
-            BottomSheetDefaults.DragHandle(
-                color = MaterialTheme.colorScheme.outlineVariant,
-                modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
-            )
-        },
     ) {
         Column(
             modifier = Modifier
@@ -820,29 +859,62 @@ fun OptionsDialog(
                 content = options,
             )
 
-            Surface(
-                onClick = onDismissClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .padding(vertical = 4.dp)
-                    .navigationBarsPadding(),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                border = BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
-                ),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
+            if (useGlass) {
+                val cancelInteraction = remember { MutableInteractionSource() }
+                val cancelState = rememberGlassEffectState()
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .height(48.dp)
+                        .appGlassSurface(
+                            shape = CircleShape,
+                            interactive = true,
+                            state = cancelState,
+                            interactionSource = cancelInteraction,
+                            fallbackBackground = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        )
+                        .clickable(
+                            interactionSource = cancelInteraction,
+                            indication = null,
+                            onClick = onDismissClick,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
                     Text(
                         text = stringResource(R.string.cancel),
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 14.sp,
                         ),
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = rememberGlassContentColor(cancelState, MaterialTheme.colorScheme.onSurface),
                     )
+                }
+            } else {
+                Surface(
+                    onClick = onDismissClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .padding(vertical = 4.dp)
+                        .navigationBarsPadding(),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
+                    ),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = stringResource(R.string.cancel),
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp,
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
                 }
             }
             Spacer(Modifier.height(10.dp))

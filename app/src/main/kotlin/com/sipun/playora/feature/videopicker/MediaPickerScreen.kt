@@ -15,7 +15,9 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,7 +51,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -60,6 +65,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -77,8 +84,6 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.core.net.toUri
@@ -112,13 +117,23 @@ import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.extensions.copy
 import com.sipun.playora.core.ui.preview.DayNightPreview
 import com.sipun.playora.core.ui.preview.VideoPickerPreviewParameterProvider
+import com.sipun.playora.core.ui.theme.AppGlassBackdropBox
+import com.sipun.playora.core.ui.theme.AppGlassModalOverlay
+import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
 import com.sipun.playora.core.ui.theme.PlayoraTheme
+import com.sipun.playora.core.ui.theme.appGlassContainer
+import com.sipun.playora.core.ui.theme.appGlassSurface
+import com.sipun.playora.core.ui.theme.rememberGlassBarBorderStroke
+import com.sipun.playora.core.ui.theme.rememberGlassContentColor
 import com.sipun.playora.feature.videopicker.composables.CenterCircularProgressBar
 import com.sipun.playora.feature.videopicker.composables.MarkAsDialog
 import com.sipun.playora.feature.videopicker.composables.MediaInfoDialog
 import com.sipun.playora.feature.videopicker.composables.MediaView
 import com.sipun.playora.feature.videopicker.composables.NoVideosFound
 import com.sipun.playora.feature.videopicker.composables.QuickSettingsDialog
+import io.github.itshedimisawi.vitro.rememberGlassBackdrop
+import io.github.itshedimisawi.vitro.rememberGlassEffectState
 import com.sipun.playora.feature.videopicker.composables.RenameDialog
 import com.sipun.playora.feature.videopicker.composables.SelectionAction
 import com.sipun.playora.feature.videopicker.composables.privacy.PinDotsIndicator
@@ -249,135 +264,220 @@ internal fun MediaPickerScreenContent(
         }
     }
 
-    Scaffold(
-        topBar = {
-            AppTopAppBar(
-                title = {
-                    val titleText = (state.folderName ?: stringResource(R.string.app_name))
-                        .takeIf { !selectionManager.isInSelectionMode } ?: ""
-                    Box {
-                        Text(
-                            text = titleText,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            fontWeight = FontWeight.Bold.takeIf { isRoot },
-                            modifier = if (isRoot && !selectionManager.isInSelectionMode) {
-                                Modifier
-                                    .graphicsLayer { translationX = shakeOffset.value }
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable {
-                                        showVaultTooltip = false
-                                        if (!state.preferences.hasSeenVaultHint) {
-                                            onAction(
-                                                MediaPickerAction.UpdateMenu(
-                                                    state.preferences.copy(
-                                                        hasSeenVaultHint = true
-                                                    )
-                                                )
-                                            )
-                                        }
-                                        onAction(MediaPickerAction.OnPrivacyClick)
-                                    }
-                                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                            } else if (!isRoot) {
-                                Modifier
-                                    .graphicsLayer { translationX = shakeOffset.value }
-                                    .padding(start = 12.dp)
-                            } else {
-                                Modifier
-                            },
-                        )
+    val liquidGlassEnabled = LocalLiquidGlassEnabled.current
+    val backdrop = rememberGlassBackdrop()
+    val pullToRefreshState = rememberPullToRefreshState()
 
-                        if (showVaultTooltip && !selectionManager.isInSelectionMode) {
-                            Popup(
-                                alignment = Alignment.BottomStart,
-                                offset = IntOffset(
-                                    x = 0,
-                                    y = with(LocalDensity.current) { 6.dp.roundToPx() }),
-                                onDismissRequest = {
-                                    showVaultTooltip = false
-                                    if (!state.preferences.hasSeenVaultHint) {
-                                        onAction(
-                                            MediaPickerAction.UpdateMenu(
-                                                state.preferences.copy(
-                                                    hasSeenVaultHint = true
-                                                )
-                                            )
-                                        )
-                                    }
-                                },
-                                properties = PopupProperties(
-                                    focusable = false,
-                                    dismissOnClickOutside = true
-                                ),
-                            ) {
-                                VaultHintBubble(
-                                    isFromHide = isFromHide,
-                                    onClick = {
-                                        showVaultTooltip = false
-                                        if (!state.preferences.hasSeenVaultHint) {
-                                            onAction(
-                                                MediaPickerAction.UpdateMenu(
-                                                    state.preferences.copy(
-                                                        hasSeenVaultHint = true
-                                                    )
-                                                )
-                                            )
-                                        }
-                                        onAction(MediaPickerAction.OnPrivacyClick)
+    CompositionLocalProvider(
+        LocalGlassBackdrop provides if (liquidGlassEnabled) backdrop else null,
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                AppTopAppBar(
+                    title = {
+                        val titleText = (state.folderName ?: stringResource(R.string.app_name))
+                            .takeIf { !selectionManager.isInSelectionMode } ?: ""
+                        if (titleText.isNotEmpty()) {
+                            val titleGlassState = rememberGlassEffectState()
+                            val titleInteractionSource = remember { MutableInteractionSource() }
+                            val titleContentColor = rememberGlassContentColor(
+                                state = titleGlassState,
+                                fallback = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Box {
+                                Text(
+                                    text = titleText,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    fontWeight = FontWeight.Bold.takeIf { isRoot },
+                                    color = if (liquidGlassEnabled) {
+                                        titleContentColor
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
                                     },
-                                    onDismiss = {
-                                        showVaultTooltip = false
-                                        if (!state.preferences.hasSeenVaultHint) {
-                                            onAction(
-                                                MediaPickerAction.UpdateMenu(
-                                                    state.preferences.copy(
-                                                        hasSeenVaultHint = true
-                                                    )
-                                                )
+                                    modifier = if (isRoot && !selectionManager.isInSelectionMode) {
+                                        Modifier
+                                            .graphicsLayer { translationX = shakeOffset.value }
+                                            .then(
+                                                if (liquidGlassEnabled) {
+                                                    Modifier
+                                                        .appGlassSurface(
+                                                            shape = CircleShape,
+                                                            interactive = true,
+                                                            state = titleGlassState,
+                                                            interactionSource = titleInteractionSource,
+                                                        )
+                                                        .border(rememberGlassBarBorderStroke(), CircleShape)
+                                                } else {
+                                                    Modifier.clip(RoundedCornerShape(8.dp))
+                                                },
                                             )
-                                        }
+                                            .clickable(
+                                                interactionSource = titleInteractionSource,
+                                                indication = if (liquidGlassEnabled) {
+                                                    null
+                                                } else {
+                                                    androidx.compose.material3.ripple()
+                                                },
+                                            ) {
+                                                showVaultTooltip = false
+                                                if (!state.preferences.hasSeenVaultHint) {
+                                                    onAction(
+                                                        MediaPickerAction.UpdateMenu(
+                                                            state.preferences.copy(
+                                                                hasSeenVaultHint = true,
+                                                            ),
+                                                        ),
+                                                    )
+                                                }
+                                                onAction(MediaPickerAction.OnPrivacyClick)
+                                            }
+                                            .padding(
+                                                horizontal = if (liquidGlassEnabled) 14.dp else 4.dp,
+                                                vertical = if (liquidGlassEnabled) 6.dp else 2.dp,
+                                            )
+                                    } else {
+                                        Modifier
+                                            .graphicsLayer { translationX = shakeOffset.value }
+                                            .padding(start = 12.dp)
+                                            .then(
+                                                if (liquidGlassEnabled) {
+                                                    Modifier
+                                                        .appGlassSurface(
+                                                            shape = CircleShape,
+                                                            state = titleGlassState,
+                                                        )
+                                                        .border(rememberGlassBarBorderStroke(), CircleShape)
+                                                        .padding(
+                                                            horizontal = 14.dp,
+                                                            vertical = 6.dp,
+                                                        )
+                                                } else {
+                                                    Modifier
+                                                },
+                                            )
                                     },
                                 )
+
+                                if (showVaultTooltip && !selectionManager.isInSelectionMode) {
+                                    Popup(
+                                        alignment = Alignment.BottomStart,
+                                        offset = IntOffset(
+                                            x = 0,
+                                            y = with(LocalDensity.current) { 6.dp.roundToPx() },
+                                        ),
+                                        onDismissRequest = {
+                                            showVaultTooltip = false
+                                            if (!state.preferences.hasSeenVaultHint) {
+                                                onAction(
+                                                    MediaPickerAction.UpdateMenu(
+                                                        state.preferences.copy(
+                                                            hasSeenVaultHint = true,
+                                                        ),
+                                                    ),
+                                                )
+                                            }
+                                        },
+                                        properties = PopupProperties(
+                                            focusable = false,
+                                            dismissOnClickOutside = true,
+                                        ),
+                                    ) {
+                                        VaultHintBubble(
+                                            isFromHide = isFromHide,
+                                            onClick = {
+                                                showVaultTooltip = false
+                                                if (!state.preferences.hasSeenVaultHint) {
+                                                    onAction(
+                                                        MediaPickerAction.UpdateMenu(
+                                                            state.preferences.copy(
+                                                                hasSeenVaultHint = true,
+                                                            ),
+                                                        ),
+                                                    )
+                                                }
+                                                onAction(MediaPickerAction.OnPrivacyClick)
+                                            },
+                                            onDismiss = {
+                                                showVaultTooltip = false
+                                                if (!state.preferences.hasSeenVaultHint) {
+                                                    onAction(
+                                                        MediaPickerAction.UpdateMenu(
+                                                            state.preferences.copy(
+                                                                hasSeenVaultHint = true,
+                                                            ),
+                                                        ),
+                                                    )
+                                                }
+                                            },
+                                        )
+                                    }
+                                }
                             }
                         }
-                    }
-                },
-                navigationIcon = {
-                    if (selectionManager.isInSelectionMode) {
-                        Row(
-                            modifier = Modifier
-                                .clip(shape = CircleShape)
-                                .background(MaterialTheme.colorScheme.secondaryContainer)
-                                .clickable { selectionManager.exitSelectionMode() }
-                                .padding(8.dp)
-                                .padding(end = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Icon(
-                                imageVector = AppIcons.Close,
-                                contentDescription = stringResource(id = R.string.navigate_up),
+                    },
+                    navigationIcon = {
+                        if (selectionManager.isInSelectionMode) {
+                            val pillGlassState = rememberGlassEffectState()
+                            val pillInteractionSource = remember { MutableInteractionSource() }
+                            val pillContentColor = rememberGlassContentColor(
+                                state = pillGlassState,
+                                fallback = MaterialTheme.colorScheme.onSecondaryContainer,
                             )
-                            Text(
-                                text = stringResource(
-                                    R.string.m_n_selected,
-                                    selectedItemsSize,
-                                    totalItemsSize,
-                                ),
-                                style = MaterialTheme.typography.labelLarge,
+                            Row(
+                                modifier = Modifier
+                                    .appGlassSurface(
+                                        shape = CircleShape,
+                                        interactive = true,
+                                        state = pillGlassState,
+                                        interactionSource = pillInteractionSource,
+                                        fallbackBackground = MaterialTheme.colorScheme.secondaryContainer,
+                                    )
+                                    .let { mod ->
+                                        if (liquidGlassEnabled) {
+                                            mod.border(rememberGlassBarBorderStroke(), CircleShape)
+                                        } else {
+                                            mod
+                                        }
+                                    }
+                                    .clickable(
+                                        interactionSource = pillInteractionSource,
+                                        indication = if (liquidGlassEnabled) {
+                                            null
+                                        } else {
+                                            androidx.compose.material3.ripple()
+                                        },
+                                    ) { selectionManager.exitSelectionMode() }
+                                    .padding(8.dp)
+                                    .padding(end = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.Close,
+                                    contentDescription = stringResource(id = R.string.navigate_up),
+                                    tint = pillContentColor,
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.m_n_selected,
+                                        selectedItemsSize,
+                                        totalItemsSize,
+                                    ),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = pillContentColor,
+                                )
+                            }
+                        } else if (state.folderName != null) {
+                            AppBackButton(
+                                onClick = { onAction(MediaPickerAction.OnNavigateUpClick) },
                             )
                         }
-                    } else if (state.folderName != null) {
-                        AppBackButton(
-                            onClick = { onAction(MediaPickerAction.OnNavigateUpClick) },
-                        )
-                    }
-                },
-                actions = {
-                    if (selectionManager.isInSelectionMode) {
-                        FilledTonalIconButton(
-                            onClick = {
+                    },
+                    actions = {
+                        if (selectionManager.isInSelectionMode) {
+                            val toggleSelectAll = {
                                 if (selectedItemsSize != totalItemsSize) {
                                     val folder = (state.mediaDataState as? DataState.Success)?.value
                                     if (folder != null) {
@@ -391,185 +491,393 @@ internal fun MediaPickerScreenContent(
                                 } else {
                                     selectionManager.clearSelection()
                                 }
-                            },
+                            }
+                            if (liquidGlassEnabled) {
+                                val selectGlassState = rememberGlassEffectState()
+                                val selectInteractionSource = remember { MutableInteractionSource() }
+                                val selectContentColor = rememberGlassContentColor(
+                                    state = selectGlassState,
+                                    fallback = MaterialTheme.colorScheme.onSecondaryContainer,
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .appGlassSurface(
+                                            shape = CircleShape,
+                                            interactive = true,
+                                            state = selectGlassState,
+                                            interactionSource = selectInteractionSource,
+                                        )
+                                        .border(rememberGlassBarBorderStroke(), CircleShape)
+                                        .clickable(
+                                            interactionSource = selectInteractionSource,
+                                            indication = null,
+                                            onClick = toggleSelectAll,
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = if (selectedItemsSize != totalItemsSize) {
+                                            AppIcons.SelectAll
+                                        } else {
+                                            AppIcons.DeselectAll
+                                        },
+                                        contentDescription = if (selectedItemsSize != totalItemsSize) {
+                                            stringResource(R.string.select_all)
+                                        } else {
+                                            stringResource(R.string.deselect_all)
+                                        },
+                                        tint = selectContentColor,
+                                    )
+                                }
+                            } else {
+                                FilledTonalIconButton(onClick = toggleSelectAll) {
+                                    Icon(
+                                        imageVector = if (selectedItemsSize != totalItemsSize) {
+                                            AppIcons.SelectAll
+                                        } else {
+                                            AppIcons.DeselectAll
+                                        },
+                                        contentDescription = if (selectedItemsSize != totalItemsSize) {
+                                            stringResource(R.string.select_all)
+                                        } else {
+                                            stringResource(R.string.deselect_all)
+                                        },
+                                    )
+                                }
+                            }
+                        } else if (liquidGlassEnabled) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(end = 4.dp)
+                                    .appGlassContainer(enabled = true),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                val searchInteraction = remember { MutableInteractionSource() }
+                                val searchState = rememberGlassEffectState()
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .appGlassSurface(
+                                            shape = CircleShape,
+                                            interactive = true,
+                                            state = searchState,
+                                            interactionSource = searchInteraction,
+                                        )
+                                        .border(rememberGlassBarBorderStroke(), CircleShape)
+                                        .clickable(
+                                            interactionSource = searchInteraction,
+                                            indication = null,
+                                            onClick = { onAction(MediaPickerAction.OnSearchClick) },
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = AppIcons.SearchOutline,
+                                        contentDescription = stringResource(id = R.string.search),
+                                        tint = rememberGlassContentColor(searchState),
+                                    )
+                                }
+
+                                val menuInteraction = remember { MutableInteractionSource() }
+                                val menuState = rememberGlassEffectState()
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .appGlassSurface(
+                                            shape = CircleShape,
+                                            interactive = true,
+                                            state = menuState,
+                                            interactionSource = menuInteraction,
+                                        )
+                                        .border(rememberGlassBarBorderStroke(), CircleShape)
+                                        .clickable(
+                                            interactionSource = menuInteraction,
+                                            indication = null,
+                                            onClick = { showQuickSettingsDialog = true },
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_split_panes),
+                                        contentDescription = stringResource(id = R.string.menu),
+                                        tint = rememberGlassContentColor(menuState),
+                                    )
+                                }
+
+                                val settingsInteraction = remember { MutableInteractionSource() }
+                                val settingsState = rememberGlassEffectState()
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .appGlassSurface(
+                                            shape = CircleShape,
+                                            interactive = true,
+                                            state = settingsState,
+                                            interactionSource = settingsInteraction,
+                                        )
+                                        .border(rememberGlassBarBorderStroke(), CircleShape)
+                                        .clickable(
+                                            interactionSource = settingsInteraction,
+                                            indication = null,
+                                            onClick = { onAction(MediaPickerAction.OnSettingsClick) },
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = AppIcons.SettingsOutline,
+                                        contentDescription = stringResource(id = R.string.settings),
+                                        tint = rememberGlassContentColor(settingsState),
+                                    )
+                                }
+                            }
+                        } else {
+                            IconButton(
+                                onClick = { onAction(MediaPickerAction.OnSearchClick) },
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.SearchOutline,
+                                    contentDescription = stringResource(id = R.string.search),
+                                )
+                            }
+                            IconButton(
+                                onClick = { showQuickSettingsDialog = true },
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_split_panes),
+                                    contentDescription = stringResource(id = R.string.menu),
+                                )
+                            }
+                            IconButton(
+                                onClick = { onAction(MediaPickerAction.OnSettingsClick) },
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.SettingsOutline,
+                                    contentDescription = stringResource(id = R.string.settings),
+                                )
+                            }
+                        }
+                    },
+                )
+            },
+            bottomBar = {
+                SelectionActionsSheet(
+                    show =
+                        selectionManager.isInSelectionMode &&
+                                selectionManager.selectionItems.isNotEmpty(),
+                    showRenameAction = selectionManager.isSingleVideoSelected,
+                    showInfoAction = selectionManager.isSingleVideoSelected,
+                    showHideAction = selectionManager.selectionItems.isNotEmpty(),
+                    onPlayAction = {
+                        onAction(MediaPickerAction.PlaySelectedItems(selectionManager.selectionItems))
+                        selectionManager.exitSelectionMode()
+                    },
+                    onRenameAction = {
+                        val selectedVideo =
+                            selectionManager.selectionItems.firstOrNull()
+                                ?: return@SelectionActionsSheet
+                        val video = (state.mediaDataState as? DataState.Success)?.value?.videos
+                            ?.find { it.uriString == selectedVideo.id }
+                            ?: return@SelectionActionsSheet
+                        showRenameActionFor = video
+                    },
+                    onInfoAction = {
+                        val selectedVideo =
+                            selectionManager.selectionItems.firstOrNull()
+                                ?: return@SelectionActionsSheet
+                        val video = (state.mediaDataState as? DataState.Success)?.value?.videos
+                            ?.find { it.uriString == selectedVideo.id }
+                            ?: return@SelectionActionsSheet
+                        onAction(MediaPickerAction.ShowMediaInfo(video = video))
+                        selectionManager.exitSelectionMode()
+                    },
+                    onShareAction = {
+                        onAction(MediaPickerAction.ShareSelectedItems(selectionManager.selectionItems))
+                    },
+                    onCopyAction = {
+                        onAction(MediaPickerAction.CopySelectedItems(selectionManager.selectionItems))
+                        selectionManager.exitSelectionMode()
+                    },
+                    onMoveAction = {
+                        onAction(MediaPickerAction.MoveSelectedItems(selectionManager.selectionItems))
+                        selectionManager.exitSelectionMode()
+                    },
+                    onHideAction = { showHideVideosConfirmation = true },
+                    onMarkAction = { showMarkDialog = true },
+                    onDeleteAction = { showDeleteVideosConfirmation = true },
+                )
+            },
+            floatingActionButton = {
+                if (!selectionManager.isInSelectionMode) {
+                    if (liquidGlassEnabled) {
+                        val fabInteraction = remember { MutableInteractionSource() }
+                        val fabGlassState = rememberGlassEffectState()
+                        val fabShape = RoundedCornerShape(18.dp)
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .appGlassSurface(
+                                    shape = fabShape,
+                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.42f),
+                                    clear = true,
+                                    interactive = true,
+                                    state = fabGlassState,
+                                    interactionSource = fabInteraction,
+                                    fallbackBackground = MaterialTheme.colorScheme.primary,
+                                )
+                                .border(
+                                    width = 0.85.dp,
+                                    brush = Brush.linearGradient(
+                                        listOf(
+                                            Color.White.copy(alpha = 0.55f),
+                                            Color.White.copy(alpha = 0.14f),
+                                        ),
+                                    ),
+                                    shape = fabShape,
+                                )
+                                .clickable(
+                                    interactionSource = fabInteraction,
+                                    indication = null,
+                                    onClick = onFabClick,
+                                ),
+                            contentAlignment = Alignment.Center,
                         ) {
                             Icon(
-                                imageVector = if (selectedItemsSize != totalItemsSize) {
-                                    AppIcons.SelectAll
-                                } else {
-                                    AppIcons.DeselectAll
-                                },
-                                contentDescription = if (selectedItemsSize != totalItemsSize) {
-                                    stringResource(R.string.select_all)
-                                } else {
-                                    stringResource(R.string.deselect_all)
-                                },
+                                imageVector = AppIcons.Play,
+                                contentDescription = stringResource(R.string.play),
+                                tint = Color.White,
                             )
                         }
                     } else {
-                        IconButton(
-                            onClick = { onAction(MediaPickerAction.OnSearchClick) },
+                        FloatingActionButton(
+                            onClick = onFabClick,
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            shape = MaterialTheme.shapes.large,
                         ) {
                             Icon(
-                                imageVector = AppIcons.SearchOutline,
-                                contentDescription = stringResource(id = R.string.search),
-                            )
-                        }
-                        IconButton(
-                            onClick = { showQuickSettingsDialog = true },
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_split_panes),
-                                contentDescription = stringResource(id = R.string.menu),
-                            )
-                        }
-                        IconButton(
-                            onClick = { onAction(MediaPickerAction.OnSettingsClick) },
-                        ) {
-                            Icon(
-                                imageVector = AppIcons.SettingsOutline,
-                                contentDescription = stringResource(id = R.string.settings),
+                                imageVector = AppIcons.Play,
+                                contentDescription = stringResource(R.string.play),
                             )
                         }
                     }
-                },
-            )
-        },
-        bottomBar = {
-            SelectionActionsSheet(
-                show =
-                    selectionManager.isInSelectionMode &&
-                            selectionManager.selectionItems.isNotEmpty(),
-                showRenameAction = selectionManager.isSingleVideoSelected,
-                showInfoAction = selectionManager.isSingleVideoSelected,
-                showHideAction = selectionManager.selectionItems.isNotEmpty(),
-                onPlayAction = {
-                    onAction(MediaPickerAction.PlaySelectedItems(selectionManager.selectionItems))
-                    selectionManager.exitSelectionMode()
-                },
-                onRenameAction = {
-                    val selectedVideo =
-                        selectionManager.selectionItems.firstOrNull()
-                            ?: return@SelectionActionsSheet
-                    val video = (state.mediaDataState as? DataState.Success)?.value?.videos
-                        ?.find { it.uriString == selectedVideo.id } ?: return@SelectionActionsSheet
-                    showRenameActionFor = video
-                },
-                onInfoAction = {
-                    val selectedVideo =
-                        selectionManager.selectionItems.firstOrNull()
-                            ?: return@SelectionActionsSheet
-                    val video = (state.mediaDataState as? DataState.Success)?.value?.videos
-                        ?.find { it.uriString == selectedVideo.id } ?: return@SelectionActionsSheet
-                    onAction(MediaPickerAction.ShowMediaInfo(video = video))
-                    selectionManager.exitSelectionMode()
-                },
-                onShareAction = {
-                    onAction(MediaPickerAction.ShareSelectedItems(selectionManager.selectionItems))
-                },
-                onCopyAction = {
-                    onAction(MediaPickerAction.CopySelectedItems(selectionManager.selectionItems))
-                    selectionManager.exitSelectionMode()
-                },
-                onMoveAction = {
-                    onAction(MediaPickerAction.MoveSelectedItems(selectionManager.selectionItems))
-                    selectionManager.exitSelectionMode()
-                },
-                onHideAction = { showHideVideosConfirmation = true },
-                onMarkAction = { showMarkDialog = true },
-                onDeleteAction = { showDeleteVideosConfirmation = true },
-            )
-        },
-        floatingActionButton = {
-            if (!selectionManager.isInSelectionMode) {
-                FloatingActionButton(
-                    onClick = onFabClick,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    shape = MaterialTheme.shapes.large,
-                ) {
-                    Icon(
-                        imageVector = AppIcons.Play,
-                        contentDescription = stringResource(R.string.play),
-                    )
                 }
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ) { scaffoldPadding ->
-        Box(
-            Modifier
-                .fillMaxSize()
-                .padding(scaffoldPadding.copy(bottom = 0.dp))
-                .clip(
-                    shape = RoundedCornerShape(
-                        topStart = 24.dp,
-                        topEnd = 24.dp,
-                    ),
-                )
-                .background(MaterialTheme.colorScheme.background),
-        ) {
-            if (!permissionState.status.isGranted) {
-                PermissionMissingView(
-                    isGranted = permissionState.status.isGranted,
-                    showRationale = permissionState.status.shouldShowRationale,
-                    permission = permissionState.permission,
-                    launchPermissionRequest = { permissionState.launchPermissionRequest() },
-                ) {}
-                return@Scaffold
-            }
-            when (state.mediaDataState) {
-                is DataState.Error -> {
-                }
+            },
+            containerColor = if (liquidGlassEnabled) {
+                MaterialTheme.colorScheme.background
+            } else {
+                MaterialTheme.colorScheme.surfaceContainer
+            },
+        ) { scaffoldPadding ->
+            val mediaContent: @Composable () -> Unit = {
+                if (!permissionState.status.isGranted) {
+                    PermissionMissingView(
+                        isGranted = permissionState.status.isGranted,
+                        showRationale = permissionState.status.shouldShowRationale,
+                        permission = permissionState.permission,
+                        launchPermissionRequest = { permissionState.launchPermissionRequest() },
+                    ) {}
+                } else {
+                    when (state.mediaDataState) {
+                        is DataState.Error -> {
+                        }
 
-                is DataState.Loading -> {
-                    CenterCircularProgressBar()
-                }
+                        is DataState.Loading -> {
+                            CenterCircularProgressBar()
+                        }
 
-                is DataState.Success -> {
-                    val fabBottomPadding = if (!selectionManager.isInSelectionMode) 88.dp else 0.dp
-                    val updatedScaffoldPadding = scaffoldPadding.copy(
-                        top = 0.dp,
-                        start = 0.dp,
-                        bottom = scaffoldPadding.calculateBottomPadding() + fabBottomPadding,
-                    )
-                    val mediaHolder = state.mediaDataState.value
-                    PullToRefreshBox(
-                        isRefreshing = state.refreshing,
-                        onRefresh = { onAction(MediaPickerAction.Refresh) },
-                    ) {
-                        if (mediaHolder == null ||
-                            (mediaHolder.folders.isEmpty() && mediaHolder.videos.isEmpty())
-                        ) {
-                            NoVideosFound(contentPadding = updatedScaffoldPadding)
-                        } else {
-                            MediaView(
-                                recentlyPlayedVideo = state.recentlyPlayedVideo,
-                                recentlyPlayedFolder = state.recentlyPlayedFolder,
-                                mediaHolder = mediaHolder,
-                                preferences = state.preferences,
-                                onFolderClick = {
-                                    onAction(MediaPickerAction.OnFolderClick(folderPath = it))
+                        is DataState.Success -> {
+                            val fabBottomPadding = if (!selectionManager.isInSelectionMode) 88.dp else 0.dp
+                            val updatedScaffoldPadding = scaffoldPadding.copy(
+                                top = if (liquidGlassEnabled) scaffoldPadding.calculateTopPadding() else 0.dp,
+                                start = 0.dp,
+                                bottom = scaffoldPadding.calculateBottomPadding() + fabBottomPadding,
+                            )
+                            val mediaHolder = state.mediaDataState.value
+                            PullToRefreshBox(
+                                isRefreshing = state.refreshing,
+                                onRefresh = { onAction(MediaPickerAction.Refresh) },
+                                state = pullToRefreshState,
+                                indicator = {
+                                    if (state.refreshing || pullToRefreshState.distanceFraction > 0f) {
+                                        PullToRefreshDefaults.Indicator(
+                                            state = pullToRefreshState,
+                                            isRefreshing = state.refreshing,
+                                            modifier = Modifier
+                                                .align(Alignment.TopCenter)
+                                                .padding(
+                                                    top = if (liquidGlassEnabled) {
+                                                        scaffoldPadding.calculateTopPadding()
+                                                    } else {
+                                                        0.dp
+                                                    },
+                                                ),
+                                        )
+                                    }
                                 },
-                                onVideoClick = { clickedUri ->
-                                    val playlist = mediaHolder.videos.map { it.uriString.toUri() }
-                                    onAction(
-                                        MediaPickerAction.OnPlayVideo(
-                                            uri = clickedUri,
-                                            playlist = playlist,
-                                        ),
+                            ) {
+                                if (mediaHolder == null ||
+                                    (mediaHolder.folders.isEmpty() && mediaHolder.videos.isEmpty())
+                                ) {
+                                    NoVideosFound(contentPadding = updatedScaffoldPadding)
+                                } else {
+                                    MediaView(
+                                        recentlyPlayedVideo = state.recentlyPlayedVideo,
+                                        recentlyPlayedFolder = state.recentlyPlayedFolder,
+                                        mediaHolder = mediaHolder,
+                                        preferences = state.preferences,
+                                        onFolderClick = {
+                                            onAction(MediaPickerAction.OnFolderClick(folderPath = it))
+                                        },
+                                        onVideoClick = { clickedUri ->
+                                            val playlist = mediaHolder.videos.map { it.uriString.toUri() }
+                                            onAction(
+                                                MediaPickerAction.OnPlayVideo(
+                                                    uri = clickedUri,
+                                                    playlist = playlist,
+                                                ),
+                                            )
+                                        },
+                                        selectionManager = selectionManager,
+                                        lazyGridState = lazyGridState,
+                                        contentPadding = updatedScaffoldPadding,
                                     )
-                                },
-                                selectionManager = selectionManager,
-                                lazyGridState = lazyGridState,
-                                contentPadding = updatedScaffoldPadding,
-                            )
+                                }
+                            }
                         }
                     }
+                }
+            }
+
+            if (liquidGlassEnabled) {
+                AppGlassBackdropBox(
+                    backdrop = backdrop,
+                    enabled = true,
+                    pageColor = MaterialTheme.colorScheme.background,
+                    topPadding = scaffoldPadding.calculateTopPadding(),
+                    bottomPadding = scaffoldPadding.calculateBottomPadding(),
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    mediaContent()
+                }
+            } else {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(scaffoldPadding.copy(bottom = 0.dp))
+                        .clip(
+                            shape = RoundedCornerShape(
+                                topStart = 24.dp,
+                                topEnd = 24.dp,
+                            ),
+                        )
+                        .background(MaterialTheme.colorScheme.background),
+                ) {
+                    mediaContent()
                 }
             }
         }
-    }
 
     BackHandler(enabled = selectionManager.isInSelectionMode) {
         selectionManager.exitSelectionMode()
@@ -705,7 +1013,8 @@ internal fun MediaPickerScreenContent(
             onCancel = { onAction(MediaPickerAction.CancelTransfer) },
         )
     }
-
+        }
+    }
 }
 
 @Composable
@@ -714,53 +1023,51 @@ private fun TransferProgressDialog(
     progress: TransferProgress,
     onCancel: () -> Unit,
 ) {
-    Dialog(
+    AppGlassModalOverlay(
         onDismissRequest = onCancel,
-        properties = DialogProperties(dismissOnClickOutside = false),
+        modifier = Modifier.fillMaxWidth(0.90f),
+        shape = RoundedCornerShape(28.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        dismissOnClickOutside = false,
     ) {
-        Surface(
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = 24.dp,
+                    vertical = 24.dp,
+                ),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = 24.dp,
-                        vertical = 24.dp,
-                    ),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-            ) {
-                Text(
-                    text = when (mode) {
-                        TransferMode.COPY -> stringResource(R.string.copying_videos_in_progress)
-                        TransferMode.MOVE -> stringResource(R.string.moving_videos_in_progress)
-                    },
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                )
+            Text(
+                text = when (mode) {
+                    TransferMode.COPY -> stringResource(R.string.copying_videos_in_progress)
+                    TransferMode.MOVE -> stringResource(R.string.moving_videos_in_progress)
+                },
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
 
+            ProgressSection(
+                label = progress.currentName.orEmpty(),
+                fraction = progress.currentFraction,
+            )
+
+            if (progress.totalFiles > 1) {
                 ProgressSection(
-                    label = progress.currentName.orEmpty(),
-                    fraction = progress.currentFraction,
+                    label = stringResource(
+                        R.string.transfer_file_progress,
+                        progress.currentIndex + 1,
+                        progress.totalFiles,
+                    ),
+                    fraction = progress.overallFraction,
                 )
-
-                if (progress.totalFiles > 1) {
-                    ProgressSection(
-                        label = stringResource(
-                            R.string.transfer_file_progress,
-                            progress.currentIndex + 1,
-                            progress.totalFiles,
-                        ),
-                        fraction = progress.overallFraction,
-                    )
-                }
-
-                TextButton(
-                    onClick = onCancel,
-                    modifier = Modifier.align(Alignment.End),
-                ) { Text(text = stringResource(R.string.cancel)) }
             }
+
+            TextButton(
+                onClick = onCancel,
+                modifier = Modifier.align(Alignment.End),
+            ) { Text(text = stringResource(R.string.cancel)) }
         }
     }
 }
@@ -987,37 +1294,34 @@ private fun SetupPrivacyPinDialog(onDismiss: () -> Unit, onPinConfirmed: (String
         if (currentPin.isNotEmpty()) currentPin = currentPin.dropLast(n = 1)
     }
 
-    Dialog(
+    AppGlassModalOverlay(
         onDismissRequest = onDismiss,
+        modifier = Modifier.fillMaxWidth(0.90f),
+        shape = MaterialTheme.shapes.extraLarge,
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.surfaceContainer,
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = 24.dp,
+                    vertical = 28.dp,
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = 24.dp,
-                        vertical = 28.dp,
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                SetupPinHeader(
-                    isConfirmStep = isConfirmStep,
-                    filledCount = currentPin.length,
-                    showError = showError,
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-                PinKeypad(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    onDigit = onDigit,
-                    onBackspace = onBackspace,
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                CancelButton(onClick = onDismiss)
-            }
+            SetupPinHeader(
+                isConfirmStep = isConfirmStep,
+                filledCount = currentPin.length,
+                showError = showError,
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            PinKeypad(
+                modifier = Modifier.padding(horizontal = 8.dp),
+                onDigit = onDigit,
+                onBackspace = onBackspace,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            CancelButton(onClick = onDismiss)
         }
     }
 }
@@ -1112,24 +1416,50 @@ private fun SelectionActionsSheet(
         enter = slideInVertically { it },
         exit = slideOutVertically { it },
     ) {
-        val shape = MaterialTheme.shapes.largeIncreased.copy(
-            bottomStart = ZeroCornerSize,
-            bottomEnd = ZeroCornerSize,
+        val useGlass = LocalLiquidGlassEnabled.current && LocalGlassBackdrop.current != null
+        val shape = if (useGlass) {
+            RoundedCornerShape(24.dp)
+        } else {
+            MaterialTheme.shapes.largeIncreased.copy(
+                bottomStart = ZeroCornerSize,
+                bottomEnd = ZeroCornerSize,
+            )
+        }
+        val sheetGlassState = rememberGlassEffectState()
+        val actionTint = rememberGlassContentColor(
+            state = sheetGlassState,
+            fallback = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                        shape = shape,
-                    )
-                    .clip(shape = shape)
-                    .navigationBarsPadding()
-                    .padding(
-                        horizontal = 4.dp,
-                        vertical = 12.dp,
+                    .then(
+                        if (useGlass) {
+                            Modifier
+                                .navigationBarsPadding()
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                                .appGlassSurface(
+                                    shape = shape,
+                                    state = sheetGlassState,
+                                    fallbackBackground = MaterialTheme.colorScheme.surfaceContainer,
+                                )
+                                .border(rememberGlassBarBorderStroke(), shape)
+                                .padding(horizontal = 4.dp, vertical = 10.dp)
+                        } else {
+                            Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceContainer,
+                                    shape = shape,
+                                )
+                                .clip(shape = shape)
+                                .navigationBarsPadding()
+                                .padding(
+                                    horizontal = 4.dp,
+                                    vertical = 12.dp,
+                                )
+                        },
                     ),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1137,6 +1467,7 @@ private fun SelectionActionsSheet(
                 SelectionAction(
                     imageVector = AppIcons.Play,
                     title = stringResource(R.string.play),
+                    tint = actionTint,
                     onClick = onPlayAction,
                     modifier = Modifier.weight(1f),
                 )
@@ -1144,6 +1475,7 @@ private fun SelectionActionsSheet(
                     SelectionAction(
                         imageVector = AppIcons.Edit,
                         title = stringResource(R.string.rename),
+                        tint = actionTint,
                         onClick = onRenameAction,
                         modifier = Modifier.weight(1f),
                     )
@@ -1151,24 +1483,28 @@ private fun SelectionActionsSheet(
                 SelectionAction(
                     imageVector = AppIcons.Share,
                     title = stringResource(R.string.share),
+                    tint = actionTint,
                     onClick = onShareAction,
                     modifier = Modifier.weight(1f),
                 )
                 SelectionAction(
                     imageVector = AppIcons.Copy,
                     title = stringResource(R.string.copy),
+                    tint = actionTint,
                     onClick = onCopyAction,
                     modifier = Modifier.weight(1f),
                 )
                 SelectionAction(
                     imageVector = AppIcons.Move,
                     title = stringResource(R.string.move),
+                    tint = actionTint,
                     onClick = onMoveAction,
                     modifier = Modifier.weight(1f),
                 )
                 SelectionAction(
                     imageVector = AppIcons.Check,
                     title = stringResource(R.string.mark),
+                    tint = actionTint,
                     onClick = onMarkAction,
                     modifier = Modifier.weight(1f),
                 )
@@ -1176,6 +1512,7 @@ private fun SelectionActionsSheet(
                     SelectionAction(
                         imageVector = AppIcons.Info,
                         title = stringResource(id = R.string.info),
+                        tint = actionTint,
                         onClick = onInfoAction,
                         modifier = Modifier.weight(1f),
                     )
@@ -1184,6 +1521,7 @@ private fun SelectionActionsSheet(
                     SelectionAction(
                         imageVector = AppIcons.HideSource,
                         title = stringResource(id = R.string.hide),
+                        tint = actionTint,
                         onClick = onHideAction,
                         modifier = Modifier.weight(1f),
                     )

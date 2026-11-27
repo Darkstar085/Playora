@@ -20,17 +20,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
 import com.sipun.playora.core.ui.theme.PlayoraTheme
+import com.sipun.playora.core.ui.theme.appGlassSurface
 
 @Composable
 fun BoxScope.OverlayView(
@@ -44,6 +50,7 @@ fun BoxScope.OverlayView(
     val endPadding = WindowInsets.safeDrawing
         .asPaddingValues()
         .calculateEndPadding(layoutDirection = layoutDirection)
+    val useGlass = LocalLiquidGlassEnabled.current && LocalGlassBackdrop.current != null
 
     AnimatedVisibility(
         modifier = Modifier.align(
@@ -65,21 +72,18 @@ fun BoxScope.OverlayView(
             slideOutHorizontally { it }
         },
     ) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            modifier = modifier
-                .then(
-                    other = if (configuration.isPortrait) {
-                        Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(fraction = 0.45f)
-                    } else {
-                        Modifier
-                            .fillMaxWidth(fraction = 0.45f)
-                            .fillMaxHeight()
-                    },
-                ),
-        ) {
+        val panelSizeModifier = modifier.then(
+            other = if (configuration.isPortrait) {
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(fraction = 0.45f)
+            } else {
+                Modifier
+                    .fillMaxWidth(fraction = 0.45f)
+                    .fillMaxHeight()
+            },
+        )
+        val panelBody: @Composable () -> Unit = {
             Column(
                 modifier = Modifier
                     .padding(top = 24.dp)
@@ -92,6 +96,29 @@ fun BoxScope.OverlayView(
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 content()
+            }
+        }
+        if (useGlass) {
+            Box(
+                modifier = panelSizeModifier.appGlassSurface(
+                    shape = RoundedCornerShape(16.dp),
+                    tint = Color(0xBD12171E),
+                    clear = true,
+                    dimmed = 0.24f,
+                    forceDark = true,
+                    fallbackBackground = MaterialTheme.colorScheme.surface,
+                ),
+            ) {
+                CompositionLocalProvider(LocalContentColor provides Color.White) {
+                    panelBody()
+                }
+            }
+        } else {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                modifier = panelSizeModifier,
+            ) {
+                panelBody()
             }
         }
     }

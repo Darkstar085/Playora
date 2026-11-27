@@ -114,6 +114,7 @@ fun VideoListItem(
         selected = selected,
         contentPadding = PaddingValues(8.dp),
         colors = ListItemDefaults.segmentedColors(
+            containerColor = Color.Transparent,
             contentColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
                 MaterialTheme.colorScheme.primary
             } else {
@@ -210,6 +211,7 @@ fun VideoGridItem(
         selected = selected,
         contentPadding = PaddingValues(8.dp),
         colors = ListItemDefaults.segmentedColors(
+            containerColor = Color.Transparent,
             contentColor = if (isRecentlyPlayedVideo && preferences.markLastPlayedMedia) {
                 MaterialTheme.colorScheme.primary
             } else {

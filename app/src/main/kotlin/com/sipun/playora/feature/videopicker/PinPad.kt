@@ -2,8 +2,11 @@ package com.sipun.playora.feature.videopicker.composables.privacy
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +30,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.sipun.playora.core.ui.theme.appGlassSurface
+import com.sipun.playora.core.ui.theme.isAppGlassActive
+import com.sipun.playora.core.ui.theme.rememberGlassCardBorderBrush
+import com.sipun.playora.core.ui.theme.rememberGlassCardBorderColor
+import com.sipun.playora.core.ui.theme.rememberGlassCardTint
 import com.sipun.playora.feature.videopicker.privacy.PRIVACY_PIN_LENGTH
 
 @Composable
@@ -142,18 +150,46 @@ private fun KeyButton(
     content: @Composable () -> Unit,
 ) {
     val shape = CircleShape
-    Column(
-        modifier = modifier
-            .aspectRatio(ratio = 1f)
-            .clip(shape = shape)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                shape = shape,
-            )
-            .clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        content()
+    if (isAppGlassActive()) {
+        val interactionSource = remember { MutableInteractionSource() }
+        val borderBrush = rememberGlassCardBorderBrush()
+        val fallbackBorderColor = rememberGlassCardBorderColor()
+        Column(
+            modifier = modifier
+                .aspectRatio(ratio = 1f)
+                .appGlassSurface(
+                    shape = shape,
+                    tint = rememberGlassCardTint(),
+                    interactive = true,
+                    interactionSource = interactionSource,
+                    fallbackBackground = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    fallbackBorder = BorderStroke(0.85.dp, fallbackBorderColor),
+                )
+                .border(0.85.dp, borderBrush, shape)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onClick,
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            content()
+        }
+    } else {
+        Column(
+            modifier = modifier
+                .aspectRatio(ratio = 1f)
+                .clip(shape = shape)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = shape,
+                )
+                .clickable(onClick = onClick),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            content()
+        }
     }
 }

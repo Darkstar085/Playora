@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,7 +24,6 @@ import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -51,25 +51,42 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sipun.playora.R
 import com.sipun.playora.core.model.ThemeConfig
+import com.sipun.playora.core.ui.components.AppDialog
 import com.sipun.playora.core.ui.theme.LocalAccentBrush
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
+import com.sipun.playora.core.ui.theme.appGlassSurface
+import com.sipun.playora.core.ui.theme.rememberGlassCardBorderBrush
+import com.sipun.playora.core.ui.theme.rememberGlassCardTint
 
 @Composable
 internal fun AppearanceSectionCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
-        border = BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.18f),
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-    ) {
-        Column(content = content)
+    val cardShape = RoundedCornerShape(22.dp)
+    if (LocalLiquidGlassEnabled.current) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(cardShape)
+                .background(rememberGlassCardTint(), cardShape)
+                .border(0.85.dp, rememberGlassCardBorderBrush(), cardShape),
+            content = content,
+        )
+    } else {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = cardShape,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            ),
+            border = BorderStroke(
+                0.85.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        ) {
+            Column(content = content)
+        }
     }
 }
 
@@ -132,11 +149,10 @@ internal fun ThemeSelectionDialog(
     onSelect: (ThemeConfig, Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(28.dp),
         containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 0.dp,
         title = {
             Text(
                 text = stringResource(R.string.theme),
@@ -144,7 +160,7 @@ internal fun ThemeSelectionDialog(
                 color = MaterialTheme.colorScheme.onSurface,
             )
         },
-        text = {
+        content = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -404,13 +420,43 @@ internal fun CustomColorSelector(
                     inactiveTickColor = Color.Transparent,
                 ),
                 thumb = {
-                    Box(
-                        modifier = Modifier
-                            .width(6.dp)
-                            .height(34.dp)
-                            .background(Color.White, RoundedCornerShape(50))
-                            .border(0.5.dp, Color.Black.copy(alpha = 0.3f), RoundedCornerShape(50)),
-                    )
+                    if (LocalLiquidGlassEnabled.current) {
+                        val thumbInteraction = remember { MutableInteractionSource() }
+                        Box(
+                            modifier = Modifier
+                                .width(12.dp)
+                                .height(32.dp)
+                                .appGlassSurface(
+                                    shape = CircleShape,
+                                    clear = true,
+                                    tint = Color.White.copy(alpha = 0.65f),
+                                    interactive = true,
+                                    interactionSource = thumbInteraction,
+                                    fallbackBackground = Color.White,
+                                    fallbackBorder = BorderStroke(
+                                        0.75.dp,
+                                        Color.Black.copy(alpha = 0.25f),
+                                    ),
+                                )
+                                .border(
+                                    0.75.dp,
+                                    Color.White.copy(alpha = 0.80f),
+                                    CircleShape,
+                                ),
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .width(6.dp)
+                                .height(34.dp)
+                                .background(Color.White, RoundedCornerShape(50))
+                                .border(
+                                    0.5.dp,
+                                    Color.Black.copy(alpha = 0.3f),
+                                    RoundedCornerShape(50),
+                                ),
+                        )
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
             )

@@ -6,8 +6,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,14 +44,18 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalResources
@@ -75,7 +81,15 @@ import com.sipun.playora.core.ui.components.DestructiveRed
 import com.sipun.playora.core.ui.components.MediaQuickSettingsDialog
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.extensions.copy
+import com.sipun.playora.core.ui.theme.AppGlassBackdropBox
+import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
 import com.sipun.playora.core.ui.theme.PlayoraTheme
+import com.sipun.playora.core.ui.theme.appGlassBackdrop
+import com.sipun.playora.core.ui.theme.appGlassContainer
+import com.sipun.playora.core.ui.theme.appGlassSurface
+import com.sipun.playora.core.ui.theme.rememberGlassBarBorderStroke
+import com.sipun.playora.core.ui.theme.rememberGlassContentColor
 import com.sipun.playora.feature.videopicker.composables.CenterCircularProgressBar
 import com.sipun.playora.feature.videopicker.composables.MediaInfoDialog
 import com.sipun.playora.feature.videopicker.composables.SelectionAction
@@ -88,6 +102,8 @@ import com.sipun.playora.feature.videopicker.composables.privacy.PrivacyProgress
 import com.sipun.playora.feature.videopicker.composables.privacy.PrivacySettingsDialog
 import com.sipun.playora.feature.videopicker.state.SelectionItem
 import com.sipun.playora.feature.videopicker.state.rememberSelectionManager
+import io.github.itshedimisawi.vitro.rememberGlassBackdrop
+import io.github.itshedimisawi.vitro.rememberGlassEffectState
 
 @Composable
 fun PrivacyScreen(viewModel: PrivacyViewModel) {
@@ -187,39 +203,76 @@ private fun PrivacyPinContent(
     errorMessage: String = "",
     onBiometricAuthenticated: (() -> Unit)? = null,
 ) {
-    Scaffold(
-        topBar = {
-            AppTopAppBar(
-                title = "",
-                navigationIcon = {
-                    AppBackButton(onClick = onNavigateUp)
-                },
-            )
-        },
-        bottomBar = {
-            onBiometricAuthenticated?.let { onAuthenticated ->
-                PrivacyBiometricButton(
-                    onAuthenticated = onAuthenticated,
+    val liquidGlassEnabled = LocalLiquidGlassEnabled.current
+    val backdrop = rememberGlassBackdrop()
+    val containerColor = if (liquidGlassEnabled) {
+        MaterialTheme.colorScheme.background
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer
+    }
+
+    CompositionLocalProvider(
+        LocalGlassBackdrop provides if (liquidGlassEnabled) backdrop else null,
+    ) {
+        Scaffold(
+            topBar = {
+                AppTopAppBar(
+                    title = "",
+                    navigationIcon = {
+                        AppBackButton(onClick = onNavigateUp)
+                    },
+                )
+            },
+            bottomBar = {
+                onBiometricAuthenticated?.let { onAuthenticated ->
+                    PrivacyBiometricButton(
+                        onAuthenticated = onAuthenticated,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(
+                                horizontal = 24.dp,
+                                vertical = 8.dp,
+                            ),
+                    )
+                }
+            },
+            containerColor = containerColor,
+        ) { padding ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                val accent = MaterialTheme.colorScheme.primary
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(
-                            horizontal = 24.dp,
-                            vertical = 8.dp,
+                        .fillMaxSize()
+                        .appGlassBackdrop(backdrop, enabled = liquidGlassEnabled)
+                        .background(containerColor)
+                        .then(
+                            if (liquidGlassEnabled) {
+                                Modifier.background(
+                                    Brush.radialGradient(
+                                        colors = listOf(
+                                            accent.copy(alpha = 0.14f),
+                                            accent.copy(alpha = 0.04f),
+                                            Color.Transparent,
+                                        ),
+                                        radius = 900f,
+                                    ),
+                                )
+                            } else {
+                                Modifier
+                            },
                         ),
                 )
+                PinEntryContent(
+                    modifier = Modifier.padding(paddingValues = padding),
+                    title = title,
+                    description = description,
+                    pinErrorCount = pinErrorCount,
+                    errorMessage = errorMessage,
+                    onSubmit = onSubmit,
+                )
             }
-        },
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ) { padding ->
-        PinEntryContent(
-            modifier = Modifier.padding(paddingValues = padding),
-            title = title,
-            description = description,
-            pinErrorCount = pinErrorCount,
-            errorMessage = errorMessage,
-            onSubmit = onSubmit,
-        )
+        }
     }
 }
 
@@ -331,7 +384,6 @@ private fun PinEntryHeader(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun PrivacyGalleryContent(state: PrivacyUiState, onAction: (PrivacyAction) -> Unit) {
     val selectionManager = rememberSelectionManager()
@@ -342,63 +394,124 @@ private fun PrivacyGalleryContent(state: PrivacyUiState, onAction: (PrivacyActio
 
     val selectedCount = selectionManager.selectionItems.size
     val totalCount = state.hiddenVideos.size
+    val liquidGlassEnabled = LocalLiquidGlassEnabled.current
+    val backdrop = rememberGlassBackdrop()
 
     BackHandler(enabled = selectionManager.isInSelectionMode) {
         selectionManager.exitSelectionMode()
     }
 
-    Scaffold(
-        topBar = {
-            AppTopAppBar(
-                title = {
-                    val titleText =
-                        stringResource(R.string.hidden_videos).takeIf {
-                            !selectionManager.isInSelectionMode
-                        }
-                            ?: ""
-                    Text(
-                        text = titleText,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = 12.dp),
-                    )
-                },
-                navigationIcon = {
-                    if (selectionManager.isInSelectionMode) {
-                        Row(
-                            modifier = Modifier
-                                .clip(shape = CircleShape)
-                                .background(MaterialTheme.colorScheme.secondaryContainer)
-                                .clickable { selectionManager.exitSelectionMode() }
-                                .padding(8.dp)
-                                .padding(end = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Icon(
-                                imageVector = AppIcons.Close,
-                                contentDescription = stringResource(id = R.string.navigate_up),
+    CompositionLocalProvider(
+        LocalGlassBackdrop provides if (liquidGlassEnabled) backdrop else null,
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                AppTopAppBar(
+                    title = {
+                        val titleText =
+                            stringResource(R.string.hidden_videos).takeIf {
+                                !selectionManager.isInSelectionMode
+                            }
+                                ?: ""
+                        if (titleText.isNotEmpty()) {
+                            val titleGlassState = rememberGlassEffectState()
+                            val titleContentColor = rememberGlassContentColor(
+                                state = titleGlassState,
+                                fallback = MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
-                                text = stringResource(
-                                    R.string.m_n_selected,
-                                    selectedCount,
-                                    totalCount,
-                                ),
-                                style = MaterialTheme.typography.labelLarge,
+                                text = titleText,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                fontWeight = FontWeight.Bold,
+                                color = if (liquidGlassEnabled) {
+                                    titleContentColor
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                },
+                                modifier = Modifier
+                                    .padding(start = 12.dp)
+                                    .then(
+                                        if (liquidGlassEnabled) {
+                                            Modifier
+                                                .appGlassSurface(
+                                                    shape = CircleShape,
+                                                    state = titleGlassState,
+                                                )
+                                                .border(rememberGlassBarBorderStroke(), CircleShape)
+                                                .padding(
+                                                    horizontal = 14.dp,
+                                                    vertical = 6.dp,
+                                                )
+                                        } else {
+                                            Modifier
+                                        },
+                                    ),
                             )
                         }
-                    } else {
-                        AppBackButton(
-                            onClick = { onAction(PrivacyAction.NavigateUp) },
-                        )
-                    }
-                },
-                actions = {
-                    if (selectionManager.isInSelectionMode) {
-                        FilledTonalIconButton(
-                            onClick = {
+                    },
+                    navigationIcon = {
+                        if (selectionManager.isInSelectionMode) {
+                            val pillGlassState = rememberGlassEffectState()
+                            val pillInteractionSource = remember { MutableInteractionSource() }
+                            val pillContentColor = rememberGlassContentColor(
+                                state = pillGlassState,
+                                fallback = MaterialTheme.colorScheme.onSecondaryContainer,
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .appGlassSurface(
+                                        shape = CircleShape,
+                                        interactive = true,
+                                        state = pillGlassState,
+                                        interactionSource = pillInteractionSource,
+                                        fallbackBackground = MaterialTheme.colorScheme.secondaryContainer,
+                                    )
+                                    .let { mod ->
+                                        if (liquidGlassEnabled) {
+                                            mod.border(rememberGlassBarBorderStroke(), CircleShape)
+                                        } else {
+                                            mod
+                                        }
+                                    }
+                                    .clickable(
+                                        interactionSource = pillInteractionSource,
+                                        indication = if (liquidGlassEnabled) {
+                                            null
+                                        } else {
+                                            androidx.compose.material3.ripple()
+                                        },
+                                    ) { selectionManager.exitSelectionMode() }
+                                    .padding(8.dp)
+                                    .padding(end = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.Close,
+                                    contentDescription = stringResource(id = R.string.navigate_up),
+                                    tint = pillContentColor,
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.m_n_selected,
+                                        selectedCount,
+                                        totalCount,
+                                    ),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = pillContentColor,
+                                )
+                            }
+                        } else {
+                            AppBackButton(
+                                onClick = { onAction(PrivacyAction.NavigateUp) },
+                            )
+                        }
+                    },
+                    actions = {
+                        if (selectionManager.isInSelectionMode) {
+                            val toggleSelectAll = {
                                 if (selectedCount != totalCount) {
                                     state.hiddenVideos.forEach {
                                         selectionManager.selectVideo(video = it)
@@ -406,140 +519,261 @@ private fun PrivacyGalleryContent(state: PrivacyUiState, onAction: (PrivacyActio
                                 } else {
                                     selectionManager.clearSelection()
                                 }
-                            },
-                        ) {
-                            Icon(
-                                imageVector = if (selectedCount != totalCount) {
-                                    AppIcons.SelectAll
-                                } else {
-                                    AppIcons.DeselectAll
-                                },
-                                contentDescription = if (selectedCount != totalCount) {
-                                    stringResource(R.string.select_all)
-                                } else {
-                                    stringResource(R.string.deselect_all)
-                                },
-                            )
-                        }
-                    } else {
-                        IconButton(
-                            onClick = { showQuickSettings = true },
-                        ) {
-                            Icon(
-                                imageVector = AppIcons.Sensitivity,
-                                contentDescription = stringResource(R.string.quick_settings),
-                            )
-                        }
-                        IconButton(
-                            onClick = { showSettings = true },
-                        ) {
-                            Icon(
-                                imageVector = AppIcons.Settings,
-                                contentDescription = stringResource(R.string.privacy_settings),
-                            )
-                        }
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            PrivacySelectionActionsSheet(
-                show =
-                    selectionManager.isInSelectionMode &&
-                            selectionManager.selectionItems.isNotEmpty(),
-                onPlayAction = {
-                    onAction(PrivacyAction.PlaySelected(selectionManager.selectionItems))
-                    selectionManager.exitSelectionMode()
-                },
-                onInfoAction = {
-                    val selected = selectionManager.selectionItems.firstOrNull()
-                    val video = state.hiddenVideos.find {
-                        it.uriString == (selected as? SelectionItem.Video)?.uriString
-                    }
-                    if (video != null) onAction(PrivacyAction.ShowMediaInfo(video = video))
-                    selectionManager.exitSelectionMode()
-                },
-                showInfoAction = selectionManager.selectionItems.size == 1,
-                onUnhideAction = { showUnhideConfirmation = true },
-                onDeleteAction = { showDeleteConfirmation = true },
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = padding.calculateTopPadding())
-                .padding(start = padding.calculateStartPadding(LocalLayoutDirection.current))
-                .clip(
-                    shape = RoundedCornerShape(
-                        topStart = 24.dp,
-                        topEnd = 24.dp,
-                    ),
-                )
-                .background(MaterialTheme.colorScheme.background),
-        ) {
-            val updatedPadding = padding.copy(
-                top = 0.dp,
-                start = 0.dp,
-            )
-            when {
-                state.isLoading -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues = updatedPadding),
-                        contentAlignment = Alignment.Center,
-                    ) { CircularProgressIndicator() }
-                }
+                            }
+                            if (liquidGlassEnabled) {
+                                val selectGlassState = rememberGlassEffectState()
+                                val selectInteractionSource = remember { MutableInteractionSource() }
+                                val selectContentColor = rememberGlassContentColor(
+                                    state = selectGlassState,
+                                    fallback = MaterialTheme.colorScheme.onSecondaryContainer,
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .appGlassSurface(
+                                            shape = CircleShape,
+                                            interactive = true,
+                                            state = selectGlassState,
+                                            interactionSource = selectInteractionSource,
+                                        )
+                                        .border(rememberGlassBarBorderStroke(), CircleShape)
+                                        .clickable(
+                                            interactionSource = selectInteractionSource,
+                                            indication = null,
+                                            onClick = toggleSelectAll,
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = if (selectedCount != totalCount) {
+                                            AppIcons.SelectAll
+                                        } else {
+                                            AppIcons.DeselectAll
+                                        },
+                                        contentDescription = if (selectedCount != totalCount) {
+                                            stringResource(R.string.select_all)
+                                        } else {
+                                            stringResource(R.string.deselect_all)
+                                        },
+                                        tint = selectContentColor,
+                                    )
+                                }
+                            } else {
+                                FilledTonalIconButton(onClick = toggleSelectAll) {
+                                    Icon(
+                                        imageVector = if (selectedCount != totalCount) {
+                                            AppIcons.SelectAll
+                                        } else {
+                                            AppIcons.DeselectAll
+                                        },
+                                        contentDescription = if (selectedCount != totalCount) {
+                                            stringResource(R.string.select_all)
+                                        } else {
+                                            stringResource(R.string.deselect_all)
+                                        },
+                                    )
+                                }
+                            }
+                        } else if (liquidGlassEnabled) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(end = 4.dp)
+                                    .appGlassContainer(enabled = true),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                val quickInteraction = remember { MutableInteractionSource() }
+                                val quickState = rememberGlassEffectState()
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .appGlassSurface(
+                                            shape = CircleShape,
+                                            interactive = true,
+                                            state = quickState,
+                                            interactionSource = quickInteraction,
+                                        )
+                                        .border(rememberGlassBarBorderStroke(), CircleShape)
+                                        .clickable(
+                                            interactionSource = quickInteraction,
+                                            indication = null,
+                                            onClick = { showQuickSettings = true },
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = AppIcons.Sensitivity,
+                                        contentDescription = stringResource(R.string.quick_settings),
+                                        tint = rememberGlassContentColor(quickState),
+                                    )
+                                }
 
-                state.hiddenVideos.isEmpty() -> {
-                    PrivacyEmptyState(contentPadding = updatedPadding)
-                }
-
-                else -> {
-                    LazyVerticalGrid(
-                        modifier = Modifier.fillMaxSize(),
-                        columns = if (state.preferences.mediaLayoutMode == MediaLayoutMode.GRID) {
-                            GridCells.Adaptive(minSize = 130.dp)
+                                val settingsInteraction = remember { MutableInteractionSource() }
+                                val settingsState = rememberGlassEffectState()
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .appGlassSurface(
+                                            shape = CircleShape,
+                                            interactive = true,
+                                            state = settingsState,
+                                            interactionSource = settingsInteraction,
+                                        )
+                                        .border(rememberGlassBarBorderStroke(), CircleShape)
+                                        .clickable(
+                                            interactionSource = settingsInteraction,
+                                            indication = null,
+                                            onClick = { showSettings = true },
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = AppIcons.Settings,
+                                        contentDescription = stringResource(R.string.privacy_settings),
+                                        tint = rememberGlassContentColor(settingsState),
+                                    )
+                                }
+                            }
                         } else {
-                            GridCells.Fixed(count = 1)
-                        },
-                        contentPadding = PaddingValues(
-                            start = 8.dp,
-                            end = 8.dp,
-                            top = updatedPadding.calculateTopPadding() + 8.dp,
-                            bottom = updatedPadding.calculateBottomPadding() + 8.dp,
-                        ),
-                    ) {
-                        itemsIndexed(
-                            items = state.hiddenVideos,
-                            key = { _, video -> video.uriString },
-                        ) { _, video ->
-                            val selected = selectionManager.isVideoSelected(video = video)
-                            VideoItem(
-                                modifier = Modifier.padding(2.dp),
-                                video = video,
-                                isRecentlyPlayedVideo = false,
-                                preferences = state.preferences,
-                                selected = selected,
-                                onClick = {
-                                    if (selectionManager.isInSelectionMode) {
+                            IconButton(
+                                onClick = { showQuickSettings = true },
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.Sensitivity,
+                                    contentDescription = stringResource(R.string.quick_settings),
+                                )
+                            }
+                            IconButton(
+                                onClick = { showSettings = true },
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.Settings,
+                                    contentDescription = stringResource(R.string.privacy_settings),
+                                )
+                            }
+                        }
+                    },
+                )
+            },
+            bottomBar = {
+                PrivacySelectionActionsSheet(
+                    show =
+                        selectionManager.isInSelectionMode &&
+                                selectionManager.selectionItems.isNotEmpty(),
+                    onPlayAction = {
+                        onAction(PrivacyAction.PlaySelected(selectionManager.selectionItems))
+                        selectionManager.exitSelectionMode()
+                    },
+                    onInfoAction = {
+                        val selected = selectionManager.selectionItems.firstOrNull()
+                        val video = state.hiddenVideos.find {
+                            it.uriString == (selected as? SelectionItem.Video)?.uriString
+                        }
+                        if (video != null) onAction(PrivacyAction.ShowMediaInfo(video = video))
+                        selectionManager.exitSelectionMode()
+                    },
+                    showInfoAction = selectionManager.selectionItems.size == 1,
+                    onUnhideAction = { showUnhideConfirmation = true },
+                    onDeleteAction = { showDeleteConfirmation = true },
+                )
+            },
+            containerColor = if (liquidGlassEnabled) {
+                MaterialTheme.colorScheme.background
+            } else {
+                MaterialTheme.colorScheme.surfaceContainer
+            },
+        ) { padding ->
+            val galleryContent: @Composable () -> Unit = {
+                val updatedPadding = padding.copy(
+                    top = if (liquidGlassEnabled) padding.calculateTopPadding() else 0.dp,
+                    start = 0.dp,
+                )
+                when {
+                    state.isLoading -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues = updatedPadding),
+                            contentAlignment = Alignment.Center,
+                        ) { CircularProgressIndicator() }
+                    }
+
+                    state.hiddenVideos.isEmpty() -> {
+                        PrivacyEmptyState(contentPadding = updatedPadding)
+                    }
+
+                    else -> {
+                        LazyVerticalGrid(
+                            modifier = Modifier.fillMaxSize(),
+                            columns = if (state.preferences.mediaLayoutMode == MediaLayoutMode.GRID) {
+                                GridCells.Adaptive(minSize = 130.dp)
+                            } else {
+                                GridCells.Fixed(count = 1)
+                            },
+                            contentPadding = PaddingValues(
+                                start = 8.dp,
+                                end = 8.dp,
+                                top = updatedPadding.calculateTopPadding() + 8.dp,
+                                bottom = updatedPadding.calculateBottomPadding() + 8.dp,
+                            ),
+                        ) {
+                            itemsIndexed(
+                                items = state.hiddenVideos,
+                                key = { _, video -> video.uriString },
+                            ) { _, video ->
+                                val selected = selectionManager.isVideoSelected(video = video)
+                                VideoItem(
+                                    modifier = Modifier.padding(2.dp),
+                                    video = video,
+                                    isRecentlyPlayedVideo = false,
+                                    preferences = state.preferences,
+                                    selected = selected,
+                                    onClick = {
+                                        if (selectionManager.isInSelectionMode) {
+                                            selectionManager.toggleVideoSelection(video = video)
+                                        } else {
+                                            onAction(PrivacyAction.PlayVideo(video = video))
+                                        }
+                                    },
+                                    onLongClick = {
                                         selectionManager.toggleVideoSelection(video = video)
-                                    } else {
-                                        onAction(PrivacyAction.PlayVideo(video = video))
-                                    }
-                                },
-                                onLongClick = {
-                                    selectionManager.toggleVideoSelection(video = video)
-                                },
-                            )
+                                    },
+                                )
+                            }
                         }
                     }
                 }
             }
+
+            if (liquidGlassEnabled) {
+                AppGlassBackdropBox(
+                    backdrop = backdrop,
+                    enabled = true,
+                    pageColor = MaterialTheme.colorScheme.background,
+                    topPadding = padding.calculateTopPadding(),
+                    bottomPadding = padding.calculateBottomPadding(),
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    galleryContent()
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = padding.calculateTopPadding())
+                        .padding(start = padding.calculateStartPadding(LocalLayoutDirection.current))
+                        .clip(
+                            shape = RoundedCornerShape(
+                                topStart = 24.dp,
+                                topEnd = 24.dp,
+                            ),
+                        )
+                        .background(MaterialTheme.colorScheme.background),
+                ) {
+                    galleryContent()
+                }
+            }
         }
-    }
 
     if (showSettings) {
         PrivacySettingsDialog(
@@ -636,6 +870,8 @@ private fun PrivacyGalleryContent(state: PrivacyUiState, onAction: (PrivacyActio
             onDismiss = { onAction(PrivacyAction.DismissMediaInfo) },
         )
     }
+        }
+    }
 }
 
 @Composable
@@ -702,25 +938,52 @@ private fun PrivacySelectionActionsSheet(
         enter = slideInVertically { it },
         exit = slideOutVertically { it },
     ) {
-        val shape = MaterialTheme.shapes.largeIncreased.copy(
-            bottomStart = ZeroCornerSize,
-            bottomEnd = ZeroCornerSize,
+        val useGlass = LocalLiquidGlassEnabled.current && LocalGlassBackdrop.current != null
+        val shape = if (useGlass) {
+            RoundedCornerShape(24.dp)
+        } else {
+            MaterialTheme.shapes.largeIncreased.copy(
+                bottomStart = ZeroCornerSize,
+                bottomEnd = ZeroCornerSize,
+            )
+        }
+        val sheetGlassState = rememberGlassEffectState()
+        val actionTint = rememberGlassContentColor(
+            state = sheetGlassState,
+            fallback = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                        shape = shape,
-                    )
-                    .clip(shape = shape)
-                    .horizontalScroll(state = rememberScrollState())
-                    .navigationBarsPadding()
-                    .padding(
-                        horizontal = 8.dp,
-                        vertical = 12.dp,
+                    .then(
+                        if (useGlass) {
+                            Modifier
+                                .navigationBarsPadding()
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                                .appGlassSurface(
+                                    shape = shape,
+                                    state = sheetGlassState,
+                                    fallbackBackground = MaterialTheme.colorScheme.surfaceContainer,
+                                )
+                                .border(rememberGlassBarBorderStroke(), shape)
+                                .horizontalScroll(state = rememberScrollState())
+                                .padding(horizontal = 8.dp, vertical = 10.dp)
+                        } else {
+                            Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceContainer,
+                                    shape = shape,
+                                )
+                                .clip(shape = shape)
+                                .horizontalScroll(state = rememberScrollState())
+                                .navigationBarsPadding()
+                                .padding(
+                                    horizontal = 8.dp,
+                                    vertical = 12.dp,
+                                )
+                        },
                     ),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -728,18 +991,21 @@ private fun PrivacySelectionActionsSheet(
                 SelectionAction(
                     imageVector = AppIcons.Play,
                     title = stringResource(R.string.play),
+                    tint = actionTint,
                     onClick = onPlayAction,
                 )
                 if (showInfoAction) {
                     SelectionAction(
                         imageVector = AppIcons.Info,
                         title = stringResource(R.string.info),
+                        tint = actionTint,
                         onClick = onInfoAction,
                     )
                 }
                 SelectionAction(
                     imageVector = AppIcons.Lock,
                     title = stringResource(R.string.unhide),
+                    tint = actionTint,
                     onClick = onUnhideAction,
                 )
                 SelectionAction(

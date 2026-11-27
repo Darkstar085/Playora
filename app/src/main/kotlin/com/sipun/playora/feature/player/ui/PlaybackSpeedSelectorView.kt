@@ -10,6 +10,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -35,12 +36,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +56,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import com.sipun.playora.core.ui.theme.AppDarkGlassSheet
+import com.sipun.playora.core.ui.theme.AppGlassSlider
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
+import com.sipun.playora.core.ui.theme.appGlassSurface
 import com.sipun.playora.feature.player.state.rememberPlaybackParametersState
 import java.util.Locale
 import kotlin.math.abs
@@ -76,6 +77,7 @@ fun PlaybackSpeedSelectorView(
     val playbackParametersState = rememberPlaybackParametersState(player = player)
     val configuration = LocalConfiguration.current
     val isPortrait = configuration.isPortrait
+    val useGlass = LocalLiquidGlassEnabled.current
 
     val minValue = 0.25f
     val maxValue = 4.0f
@@ -160,28 +162,21 @@ fun PlaybackSpeedSelectorView(
                 ) + fadeOut(animationSpec = tween(180)),
                 modifier = Modifier.align(Alignment.BottomCenter),
             ) {
-                Surface(
+                AppDarkGlassSheet(
                     shape = RoundedCornerShape(24.dp),
-                    color = Color(0xF012171E),
-                    border = BorderStroke(1.dp, Color(0xFF26323D)),
                     shadowElevation = 14.dp,
-                    modifier = modifier
-                        .then(
-                            if (isPortrait) {
-                                Modifier
-                                    .padding(bottom = 32.dp, start = 16.dp, end = 16.dp)
-                                    .fillMaxWidth()
-                                    .widthIn(max = 440.dp)
-                            } else {
-                                Modifier
-                                    .padding(bottom = 24.dp)
-                                    .width(520.dp)
-                            }
-                        )
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                        ) {},
+                    modifier = modifier.then(
+                        if (isPortrait) {
+                            Modifier
+                                .padding(bottom = 32.dp, start = 16.dp, end = 16.dp)
+                                .fillMaxWidth()
+                                .widthIn(max = 440.dp)
+                        } else {
+                            Modifier
+                                .padding(bottom = 24.dp)
+                                .width(520.dp)
+                        },
+                    ),
                 ) {
                     Column(
                         modifier = Modifier
@@ -197,12 +192,34 @@ fun PlaybackSpeedSelectorView(
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             // Minus Button
+                            val minusInteraction = remember { MutableInteractionSource() }
                             Box(
                                 modifier = Modifier
                                     .size(44.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFF202730))
-                                    .clickable {
+                                    .then(
+                                        if (useGlass) {
+                                            Modifier
+                                                .appGlassSurface(
+                                                    shape = CircleShape,
+                                                    clear = true,
+                                                    tint = Color.White.copy(alpha = 0.08f),
+                                                    dimmed = 0.22f,
+                                                    forceDark = true,
+                                                    interactive = true,
+                                                    interactionSource = minusInteraction,
+                                                    fallbackBackground = Color(0xFF202730),
+                                                )
+                                                .border(0.75.dp, Color.White.copy(alpha = 0.14f), CircleShape)
+                                        } else {
+                                            Modifier
+                                                .clip(CircleShape)
+                                                .background(Color(0xFF202730))
+                                        },
+                                    )
+                                    .clickable(
+                                        interactionSource = minusInteraction,
+                                        indication = null,
+                                    ) {
                                         val newSpeed =
                                             ((playbackParametersState.speed - stepSize) * 100).roundToInt() / 100f
                                         val clamped = newSpeed.coerceAtLeast(minValue)
@@ -220,55 +237,94 @@ fun PlaybackSpeedSelectorView(
                             }
 
                             // Center Speed Pill
-                            Surface(
-                                shape = RoundedCornerShape(20.dp),
-                                color = Color(0xFF202730),
-                                border = BorderStroke(1.dp, Color(0xFF2E3844)),
-                                modifier = Modifier
+                            val speedPillInteraction = remember { MutableInteractionSource() }
+                            val speedPillModifier = if (useGlass) {
+                                Modifier
+                                    .appGlassSurface(
+                                        shape = RoundedCornerShape(20.dp),
+                                        clear = true,
+                                        tint = Color.White.copy(alpha = 0.10f),
+                                        dimmed = 0.20f,
+                                        forceDark = true,
+                                        interactive = true,
+                                        interactionSource = speedPillInteraction,
+                                        fallbackBackground = Color(0xFF202730),
+                                        fallbackBorder = BorderStroke(1.dp, Color(0xFF2E3844)),
+                                    )
+                                    .border(0.75.dp, Color.White.copy(alpha = 0.16f), RoundedCornerShape(20.dp))
+                            } else {
+                                Modifier
                                     .clip(RoundedCornerShape(20.dp))
-                                    .clickable {
+                                    .background(Color(0xFF202730))
+                                    .border(1.dp, Color(0xFF2E3844), RoundedCornerShape(20.dp))
+                            }
+                            Row(
+                                modifier = speedPillModifier
+                                    .clickable(
+                                        interactionSource = speedPillInteraction,
+                                        indication = null,
+                                    ) {
                                         customSpeedText = String.format(
                                             Locale.US,
                                             "%.2f",
-                                            playbackParametersState.speed
+                                            playbackParametersState.speed,
                                         )
                                         showCustomSpeedDialog = true
-                                    },
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(
+                                    }
+                                    .padding(
                                         horizontal = 24.dp,
-                                        vertical = 8.dp
+                                        vertical = 8.dp,
                                     ),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    Text(
-                                        text = String.format(
-                                            Locale.US,
-                                            "%.2fx",
-                                            playbackParametersState.speed
-                                        ),
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 17.sp,
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Rounded.Edit,
-                                        contentDescription = "Edit speed",
-                                        tint = Color(0xFF9EABB8),
-                                        modifier = Modifier.size(15.dp),
-                                    )
-                                }
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Text(
+                                    text = String.format(
+                                        Locale.US,
+                                        "%.2fx",
+                                        playbackParametersState.speed,
+                                    ),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 17.sp,
+                                )
+                                Icon(
+                                    imageVector = Icons.Rounded.Edit,
+                                    contentDescription = "Edit speed",
+                                    tint = Color(0xFF9EABB8),
+                                    modifier = Modifier.size(15.dp),
+                                )
                             }
 
                             // Plus Button
+                            val plusInteraction = remember { MutableInteractionSource() }
                             Box(
                                 modifier = Modifier
                                     .size(44.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFF202730))
-                                    .clickable {
+                                    .then(
+                                        if (useGlass) {
+                                            Modifier
+                                                .appGlassSurface(
+                                                    shape = CircleShape,
+                                                    clear = true,
+                                                    tint = Color.White.copy(alpha = 0.08f),
+                                                    dimmed = 0.22f,
+                                                    forceDark = true,
+                                                    interactive = true,
+                                                    interactionSource = plusInteraction,
+                                                    fallbackBackground = Color(0xFF202730),
+                                                )
+                                                .border(0.75.dp, Color.White.copy(alpha = 0.14f), CircleShape)
+                                        } else {
+                                            Modifier
+                                                .clip(CircleShape)
+                                                .background(Color(0xFF202730))
+                                        },
+                                    )
+                                    .clickable(
+                                        interactionSource = plusInteraction,
+                                        indication = null,
+                                    ) {
                                         val newSpeed =
                                             ((playbackParametersState.speed + stepSize) * 100).roundToInt() / 100f
                                         val clamped = newSpeed.coerceAtMost(maxValue)
@@ -300,27 +356,21 @@ fun PlaybackSpeedSelectorView(
                                 val tickValues = listOf(0.25f, 1.0f, 2.0f, 3.0f, 4.0f)
 
                                 // Slider
-                                Slider(
-                                    state = rememberSliderState(
-                                        value = playbackParametersState.speed.coerceIn(
-                                            minValue,
-                                            maxValue
-                                        ),
-                                        steps = 0, trackRange = minValue..maxValue
+                                AppGlassSlider(
+                                    value = playbackParametersState.speed.coerceIn(
+                                        minValue,
+                                        maxValue,
                                     ),
+                                    valueRange = minValue..maxValue,
                                     onValueChange = {
                                         val rounded = (it * 100).roundToInt() / 100f
                                         playbackParametersState.setPlaybackSpeed(rounded)
                                         hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     },
+                                    forceDark = true,
+                                    activeTrackColor = Color(0xFF1B88F5),
+                                    inactiveTrackColor = Color(0xFF2A3542),
                                     modifier = Modifier.fillMaxWidth(),
-                                    enabled = true,
-                                    onValueChangeFinished = {},
-                                    colors = SliderDefaults.colors(
-                                        thumbColor = Color.White,
-                                        activeTrackColor = Color(0xFF1B88F5),
-                                        inactiveTrackColor = Color(0xFF2A3542),
-                                    ),
                                 )
                                 // Tick dots on track
                                 Canvas(
@@ -371,33 +421,60 @@ fun PlaybackSpeedSelectorView(
                         ) {
                             presets.forEach { preset ->
                                 val isSelected = abs(playbackParametersState.speed - preset) < 0.03f
+                                val presetInteraction = remember { MutableInteractionSource() }
+                                val presetShape = RoundedCornerShape(14.dp)
+                                val presetModifier = if (useGlass) {
+                                    Modifier
+                                        .appGlassSurface(
+                                            shape = presetShape,
+                                            clear = true,
+                                            tint = if (isSelected) {
+                                                Color(0xFF1B88F5).copy(alpha = 0.72f)
+                                            } else {
+                                                Color.White.copy(alpha = 0.06f)
+                                            },
+                                            dimmed = if (isSelected) 0.14f else 0.22f,
+                                            forceDark = true,
+                                            interactive = true,
+                                            interactionSource = presetInteraction,
+                                            fallbackBackground = if (isSelected) Color(0xFF1B88F5) else Color.Transparent,
+                                        )
+                                        .border(
+                                            width = 0.75.dp,
+                                            color = if (isSelected) {
+                                                Color.White.copy(alpha = 0.30f)
+                                            } else {
+                                                Color.White.copy(alpha = 0.10f)
+                                            },
+                                            shape = presetShape,
+                                        )
+                                } else {
+                                    Modifier
+                                        .clip(presetShape)
+                                        .background(if (isSelected) Color(0xFF1B88F5) else Color.Transparent)
+                                }
 
-                                Surface(
-                                    shape = RoundedCornerShape(14.dp),
-                                    color = if (isSelected) Color(0xFF1B88F5) else Color.Transparent,
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(14.dp))
-                                        .clickable {
+                                Box(
+                                    modifier = presetModifier
+                                        .clickable(
+                                            interactionSource = presetInteraction,
+                                            indication = null,
+                                        ) {
                                             playbackParametersState.setPlaybackSpeed(preset)
                                             hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                        },
-                                ) {
-                                    Box(
-                                        modifier = Modifier.padding(
+                                        }
+                                        .padding(
                                             horizontal = 14.dp,
-                                            vertical = 6.dp
+                                            vertical = 6.dp,
                                         ),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Text(
-                                            text = "${preset}x",
-                                            color = if (isSelected) Color.White else Color(
-                                                0xFF9EABB8
-                                            ),
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                            fontSize = 13.sp,
-                                        )
-                                    }
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        text = "${preset}x",
+                                        color = if (isSelected) Color.White else Color(0xFF9EABB8),
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        fontSize = 13.sp,
+                                    )
                                 }
                             }
                         }

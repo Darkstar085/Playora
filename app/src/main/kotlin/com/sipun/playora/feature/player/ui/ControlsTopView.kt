@@ -78,7 +78,11 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.sipun.playora.R
 import com.sipun.playora.core.ui.extensions.copy
+import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
 import com.sipun.playora.core.ui.theme.PlayoraTheme
+import com.sipun.playora.core.ui.theme.appGlassContainer
+import com.sipun.playora.core.ui.theme.appGlassSurface
 import com.sipun.playora.feature.player.buttons.LoopButton
 import com.sipun.playora.feature.player.buttons.PlayerButton
 import com.sipun.playora.feature.player.buttons.PlayerButtonBlackAlpha
@@ -129,10 +133,14 @@ fun BatteryAndClockView(modifier: Modifier = Modifier) {
         }
     }
 
-    Surface(
-        color = PlayerButtonBlackAlpha,
-        shape = CircleShape,
-        modifier = modifier,
+    androidx.compose.foundation.layout.Box(
+        modifier = modifier.appGlassSurface(
+            shape = CircleShape,
+            clear = true,
+            dimmed = 0.25f,
+            forceDark = true,
+            fallbackBackground = PlayerButtonBlackAlpha,
+        ),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -307,6 +315,7 @@ fun ControlsTopView(
     ).asPaddingValues()
     val decoderDescription = stringResource(R.string.select_decoders)
     val extraTopPadding = if (systemBarsPadding.calculateTopPadding() == 0.dp) 16.dp else 0.dp
+    val useGlass = LocalLiquidGlassEnabled.current && LocalGlassBackdrop.current != null
 
     Column(
         modifier = modifier
@@ -314,8 +323,8 @@ fun ControlsTopView(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color.Black.copy(alpha = 0.75f),
-                        Color.Black.copy(alpha = 0.45f),
+                        Color.Black.copy(alpha = if (useGlass) 0.55f else 0.75f),
+                        Color.Black.copy(alpha = if (useGlass) 0.28f else 0.45f),
                         Color.Transparent,
                     ),
                 ),
@@ -359,41 +368,47 @@ fun ControlsTopView(
                 Spacer(modifier = Modifier.weight(1f))
             }
 
-            BatteryAndClockView()
+            Row(
+                modifier = Modifier.appGlassContainer(enabled = useGlass),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                BatteryAndClockView()
 
-            PlayerButton(
-                modifier = Modifier.size(40.dp),
-                onClick = onAudioClick,
-                containerColor = PlayerButtonBlackAlpha,
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Audiotrack,
-                    contentDescription = null,
-                )
-            }
-            PlayerButton(
-                modifier = Modifier.size(40.dp),
-                onClick = onSubtitleClick,
-                containerColor = PlayerButtonBlackAlpha,
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Subtitles,
-                    contentDescription = null,
-                )
-            }
-            PlayerButton(
-                modifier = Modifier
-                    .semantics { contentDescription = decoderDescription }
-                    .focusRequester(focusRequester = firstControlFocusRequester),
-                onClick = onDecoderClick,
-                containerColor = PlayerButtonBlackAlpha,
-                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-            ) {
-                Text(
-                    text = stringResource((videoDecoderMode ?: DecoderMode.HARDWARE).labelRes),
-                    style = MaterialTheme.typography.labelLarge,
-                    maxLines = 1,
-                )
+                PlayerButton(
+                    modifier = Modifier.size(40.dp),
+                    onClick = onAudioClick,
+                    containerColor = PlayerButtonBlackAlpha,
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Audiotrack,
+                        contentDescription = null,
+                    )
+                }
+                PlayerButton(
+                    modifier = Modifier.size(40.dp),
+                    onClick = onSubtitleClick,
+                    containerColor = PlayerButtonBlackAlpha,
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Subtitles,
+                        contentDescription = null,
+                    )
+                }
+                PlayerButton(
+                    modifier = Modifier
+                        .semantics { contentDescription = decoderDescription }
+                        .focusRequester(focusRequester = firstControlFocusRequester),
+                    onClick = onDecoderClick,
+                    containerColor = PlayerButtonBlackAlpha,
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                ) {
+                    Text(
+                        text = stringResource((videoDecoderMode ?: DecoderMode.HARDWARE).labelRes),
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                    )
+                }
             }
         }
 
@@ -403,7 +418,8 @@ fun ControlsTopView(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 6.dp),
+                .padding(top = 6.dp)
+                .appGlassContainer(enabled = useGlass),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(if (isLandscape) 12.dp else 8.dp),
         ) {

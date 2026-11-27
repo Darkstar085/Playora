@@ -1,6 +1,7 @@
 ﻿package com.sipun.playora.settings.screens.gesture
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,11 +12,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -40,9 +39,14 @@ import com.sipun.playora.core.ui.components.RadioTextButton
 import com.sipun.playora.core.ui.components.ResetIconButton
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.preview.DayNightPreview
+import com.sipun.playora.core.ui.theme.AppGlassBackdropBox
+import com.sipun.playora.core.ui.theme.AppGlassSlider
+import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
 import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.settings.composables.OptionsDialog
 import com.sipun.playora.settings.extensions.name
+import io.github.itshedimisawi.vitro.rememberGlassBackdrop
 
 @Composable
 fun GesturePreferencesScreen(viewModel: GesturePreferencesViewModel) {
@@ -59,199 +63,216 @@ private fun GesturePreferencesScreenContent(
     state: GesturePreferencesUiState,
     onAction: (GesturePreferencesUiEvent) -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            AppTopAppBar(
-                title = stringResource(id = R.string.gestures),
-                navigationIcon = {
-                    AppBackButton(onClick = { onAction(GesturePreferencesUiEvent.NavigateUp) })
-                },
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(state = rememberScrollState())
-                .padding(paddingValues = innerPadding)
-                .padding(horizontal = 16.dp),
-        ) {
-            ListSectionTitle(text = stringResource(id = R.string.gestures))
-            Column(
-                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
-            ) {
-                PreferenceSwitch(
-                    title = stringResource(id = R.string.seek_gesture),
-                    description = stringResource(id = R.string.seek_gesture_description),
-                    icon = AppIcons.SwipeHorizontal,
-                    isChecked = state.preferences.useSeekControls,
-                    onClick = { onAction(GesturePreferencesUiEvent.ToggleUseSeekControls) },
-                    isFirstItem = true,
-                )
-                PreferenceSwitch(
-                    title = stringResource(id = R.string.brightness_gesture),
-                    description = stringResource(id = R.string.brightness_gesture_description),
-                    icon = AppIcons.SwipeVertical,
-                    isChecked = state.preferences.enableBrightnessSwipeGesture,
-                    onClick = {
-                        onAction(GesturePreferencesUiEvent.ToggleEnableBrightnessSwipeGesture)
-                    },
-                )
-                PreferenceSwitch(
-                    title = stringResource(id = R.string.volume_gesture),
-                    description = stringResource(id = R.string.volume_gesture_description),
-                    icon = AppIcons.SwipeVertical,
-                    isChecked = state.preferences.enableVolumeSwipeGesture,
-                    onClick = {
-                        onAction(GesturePreferencesUiEvent.ToggleEnableVolumeSwipeGesture)
-                    },
-                )
-                PreferenceSwitch(
-                    title = stringResource(id = R.string.zoom_gesture),
-                    description = stringResource(id = R.string.zoom_gesture_description),
-                    icon = AppIcons.Pinch,
-                    isChecked = state.preferences.useZoomControls,
-                    onClick = { onAction(GesturePreferencesUiEvent.ToggleUseZoomControls) },
-                )
-                PreferenceSwitchWithDivider(
-                    title = stringResource(id = R.string.double_tap),
-                    description = stringResource(id = R.string.double_tap_description),
-                    icon = AppIcons.DoubleTap,
-                    isChecked = (state.preferences.doubleTapGesture != DoubleTapGesture.NONE),
-                    onChecked = { onAction(GesturePreferencesUiEvent.ToggleDoubleTapGesture) },
-                    onClick = {
-                        onAction(
-                            GesturePreferencesUiEvent.ShowDialog(
-                                value = GesturePreferenceDialog.DoubleTapDialog,
-                            ),
-                        )
-                    },
-                )
-                PreferenceSwitchWithDivider(
-                    title = stringResource(id = R.string.long_press_gesture),
-                    description = stringResource(
-                        id = R.string.long_press_gesture_desc,
-                        state.preferences.longPressControlsSpeed,
-                    ),
-                    icon = AppIcons.Tap,
-                    isChecked = state.preferences.useLongPressControls,
-                    onChecked = { onAction(GesturePreferencesUiEvent.ToggleUseLongPressControls) },
-                    onClick = {
-                        onAction(
-                            GesturePreferencesUiEvent.ShowDialog(
-                                value = GesturePreferenceDialog.LongPressControlsSpeedDialog,
-                            ),
-                        )
-                    },
-                )
-                PreferenceSlider(
-                    title = stringResource(R.string.seek_increment),
-                    description = stringResource(
-                        R.string.seconds,
-                        state.preferences.seekIncrement,
-                    ),
-                    isLastItem = true,
-                    icon = AppIcons.Replay,
-                    value = state.preferences.seekIncrement.toFloat(),
-                    valueRange = 1.0f..60.0f,
-                    onValueChange = {
-                        onAction(GesturePreferencesUiEvent.UpdateSeekIncrement(it.toInt()))
-                    },
-                    onReset = {
-                        onAction(
-                            GesturePreferencesUiEvent.UpdateSeekIncrement(
-                                PlayerPreferences.DEFAULT_SEEK_INCREMENT,
-                            ),
-                        )
-                    },
-                    trailingContent = {
-                        ResetIconButton(
-                            onClick = {
-                                onAction(
-                                    GesturePreferencesUiEvent.UpdateSeekIncrement(
-                                        PlayerPreferences.DEFAULT_SEEK_INCREMENT,
-                                    ),
-                                )
-                            },
-                            contentDescription = stringResource(
-                                id = R.string.reset_seek_increment,
-                            ),
-                        )
-                    },
-                )
-            }
-        }
+    val liquidGlassEnabled = LocalLiquidGlassEnabled.current
+    val backdrop = rememberGlassBackdrop()
+    val containerColor = if (liquidGlassEnabled) {
+        MaterialTheme.colorScheme.background
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer
+    }
 
-        state.showDialog?.let { showDialog ->
-            when (showDialog) {
-                GesturePreferenceDialog.DoubleTapDialog -> {
-                    OptionsDialog(
-                        text = stringResource(id = R.string.double_tap),
-                        onDismissClick = {
-                            onAction(GesturePreferencesUiEvent.ShowDialog(value = null))
+    CompositionLocalProvider(
+        LocalGlassBackdrop provides if (liquidGlassEnabled) backdrop else null,
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                topBar = {
+                    AppTopAppBar(
+                        title = stringResource(id = R.string.gestures),
+                        navigationIcon = {
+                            AppBackButton(onClick = { onAction(GesturePreferencesUiEvent.NavigateUp) })
                         },
+                    )
+                },
+                containerColor = containerColor,
+            ) { innerPadding ->
+                AppGlassBackdropBox(
+                    backdrop = backdrop,
+                    enabled = liquidGlassEnabled,
+                    pageColor = containerColor,
+                    topPadding = innerPadding.calculateTopPadding(),
+                    bottomPadding = innerPadding.calculateBottomPadding(),
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(state = rememberScrollState())
+                            .padding(paddingValues = innerPadding)
+                            .padding(horizontal = 16.dp),
                     ) {
-                        items(DoubleTapGesture.entries.toTypedArray()) {
-                            RadioTextButton(
-                                text = it.name(),
-                                selected = (it == state.preferences.doubleTapGesture),
+                        ListSectionTitle(text = stringResource(id = R.string.gestures))
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+                        ) {
+                            PreferenceSwitch(
+                                title = stringResource(id = R.string.seek_gesture),
+                                description = stringResource(id = R.string.seek_gesture_description),
+                                icon = AppIcons.SwipeHorizontal,
+                                isChecked = state.preferences.useSeekControls,
+                                onClick = { onAction(GesturePreferencesUiEvent.ToggleUseSeekControls) },
+                                isFirstItem = true,
+                            )
+                            PreferenceSwitch(
+                                title = stringResource(id = R.string.brightness_gesture),
+                                description = stringResource(id = R.string.brightness_gesture_description),
+                                icon = AppIcons.SwipeVertical,
+                                isChecked = state.preferences.enableBrightnessSwipeGesture,
+                                onClick = {
+                                    onAction(GesturePreferencesUiEvent.ToggleEnableBrightnessSwipeGesture)
+                                },
+                            )
+                            PreferenceSwitch(
+                                title = stringResource(id = R.string.volume_gesture),
+                                description = stringResource(id = R.string.volume_gesture_description),
+                                icon = AppIcons.SwipeVertical,
+                                isChecked = state.preferences.enableVolumeSwipeGesture,
+                                onClick = {
+                                    onAction(GesturePreferencesUiEvent.ToggleEnableVolumeSwipeGesture)
+                                },
+                            )
+                            PreferenceSwitch(
+                                title = stringResource(id = R.string.zoom_gesture),
+                                description = stringResource(id = R.string.zoom_gesture_description),
+                                icon = AppIcons.Pinch,
+                                isChecked = state.preferences.useZoomControls,
+                                onClick = { onAction(GesturePreferencesUiEvent.ToggleUseZoomControls) },
+                            )
+                            PreferenceSwitchWithDivider(
+                                title = stringResource(id = R.string.double_tap),
+                                description = stringResource(id = R.string.double_tap_description),
+                                icon = AppIcons.DoubleTap,
+                                isChecked = (state.preferences.doubleTapGesture != DoubleTapGesture.NONE),
+                                onChecked = { onAction(GesturePreferencesUiEvent.ToggleDoubleTapGesture) },
                                 onClick = {
                                     onAction(
-                                        GesturePreferencesUiEvent.UpdateDoubleTapGesture(
-                                            gesture = it,
+                                        GesturePreferencesUiEvent.ShowDialog(
+                                            value = GesturePreferenceDialog.DoubleTapDialog,
                                         ),
                                     )
-                                    onAction(GesturePreferencesUiEvent.ShowDialog(value = null))
+                                },
+                            )
+                            PreferenceSwitchWithDivider(
+                                title = stringResource(id = R.string.long_press_gesture),
+                                description = stringResource(
+                                    id = R.string.long_press_gesture_desc,
+                                    state.preferences.longPressControlsSpeed,
+                                ),
+                                icon = AppIcons.Tap,
+                                isChecked = state.preferences.useLongPressControls,
+                                onChecked = { onAction(GesturePreferencesUiEvent.ToggleUseLongPressControls) },
+                                onClick = {
+                                    onAction(
+                                        GesturePreferencesUiEvent.ShowDialog(
+                                            value = GesturePreferenceDialog.LongPressControlsSpeedDialog,
+                                        ),
+                                    )
+                                },
+                            )
+                            PreferenceSlider(
+                                title = stringResource(R.string.seek_increment),
+                                description = stringResource(
+                                    R.string.seconds,
+                                    state.preferences.seekIncrement,
+                                ),
+                                isLastItem = true,
+                                icon = AppIcons.Replay,
+                                value = state.preferences.seekIncrement.toFloat(),
+                                valueRange = 1.0f..60.0f,
+                                onValueChange = {
+                                    onAction(GesturePreferencesUiEvent.UpdateSeekIncrement(it.toInt()))
+                                },
+                                onReset = {
+                                    onAction(
+                                        GesturePreferencesUiEvent.UpdateSeekIncrement(
+                                            PlayerPreferences.DEFAULT_SEEK_INCREMENT,
+                                        ),
+                                    )
+                                },
+                                trailingContent = {
+                                    ResetIconButton(
+                                        onClick = {
+                                            onAction(
+                                                GesturePreferencesUiEvent.UpdateSeekIncrement(
+                                                    PlayerPreferences.DEFAULT_SEEK_INCREMENT,
+                                                ),
+                                            )
+                                        },
+                                        contentDescription = stringResource(
+                                            id = R.string.reset_seek_increment,
+                                        ),
+                                    )
                                 },
                             )
                         }
                     }
                 }
+            }
 
-                GesturePreferenceDialog.LongPressControlsSpeedDialog -> {
-                    var longPressControlsSpeed by remember {
-                        mutableFloatStateOf(state.preferences.longPressControlsSpeed)
+            state.showDialog?.let { showDialog ->
+                when (showDialog) {
+                    GesturePreferenceDialog.DoubleTapDialog -> {
+                        OptionsDialog(
+                            text = stringResource(id = R.string.double_tap),
+                            onDismissClick = {
+                                onAction(GesturePreferencesUiEvent.ShowDialog(value = null))
+                            },
+                        ) {
+                            items(DoubleTapGesture.entries.toTypedArray()) {
+                                RadioTextButton(
+                                    text = it.name(),
+                                    selected = (it == state.preferences.doubleTapGesture),
+                                    onClick = {
+                                        onAction(
+                                            GesturePreferencesUiEvent.UpdateDoubleTapGesture(
+                                                gesture = it,
+                                            ),
+                                        )
+                                        onAction(GesturePreferencesUiEvent.ShowDialog(value = null))
+                                    },
+                                )
+                            }
+                        }
                     }
 
-                    AppDialogWithDoneAndCancelButtons(
-                        title = stringResource(R.string.long_press_gesture),
-                        onDoneClick = {
-                            onAction(
-                                GesturePreferencesUiEvent.UpdateLongPressControlsSpeed(
+                    GesturePreferenceDialog.LongPressControlsSpeedDialog -> {
+                        var longPressControlsSpeed by remember {
+                            mutableFloatStateOf(state.preferences.longPressControlsSpeed)
+                        }
+
+                        AppDialogWithDoneAndCancelButtons(
+                            title = stringResource(R.string.long_press_gesture),
+                            onDoneClick = {
+                                onAction(
+                                    GesturePreferencesUiEvent.UpdateLongPressControlsSpeed(
+                                        value = longPressControlsSpeed,
+                                    ),
+                                )
+                                onAction(GesturePreferencesUiEvent.ShowDialog(value = null))
+                            },
+                            onDismissClick = {
+                                onAction(GesturePreferencesUiEvent.ShowDialog(value = null))
+                            },
+                            content = {
+                                Text(
+                                    text = longPressControlsSpeed.toString(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 20.dp),
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                                AppGlassSlider(
                                     value = longPressControlsSpeed,
-                                ),
-                            )
-                            onAction(GesturePreferencesUiEvent.ShowDialog(value = null))
-                        },
-                        onDismissClick = {
-                            onAction(GesturePreferencesUiEvent.ShowDialog(value = null))
-                        },
-                        content = {
-                            Text(
-                                text = longPressControlsSpeed.toString(),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 20.dp),
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Slider(
-                                state = rememberSliderState(
-                                    value = longPressControlsSpeed,
-                                    steps = 0,
-                                    trackRange = 0.2f..4.0f,
-                                ),
-                                onValueChange = {
-                                    longPressControlsSpeed = it.round(decimalPlaces = 1)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                enabled = true,
-                                onValueChangeFinished = {},
-                                colors = SliderDefaults.colors(),
-                            )
-                        },
-                    )
+                                    valueRange = 0.2f..4.0f,
+                                    onValueChange = {
+                                        longPressControlsSpeed = it.round(decimalPlaces = 1)
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            },
+                        )
+                    }
                 }
             }
         }

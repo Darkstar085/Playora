@@ -47,6 +47,9 @@ import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
 import androidx.media3.ui.compose.state.rememberPreviousButtonState
 import androidx.media3.ui.compose.state.rememberRepeatButtonState
 import androidx.media3.ui.compose.state.rememberShuffleButtonState
+import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
+import com.sipun.playora.core.ui.theme.appGlassSurface
 import com.sipun.playora.feature.player.LocalControlsVisibilityState
 import com.sipun.playora.R as coreUiR
 
@@ -129,6 +132,7 @@ fun PlayerButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val hapticFeedback = LocalHapticFeedback.current
+    val useGlass = LocalLiquidGlassEnabled.current && LocalGlassBackdrop.current != null
 
     val colors = IconButtonDefaults.iconButtonColors(
         contentColor = Color.White,
@@ -136,6 +140,13 @@ fun PlayerButton(
     )
 
     val rippleConfiguration = RippleConfiguration(color = Color.White)
+    val isNeutralContainer = containerColor == Color.Transparent ||
+        (containerColor.red == 0f && containerColor.green == 0f && containerColor.blue == 0f)
+    val glassTint = if (isNeutralContainer) {
+        Color.Unspecified
+    } else {
+        containerColor.copy(alpha = 0.45f)
+    }
 
     CompositionLocalProvider(
         LocalContentColor provides if (enabled) {
@@ -147,9 +158,33 @@ fun PlayerButton(
     ) {
         Box(
             modifier = modifier
-                .clip(shape = CircleShape)
-                .background(
-                    color = if (enabled) colors.containerColor else colors.disabledContainerColor,
+                .then(
+                    if (useGlass) {
+                        Modifier.appGlassSurface(
+                            shape = CircleShape,
+                            tint = glassTint,
+                            interactive = enabled,
+                            clear = true,
+                            dimmed = if (isNeutralContainer) 0.25f else 0.20f,
+                            forceDark = true,
+                            interactionSource = interactionSource,
+                            fallbackBackground = if (enabled) {
+                                colors.containerColor
+                            } else {
+                                colors.disabledContainerColor
+                            },
+                        )
+                    } else {
+                        Modifier
+                            .clip(shape = CircleShape)
+                            .background(
+                                color = if (enabled) {
+                                    colors.containerColor
+                                } else {
+                                    colors.disabledContainerColor
+                                },
+                            )
+                    },
                 )
                 .then(
                     if (onLongClick != null) {

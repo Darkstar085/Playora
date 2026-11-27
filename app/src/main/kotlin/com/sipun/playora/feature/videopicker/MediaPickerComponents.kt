@@ -3,6 +3,7 @@
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,6 +61,12 @@ import com.sipun.playora.core.ui.components.AppDialog
 import com.sipun.playora.core.ui.components.AppOutlinedTextField
 import com.sipun.playora.core.ui.components.CancelButton
 import com.sipun.playora.core.ui.components.DoneButton
+import com.sipun.playora.core.ui.theme.appGlassSurface
+import com.sipun.playora.core.ui.theme.isAppGlassActive
+import com.sipun.playora.core.ui.theme.rememberGlassContentColor
+import com.sipun.playora.core.ui.theme.rememberGlassInnerBorderColor
+import com.sipun.playora.core.ui.theme.rememberGlassInnerContainerColor
+import io.github.itshedimisawi.vitro.rememberGlassEffectState
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -163,6 +170,19 @@ fun MarkAsDialog(
     onConfirm: (MarkType) -> Unit,
 ) {
     var selectedMarkType by remember { mutableStateOf(MarkType.LAST_PLAYED) }
+    val useGlass = isAppGlassActive()
+    val primary = MaterialTheme.colorScheme.primary
+    val unselectedBg = if (useGlass) {
+        rememberGlassInnerContainerColor()
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHighest
+    }
+    val unselectedBorder = if (useGlass) {
+        rememberGlassInnerBorderColor()
+    } else {
+        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    }
+
     AppDialog(
         onDismissRequest = onDismiss,
         title = { },
@@ -178,13 +198,13 @@ fun MarkAsDialog(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF1D2A3A)),
+                        .background(primary.copy(alpha = 0.16f)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Bookmark,
                         contentDescription = null,
-                        tint = Color(0xFF007AFF),
+                        tint = primary,
                         modifier = Modifier.size(24.dp),
                     )
                 }
@@ -195,13 +215,13 @@ fun MarkAsDialog(
                         fontWeight = FontWeight.Bold,
                         fontSize = 22.sp,
                     ),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Set the watch status for the selected item",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF9AA0A6),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(modifier = Modifier.height(24.dp))
@@ -245,10 +265,12 @@ fun MarkAsDialog(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(if (isSelected) Color(0xFF162235) else Color(0xFF1E212A))
+                                .background(
+                                    if (isSelected) primary.copy(alpha = 0.15f) else unselectedBg,
+                                )
                                 .border(
                                     width = if (isSelected) 1.5.dp else 1.dp,
-                                    color = if (isSelected) Color(0xFF007AFF) else Color(0xFF2B2E37),
+                                    color = if (isSelected) primary else unselectedBorder,
                                     shape = RoundedCornerShape(16.dp),
                                 )
                                 .clickable { selectedMarkType = markType }
@@ -260,16 +282,14 @@ fun MarkAsDialog(
                                     .size(36.dp)
                                     .clip(CircleShape)
                                     .background(
-                                        if (isSelected) Color(0xFF007AFF).copy(alpha = 0.2f) else Color(
-                                            0xFF282B33
-                                        )
+                                        if (isSelected) primary.copy(alpha = 0.2f) else unselectedBg,
                                     ),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
                                     imageVector = icon,
                                     contentDescription = null,
-                                    tint = if (isSelected) Color(0xFF007AFF) else Color(0xFF9AA0A6),
+                                    tint = if (isSelected) primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(20.dp),
                                 )
                             }
@@ -281,13 +301,13 @@ fun MarkAsDialog(
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 15.sp,
                                     ),
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = subtitle,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF9AA0A6),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 12.sp,
                                 )
                             }
@@ -302,35 +322,78 @@ fun MarkAsDialog(
             }
         },
         confirmButton = {
-            Button(
-                onClick = { onConfirm(selectedMarkType) },
-                shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF007AFF),
-                    contentColor = Color.White,
-                ),
-                contentPadding = PaddingValues(horizontal = 28.dp, vertical = 10.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
+            if (useGlass) {
+                val doneInteraction = remember { MutableInteractionSource() }
+                val doneState = rememberGlassEffectState()
+                val doneContentColor = rememberGlassContentColor(
+                    state = doneState,
+                    fallback = MaterialTheme.colorScheme.onPrimary,
                 )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = stringResource(R.string.done),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
+                Row(
+                    modifier = Modifier
+                        .appGlassSurface(
+                            shape = CircleShape,
+                            tint = primary.copy(alpha = 0.56f),
+                            interactive = true,
+                            state = doneState,
+                            interactionSource = doneInteraction,
+                            fallbackBackground = primary,
+                        )
+                        .clickable(
+                            interactionSource = doneInteraction,
+                            indication = null,
+                            onClick = { onConfirm(selectedMarkType) },
+                        )
+                        .padding(horizontal = 24.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Check,
+                        contentDescription = null,
+                        tint = doneContentColor,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(R.string.done),
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                        ),
+                        color = doneContentColor,
+                    )
+                }
+            } else {
+                Button(
+                    onClick = { onConfirm(selectedMarkType) },
+                    shape = CircleShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
                     ),
-                )
+                    contentPadding = PaddingValues(horizontal = 28.dp, vertical = 10.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(R.string.done),
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                        ),
+                    )
+                }
             }
         },
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
                 colors = ButtonDefaults.textButtonColors(
-                    contentColor = Color(0xFF9AA0A6),
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
             ) {
                 Text(

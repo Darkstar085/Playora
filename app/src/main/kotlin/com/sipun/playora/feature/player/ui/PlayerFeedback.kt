@@ -24,7 +24,6 @@ import androidx.compose.material.icons.rounded.BrightnessMedium
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,6 +38,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sipun.playora.core.ui.extensions.copy
+import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
+import com.sipun.playora.core.ui.theme.appGlassSurface
 import com.sipun.playora.feature.player.extensions.formatted
 import com.sipun.playora.feature.player.state.TapGestureState
 import com.sipun.playora.feature.player.state.VerticalGesture
@@ -81,9 +83,14 @@ internal fun BoxScope.DpadSeekIndicator(visible: Boolean, offsetMs: Long, positi
         enter = fadeIn(),
         exit = fadeOut(),
     ) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.Black.copy(alpha = 0.6f),
+        Box(
+            modifier = Modifier.appGlassSurface(
+                shape = RoundedCornerShape(16.dp),
+                clear = true,
+                dimmed = 0.35f,
+                forceDark = true,
+                fallbackBackground = Color.Black.copy(alpha = 0.6f),
+            ),
         ) {
             Row(
                 modifier = Modifier.padding(
@@ -126,6 +133,7 @@ internal fun BoxScope.DpadSeekIndicator(visible: Boolean, offsetMs: Long, positi
 @Composable
 internal fun BoxScope.PlayerGestureIndicators(tapGestureState: TapGestureState) {
     DoubleTapIndicator(tapGestureState = tapGestureState)
+    val useGlass = LocalLiquidGlassEnabled.current && LocalGlassBackdrop.current != null
 
     AnimatedVisibility(
         modifier = Modifier
@@ -135,7 +143,15 @@ internal fun BoxScope.PlayerGestureIndicators(tapGestureState: TapGestureState) 
         enter = fadeIn(),
         exit = fadeOut(),
     ) {
-        Surface(shape = CircleShape) {
+        Box(
+            modifier = Modifier.appGlassSurface(
+                shape = CircleShape,
+                clear = true,
+                dimmed = 0.30f,
+                forceDark = true,
+                fallbackBackground = MaterialTheme.colorScheme.surface,
+            ),
+        ) {
             Row(
                 modifier = Modifier.padding(
                     horizontal = 16.dp,
@@ -148,6 +164,7 @@ internal fun BoxScope.PlayerGestureIndicators(tapGestureState: TapGestureState) 
                         tapGestureState.longPressSpeed,
                     ),
                     style = MaterialTheme.typography.labelLarge,
+                    color = if (useGlass) Color.White else MaterialTheme.colorScheme.onSurface,
                 )
             }
         }
