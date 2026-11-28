@@ -45,25 +45,28 @@
 
 - **Media3 ExoPlayer & NextLib Extended** — Robust video playback engine supporting all popular
   audio and video formats (MP4, MKV, WebM, AVI, TS, FLV, and more).
-- **Multiple Decoder Modes** — Switch flexibly between **Hardware (HW)**, **Hardware Plus (HW+)**,
-  and **Software (FFmpeg)** decoding modes.
+- **Multiple Decoder Modes** — Switch flexibly between **Auto** (automatic codec-aware selection),
+  **Hardware (HW)**, **Hardware Plus (HW+)**, and **Software (SW/FFmpeg)** decoding modes.
 - **Smart Decoder Recovery** — Automatic fallback and recovery handling when encountering
   unsupported or corrupted codecs.
 - **Background & PiP Playback** — Continue listening with background audio playback via foreground
   service or keep watching with Picture-in-Picture (PiP) mode.
-- **Aspect Ratio & Zoom Controls** — Fit to screen, Stretch, Crop/Zoom, 100%, 16:9, and 4:3 with
-  visual on-screen feedback.
-- **Chapter Support & Playlists** — Navigate embedded video chapters, automatic playlist generation,
-  and continuous playback.
+- **Aspect Ratio & Zoom Controls** — Fit to screen, Stretch, Crop, and 100% scale with pinch-to-zoom
+  and visual on-screen feedback.
+- **Chapter Markers & Playlists** — Embedded chapter markers on the seekbar, automatic playlist
+  generation, and continuous playback with loop and shuffle support.
+- **Quick Player Tools** — Built-in frame screenshot capture, system audio equalizer shortcut,
+  playback speed control, and lockable controls.
 - **External Intent Support** — Play videos directly from external file managers, browsers, or other
-  apps via `ACTION_VIEW` and `ACTION_SEND`.
+  apps via `ACTION_VIEW`.
 
 ### 👆 Intuitive Gesture Controls
 
 - **Vertical Swipes** — Swipe vertically on the left side for brightness and on the right side for
-  volume.
-- **Horizontal Swipe** — Smooth scrubbing and seeking through media with timeline preview.
+  volume (with optional loudness boost).
+- **Horizontal Swipe** — Smooth scrubbing and seeking through media with live timeline feedback.
 - **Double Tap** — Double-tap left/right edges to seek backward/forward or center to play/pause.
+- **Long Press Speed** — Press and hold during playback for temporary fast playback speed.
 - **Pinch-to-Zoom** — Dynamic multi-touch pinch gestures to zoom and inspect video content.
 - **Immersive Playback** — Automatic system bar hiding for a distraction-free viewing experience.
 
@@ -71,66 +74,68 @@
 
 - **Broad Subtitle Format Support** — Embedded and external subtitles including `.srt`, `.vtt`,
   `.ass`, `.ssa`, `.ttml`, and `.sub`.
-- **Subtitle Styling & Encoding** — Customizable font size, colors, text background, and encoding
-  detection.
+- **Subtitle Styling & Encoding** — Customizable font size, font family, bold style, background,
+  and automatic encoding detection.
 - **Subtitle Delay & Speed** — Real-time subtitle sync adjustment and speed calibration.
-- **Multi-Track Audio** — Switch effortlessly between multiple embedded audio tracks with optional
-  audio boost.
+- **Multi-Track Audio** — Switch effortlessly between multiple embedded or external audio tracks
+  with optional volume boost.
 
 ### 📁 Smart Media Library
 
 - **Multiple View Modes** — Browse videos by **Folder Tree**, **Folders**, or flat **Videos** list.
-- **Responsive Layouts** — Toggle between **List** and **Grid** views via Quick Settings.
-- **Optimized List Layout** — Clean 2-line wrapped folder titles for full movie and TV series names,
-  compact thumbnail art, and inline video count & size.
-- **Fast Sorting & Filtering** — Sort by Name, Date Modified, File Size, or Duration in
-  Ascending/Descending order.
+- **Adaptive & Responsive Layouts** — Toggle between **List** and **Grid** views via Quick
+  Settings, tailored for phones, tablets, foldables, and multi-window mode.
+- **Optimized List Layout** — Clean 2-line wrapped titles, compact thumbnail art, optional folder
+  duration, and inline video count & size.
+- **Fast Sorting & Filtering** — Sort by Name, Date Modified, File Size, Duration, or Path in
+  Ascending/Descending order, with instant search and folder exclusion.
 - **Missing Metadata Recovery** — Automatic extraction of missing video thumbnails, durations, and
   dimensions.
 - **Batch Management** — Multi-select items to play in queue, share, copy, move, mark as
-  watched/finished, or delete (with Trash support).
+  watched/finished, or permanently delete.
 
 ### 🔒 Privacy Locker (Secret Vault)
 
-- **Built-in Vault** — Keep sensitive videos and folders hidden from your main library and other
-  apps.
+- **Built-in Vault** — Keep sensitive videos hidden from your main library and other apps.
 - **Biometric & PIN Authentication** — Protect your hidden vault with Fingerprint/Face Unlock or a
-  secure 4-digit PIN.
+  PBKDF2-secured 4-digit PIN with failed-attempt lockout.
 - **Seamless Hiding Flow** — Easily hide or restore items directly from the media library.
 
 ### 🎨 Material 3 UI & Theming
 
-- **Dynamic Theming** — Full Material 3 design with dynamic color extraction on Android 12+.
+- **Dynamic & Liquid Glass Theming** — Material 3 design with dynamic color extraction on Android
+  12+, custom accent colors, Pure Black dark mode, and optional Liquid Glass effects powered by
+  Vitro.
 - **Quick Settings Sheet** — Instant access to view mode, layout, sorting, and field visibility
   toggles.
 
 ### 🚀 Onboarding & Setup Wizard
 
-- **First-Launch Welcome Flow** — Guided welcome experience introducing app features, theme
-  customization, and essential storage/media permissions setup.
+- **First-Launch Welcome Flow** — Guided welcome experience introducing app features and essential
+  storage/media permissions setup.
 
-### 🔄 In-App Updater & Offline-First
+### 🔄 In-App Updater & Privacy-First
 
-- **GitHub Release Updater** — Check for the latest releases directly within the app.
-- **100% Offline & Private** — Zero trackers, no analytics, no telemetry, and no unnecessary network
-  permissions.
+- **GitHub Release Updater** — Check for and install the latest releases directly within the app.
+- **Zero Tracking** — No analytics, no ads, and no telemetry; network access is used solely for
+  in-app GitHub release checks and updates.
 
 ---
 
 ## 🧰 Tech Stack
 
-| Area                     | Technology                                                               |
-|--------------------------|--------------------------------------------------------------------------|
-| **Language**             | Kotlin 2.4.21, Java 17                                                   |
-| **Android Target**       | Min API 31 (Android 12), Target / Compile API 37                         |
-| **Build System**         | Gradle 9.9.0, Android Gradle Plugin 9.5.2, KSP 2.3.14                    |
-| **UI Framework**         | Jetpack Compose (BOM 2026.09.00), Material 3 1.5.0, Compose Navigation 3 |
-| **Media Engine**         | AndroidX Media3 1.11.1 (ExoPlayer, Session, UI), NextLib Extended 1.1.0  |
-| **Dependency Injection** | Koin 4.2.2 (Core, Android, Compose ViewModel, Annotations)               |
-| **Local Persistence**    | Room 2.8.5, DataStore Core 1.3.0                                         |
-| **Concurrency**          | Kotlin Coroutines & Flow 1.11.0                                          |
-| **Image Loading**        | Coil 3.6.3 (Video Frame Decoder)                                         |
-| **Serialization**        | Kotlinx Serialization 1.13.0                                             |
+| Area                     | Technology                                                                                |
+|--------------------------|-------------------------------------------------------------------------------------------|
+| **Language**             | Kotlin 2.4.21, Java 17                                                                    |
+| **Android Target**       | Min API 31 (Android 12), Target / Compile API 37                                          |
+| **Build System**         | Gradle 9.9.2, Android Gradle Plugin 9.5.3, KSP 2.3.14                                     |
+| **UI Framework**         | Jetpack Compose (BOM 2026.11.01), Material 3 1.5.0, Compose Navigation 3, Vitro (Glass)   |
+| **Media Engine**         | AndroidX Media3 1.11.1 (ExoPlayer, Session, UI), NextLib Extended 1.1.0                   |
+| **Dependency Injection** | Koin 4.2.2 (Core, Android, Compose ViewModel, Annotations)                                |
+| **Local Persistence**    | Room 2.8.5, DataStore Core 1.3.0                                                          |
+| **Concurrency**          | Kotlin Coroutines & Flow 1.11.0                                                           |
+| **Image Loading**        | Coil 3.6.3 (Video Frame Decoder)                                                          |
+| **Serialization**        | Kotlinx Serialization 1.13.0                                                              |
 
 ---
 
@@ -159,11 +164,12 @@
 │       │       │   ├── domain/         # Media scan and sorting use cases
 │       │       │   ├── media/          # MediaStore query runners & synchronizers
 │       │       │   ├── model/          # Models, preference enums, and video states
-│       │       │   └── ui/             # Reusable design system components and theme
+│       │       │   ├── ui/             # Reusable design system components and theme
+│       │       │   └── update/         # GitHub release update checker & installer
 │       │       ├── feature/
 │       │       │   ├── onboarding/     # First-launch welcome flow & permission wizard
 │       │       │   ├── player/         # Media3 player engine, gestures, PiP, service
-│       │       │   ├── settings/       # Appearance, gestures, decoder, about screens
+│       │       │   ├── settings/       # Appearance, gestures, subtitle, about screens
 │       │       │   └── videopicker/    # Media browsing, search, and privacy vault
 │       │       └── navigation/         # Navigation graph and transitions
 │       └── test/                       # Unit tests
@@ -209,13 +215,15 @@ page.
 
 ## 🔐 Permissions
 
-Playora operates offline and only requests permissions essential for local media functionality:
+Playora is privacy-first and only requests permissions needed for its core features:
 
 - `READ_MEDIA_VIDEO` / `READ_EXTERNAL_STORAGE` — Scan and index local video files and folders.
 - `USE_BIOMETRIC` — Authenticate access to the private media locker.
 - `FOREGROUND_SERVICE` & `FOREGROUND_SERVICE_MEDIA_PLAYBACK` — Continuous background audio playback
   and notification controls.
 - `POST_NOTIFICATIONS` — Display media playback controls in the system notification shade.
+- `INTERNET` & `REQUEST_INSTALL_PACKAGES` — Check for and install optional in-app updates from
+  GitHub Releases.
 
 ---
 

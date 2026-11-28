@@ -27,8 +27,8 @@ android {
         minSdk = 31
         targetSdk = 37
         applicationId = "com.sipun.playora"
-        versionCode = 3
-        versionName = "1.1.0"
+        versionCode = 4
+        versionName = "1.2.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
