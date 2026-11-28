@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -57,6 +58,14 @@ fun PlayerControls(
     onPictureInPictureClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    LaunchedEffect(
+        progressState.currentPositionMs,
+        seekGestureState.seekPreviewPosition,
+        seekGestureState.isSeeking,
+    ) {
+        seekGestureState.onPlaybackPositionChanged(progressState.currentPositionMs)
+    }
+
     val topSafePadding = WindowInsets.systemBars.union(
         WindowInsets.displayCutout,
     ).asPaddingValues().calculateTopPadding()
@@ -120,6 +129,7 @@ fun PlayerControls(
                     player = player,
                     progressState = progressState,
                     chaptersState = chaptersState,
+                    seekPreviewPosition = seekGestureState.seekPreviewPosition,
                     videoContentScale = videoZoomAndContentScaleState.videoContentScale,
                     isPipSupported = isPipSupported,
                     showRemainingTime = playerPreferences.showRemainingTime,

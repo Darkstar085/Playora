@@ -108,6 +108,15 @@ class SeekGestureState(
     var seekAmount: Long? by mutableStateOf(value = null)
         private set
 
+    private var pendingSeekPosition: Long? by mutableStateOf(value = null)
+
+    val seekPreviewPosition: Long?
+        get() = pendingSeekPosition ?: if (isSeeking) {
+            seekStartPosition?.plus(seekAmount ?: 0L)
+        } else {
+            null
+        }
+
     private var seekStartX = 0f
 
     fun onSeek(value: Long) {
@@ -117,6 +126,7 @@ class SeekGestureState(
             return
         }
         if (!isSeeking) {
+            pendingSeekPosition = null
             isSeeking = true
             seekStartPosition = player.currentPosition
             player.setIsScrubbingModeEnabled(enabled = true)
@@ -126,12 +136,22 @@ class SeekGestureState(
             minimumValue = 0L,
             maximumValue = duration,
         )
+        pendingSeekPosition = position
         seekAmount = position - seekStartPosition!!
-        player.seekTo(position)
     }
 
     fun onSeekEnd() {
-        reset()
+        val targetPosition = pendingSeekPosition
+        if (targetPosition != null) player.seekTo(targetPosition)
+        reset(keepSeekPreview = targetPosition != null)
+    }
+
+    fun onPlaybackPositionChanged(position: Long) {
+        if (isSeeking) return
+        val targetPosition = pendingSeekPosition ?: return
+        if (abs(position - targetPosition) <= 1_000L) {
+            pendingSeekPosition = null
+        }
     }
 
     fun onDragStart(offset: Offset) {
@@ -140,6 +160,7 @@ class SeekGestureState(
         if (player.duration <= 0) return
         if (!player.isCurrentMediaItemSeekable) return
 
+        pendingSeekPosition = null
         isSeeking = true
         seekStartX = offset.x
         seekStartPosition = player.currentPosition
@@ -173,8 +194,9 @@ class SeekGestureState(
         reset()
     }
 
-    private fun reset() {
+    private fun reset(keepSeekPreview: Boolean = false) {
         if (isSeeking) player.setIsScrubbingModeEnabled(enabled = false)
+        if (!keepSeekPreview) pendingSeekPosition = null
         isSeeking = false
         seekStartPosition = null
         seekAmount = null

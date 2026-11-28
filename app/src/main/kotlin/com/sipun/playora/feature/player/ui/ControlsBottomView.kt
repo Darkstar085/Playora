@@ -62,6 +62,7 @@ fun ControlsBottomView(
     player: Player?,
     progressState: ProgressStateWithTickInterval,
     chaptersState: ChaptersState,
+    seekPreviewPosition: Long?,
     videoContentScale: VideoContentScale,
     isPipSupported: Boolean,
     showRemainingTime: Boolean,
@@ -78,10 +79,10 @@ fun ControlsBottomView(
     ).asPaddingValues()
     val useGlass = LocalLiquidGlassEnabled.current && LocalGlassBackdrop.current != null
 
-    val timeTextPositionMs by remember(progressState) {
+    val timeTextPositionMs by remember(progressState, seekPreviewPosition) {
         derivedStateOf {
-            val wholeSeconds =
-                progressState.currentPositionMs / MILLISECONDS_PER_SECOND
+            val position = seekPreviewPosition ?: progressState.currentPositionMs
+            val wholeSeconds = position / MILLISECONDS_PER_SECOND
             wholeSeconds * MILLISECONDS_PER_SECOND
         }
     }
@@ -120,7 +121,7 @@ fun ControlsBottomView(
 
             Box(modifier = Modifier.weight(1f)) {
                 PlayerSeekbar(
-                    position = progressState.currentPositionMs.toFloat(),
+                    position = (seekPreviewPosition ?: progressState.currentPositionMs).toFloat(),
                     duration = progressState.durationMs.toFloat(),
                     chapters = chaptersState.chapters,
                     onSeek = { onSeek(it.toLong()) },
