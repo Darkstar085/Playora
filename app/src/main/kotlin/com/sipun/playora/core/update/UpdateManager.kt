@@ -84,7 +84,13 @@ object UpdateManager {
     private const val UPDATE_PREFS_NAME = "playora_update_prefs"
     private const val KEY_LAST_AUTO_CHECK_MS = "last_auto_check_ms"
     private const val AUTO_CHECK_INTERVAL_MS = 24L * 60L * 60L * 1000L
-    private val TRUSTED_DOWNLOAD_HOSTS = setOf("github.com", "api.github.com")
+    private val TRUSTED_DOWNLOAD_HOSTS = setOf(
+        "github.com",
+        "api.github.com",
+        "objects.githubusercontent.com",
+        "release-assets.githubusercontent.com",
+    )
+    internal const val MAX_APK_SIZE_BYTES = 512L * 1024L * 1024L
     private val json = Json { ignoreUnknownKeys = true }
 
     fun shouldAutoCheckForUpdates(context: Context): Boolean {
@@ -219,6 +225,7 @@ object UpdateManager {
             "Invalid APK filename"
         }
         validateDownloadUrl(update.downloadUrl)
+        require(update.size in 0..MAX_APK_SIZE_BYTES) { "Update APK exceeds the maximum allowed size" }
 
         val directory = File(context.filesDir, "updates").apply { mkdirs() }
         val partial = File(directory, update.fileName + ".part")
@@ -292,7 +299,12 @@ object UpdateManager {
             if (connection.responseCode !in 200..299) {
                 throw IllegalStateException("Download failed: HTTP ${connection.responseCode}")
             }
-            val total = connection.contentLengthLong.takeIf { it > 0 } ?: expectedSize
+            validateDownloadUrl(connection.url.toString())
+            val contentLength = connection.contentLengthLong
+            if (contentLength > MAX_APK_SIZE_BYTES) {
+                throw IllegalStateException("Update APK exceeds the maximum allowed size")
+            }
+            val total = contentLength.takeIf { it > 0 } ?: expectedSize
             var downloaded = 0L
             connection.inputStream.use { input ->
                 FileOutputStream(destination).use { output ->
@@ -300,6 +312,9 @@ object UpdateManager {
                     while (true) {
                         val count = input.read(buffer)
                         if (count < 0) break
+                        if (downloaded > MAX_APK_SIZE_BYTES - count) {
+                            throw IllegalStateException("Update APK exceeds the maximum allowed size")
+                        }
                         output.write(buffer, 0, count)
                         downloaded += count
                         onProgress(downloaded, total)

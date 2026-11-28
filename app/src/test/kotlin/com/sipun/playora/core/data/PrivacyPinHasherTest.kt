@@ -1,6 +1,7 @@
 package com.sipun.playora.core.data
 
 import com.sipun.playora.core.data.repository.PinHasher
+import com.sipun.playora.core.data.repository.LocalPrivacyPinRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -8,6 +9,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PrivacyPinHasherTest {
+    @Test
+    fun consecutivePinLockoutsIncreaseAndCapAtFiveMinutes() {
+        assertEquals(30_000L, LocalPrivacyPinRepository.lockoutDurationMs(1))
+        assertEquals(60_000L, LocalPrivacyPinRepository.lockoutDurationMs(2))
+        assertEquals(120_000L, LocalPrivacyPinRepository.lockoutDurationMs(3))
+        assertEquals(300_000L, LocalPrivacyPinRepository.lockoutDurationMs(4))
+        assertEquals(300_000L, LocalPrivacyPinRepository.lockoutDurationMs(100))
+    }
+
 
     @Test
     fun pbkdf2HashVerifiesMatchingPinAndRejectsWrongPin() {

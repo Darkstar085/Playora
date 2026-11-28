@@ -106,6 +106,7 @@ class LocalPrivacyPinRepository(private val context: Context) : PrivacyPinReposi
             putString(KEY_PIN_HASH, hash)
             putString(KEY_SALT, salt)
             putInt(KEY_FAILED_ATTEMPTS, 0)
+            putInt(KEY_CONSECUTIVE_LOCKOUTS, 0)
             putLong(KEY_LOCKOUT_UNTIL_MS, 0L)
             if (!preserveBiometric) {
                 putBoolean(KEY_BIOMETRIC_ENABLED, false)
@@ -140,19 +141,23 @@ class LocalPrivacyPinRepository(private val context: Context) : PrivacyPinReposi
                         putString(KEY_SALT, upgradedSalt)
                     }
                     putInt(KEY_FAILED_ATTEMPTS, 0)
+                    putInt(KEY_CONSECUTIVE_LOCKOUTS, 0)
                     putLong(KEY_LOCKOUT_UNTIL_MS, 0L)
                 }
                 PinVerificationResult.Success
             } else {
                 val attempts = preferences.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
                 if (attempts >= MAX_FAILED_ATTEMPTS) {
-                    val lockoutUntil = nowMs() + LOCKOUT_DURATION_MS
+                    val lockouts = preferences.getInt(KEY_CONSECUTIVE_LOCKOUTS, 0) + 1
+                    val lockoutDuration = lockoutDurationMs(lockouts)
+                    val lockoutUntil = nowMs() + lockoutDuration
                     preferences.edit {
                         putInt(KEY_FAILED_ATTEMPTS, 0)
+                        putInt(KEY_CONSECUTIVE_LOCKOUTS, lockouts)
                         putLong(KEY_LOCKOUT_UNTIL_MS, lockoutUntil)
                     }
                     PinVerificationResult.LockedOut(
-                        remainingSeconds = (LOCKOUT_DURATION_MS / 1000L).toInt(),
+                        remainingSeconds = (lockoutDuration / 1000L).toInt(),
                     )
                 } else {
                     preferences.edit {
@@ -183,8 +188,11 @@ class LocalPrivacyPinRepository(private val context: Context) : PrivacyPinReposi
         val now = nowMs()
         val rawUntil = preferences.getLong(KEY_LOCKOUT_UNTIL_MS, 0L)
         if (rawUntil <= 0L) return 0
-        val effectiveUntil = if (rawUntil > now + LOCKOUT_DURATION_MS) {
-            val clamped = now + LOCKOUT_DURATION_MS
+        val maxLockoutDuration = lockoutDurationMs(
+            preferences.getInt(KEY_CONSECUTIVE_LOCKOUTS, 0),
+        )
+        val effectiveUntil = if (rawUntil > now + maxLockoutDuration) {
+            val clamped = now + maxLockoutDuration
             preferences.edit { putLong(KEY_LOCKOUT_UNTIL_MS, clamped) }
             clamped
         } else {
@@ -205,7 +213,15 @@ class LocalPrivacyPinRepository(private val context: Context) : PrivacyPinReposi
         private const val KEY_BIOMETRIC_ENABLED = "privacy_biometric_enabled"
         private const val KEY_FAILED_ATTEMPTS = "privacy_pin_failed_attempts"
         private const val KEY_LOCKOUT_UNTIL_MS = "privacy_pin_lockout_until_ms"
+        private const val KEY_CONSECUTIVE_LOCKOUTS = "privacy_pin_consecutive_lockouts"
         const val MAX_FAILED_ATTEMPTS = 5
         const val LOCKOUT_DURATION_MS = 30_000L
+
+        internal fun lockoutDurationMs(consecutiveLockouts: Int): Long = when {
+            consecutiveLockouts <= 1 -> LOCKOUT_DURATION_MS
+            consecutiveLockouts == 2 -> 60_000L
+            consecutiveLockouts == 3 -> 120_000L
+            else -> 300_000L
+        }
     }
 }

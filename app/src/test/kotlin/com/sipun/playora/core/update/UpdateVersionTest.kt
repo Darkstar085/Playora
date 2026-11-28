@@ -9,6 +9,11 @@ import org.junit.Test
 
 class UpdateVersionTest {
     @Test
+    fun updateDownloadSizeLimitIs512MiB() {
+        assertEquals(512L * 1024L * 1024L, UpdateManager.MAX_APK_SIZE_BYTES)
+    }
+
+    @Test
     fun comparesNumericVersionParts() {
         assertTrue(UpdateManager.isNewerVersion("0.9.9", "0.10.0"))
         assertTrue(UpdateManager.isNewerVersion("1.0", "1.0.1"))
