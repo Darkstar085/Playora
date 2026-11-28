@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -48,7 +49,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
@@ -59,7 +59,6 @@ import com.sipun.playora.core.domain.SearchResults
 import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.Folder
 import com.sipun.playora.core.model.MediaLayoutMode
-import com.sipun.playora.core.model.Video
 import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppOutlinedTextField
 import com.sipun.playora.core.ui.components.AppTopAppBar
@@ -70,7 +69,6 @@ import com.sipun.playora.core.ui.extensions.plus
 import com.sipun.playora.core.ui.theme.AppGlassBackdropBox
 import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.core.ui.theme.appGlassSurface
 import com.sipun.playora.core.ui.theme.rememberGlassBarBorderStroke
 import com.sipun.playora.feature.videopicker.composables.FolderItem
@@ -270,62 +268,69 @@ private fun SuggestionsContent(
     contentPadding: PaddingValues = PaddingValues(),
     onFolderClick: (String) -> Unit,
 ) {
-    LazyColumn(
+    Box(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 8.dp) + contentPadding,
+        contentAlignment = Alignment.TopCenter,
     ) {
-        if (popularFolders.isNotEmpty()) {
-            item {
-                ListSectionTitle(
-                    text = stringResource(R.string.popular_folders),
-                    contentPadding = PaddingValues(
-                        start = 16.dp,
-                        top = 12.dp,
-                        bottom = 8.dp,
-                    ),
-                )
+        LazyColumn(
+            modifier = Modifier
+                .widthIn(max = 760.dp)
+                .fillMaxWidth(),
+            contentPadding = PaddingValues(vertical = 8.dp) + contentPadding,
+        ) {
+            if (popularFolders.isNotEmpty()) {
+                item {
+                    ListSectionTitle(
+                        text = stringResource(R.string.popular_folders),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            top = 12.dp,
+                            bottom = 8.dp,
+                        ),
+                    )
+                }
+
+                itemsIndexed(
+                    items = popularFolders,
+                    key = { _, folder -> "popular_${folder.path}" },
+                ) { index, folder ->
+                    FolderItem(
+                        folder = folder,
+                        isRecentlyPlayedFolder = false,
+                        preferences = preferences.copy(mediaLayoutMode = MediaLayoutMode.LIST),
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        isFirstItem = index == 0,
+                        isLastItem = index == popularFolders.lastIndex,
+                        onClick = { onFolderClick(folder.path) },
+                    )
+                }
             }
 
-            itemsIndexed(
-                items = popularFolders,
-                key = { _, folder -> "popular_${folder.path}" },
-            ) { index, folder ->
-                FolderItem(
-                    folder = folder,
-                    isRecentlyPlayedFolder = false,
-                    preferences = preferences.copy(mediaLayoutMode = MediaLayoutMode.LIST),
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    isFirstItem = index == 0,
-                    isLastItem = index == popularFolders.lastIndex,
-                    onClick = { onFolderClick(folder.path) },
-                )
-            }
-        }
-
-        if (popularFolders.isEmpty()) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+            if (popularFolders.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        Icon(
-                            imageVector = AppIcons.Search,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = stringResource(R.string.search_videos_and_folders),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Icon(
+                                imageVector = AppIcons.Search,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                text = stringResource(R.string.search_videos_and_folders),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                     }
                 }
             }
@@ -399,86 +404,5 @@ private fun SearchResultsContent(
                 contentPadding = contentPadding,
             )
         }
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun SearchScreenEmptyPreview() {
-    PlayoraTheme {
-        SearchScreenContent(
-            state = SearchUiState(),
-            onAction = {},
-        )
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun SearchScreenWithPopularFoldersPreview() {
-    PlayoraTheme {
-        SearchScreenContent(
-            onAction = {},
-            state = SearchUiState(
-                popularFolders = listOf(
-                    Folder(
-                        name = "Movies",
-                        path = "/storage/Movies",
-                        dateModified = System.currentTimeMillis(),
-                    ),
-                    Folder(
-                        name = "Downloads",
-                        path = "/storage/Downloads",
-                        dateModified = System.currentTimeMillis(),
-                    ),
-                ),
-            ),
-        )
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun SearchScreenWithResultsPreview() {
-    PlayoraTheme {
-        SearchScreenContent(
-            onAction = {},
-            state = SearchUiState(
-                query = "movie",
-                searchResults = SearchResults(
-                    folders = listOf(
-                        element = Folder(
-                            name = "Movies",
-                            path = "/storage/Movies",
-                            dateModified = System.currentTimeMillis(),
-                        ),
-                    ),
-                    videos = listOf(
-                        Video.sample.copy(
-                            nameWithExtension = "Movie_Clip.mp4",
-                            uriString = "content://sample/movie_clip.mp4",
-                        ),
-                        Video.sample.copy(
-                            nameWithExtension = "My_Movie.mp4",
-                            uriString = "content://sample/my_movie.mp4",
-                        ),
-                    ),
-                ),
-            ),
-        )
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun SearchScreenNoResultsPreview() {
-    PlayoraTheme {
-        SearchScreenContent(
-            onAction = {},
-            state = SearchUiState(
-                query = "xyz123",
-                searchResults = SearchResults(),
-            ),
-        )
     }
 }

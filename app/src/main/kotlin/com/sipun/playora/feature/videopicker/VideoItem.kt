@@ -19,7 +19,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -36,7 +35,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.core.net.toUri
@@ -50,7 +48,6 @@ import com.sipun.playora.core.model.Video
 import com.sipun.playora.core.model.isNew
 import com.sipun.playora.core.ui.components.AppSegmentedListItem
 import com.sipun.playora.core.ui.designsystem.AppIcons
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 
 @Composable
 fun VideoItem(
@@ -355,42 +352,3 @@ private fun ThumbnailView(
     }
 }
 
-@PreviewLightDark
-@Composable
-fun VideoItemRecentlyPlayedPreview() {
-    PlayoraTheme {
-        Surface {
-            VideoListItem(
-                video = Video.sample,
-                preferences = ApplicationPreferences(),
-                isRecentlyPlayedVideo = true,
-            )
-        }
-    }
-}
-
-@PreviewLightDark
-@Composable
-fun VideoItemPreview() {
-    PlayoraTheme {
-        Surface {
-            VideoListItem(
-                video = Video.sample,
-                preferences = ApplicationPreferences(),
-                isRecentlyPlayedVideo = false,
-            )
-        }
-    }
-}
-
-@PreviewLightDark
-@Composable
-fun VideoGridItemPreview() {
-    PlayoraTheme {
-        VideoGridItem(
-            video = Video.sample,
-            preferences = ApplicationPreferences(),
-            isRecentlyPlayedVideo = true,
-        )
-    }
-}

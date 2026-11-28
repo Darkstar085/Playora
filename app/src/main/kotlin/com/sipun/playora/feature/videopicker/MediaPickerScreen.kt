@@ -17,9 +17,11 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,12 +35,15 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.ZeroCornerSize
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
@@ -77,10 +82,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -95,14 +96,9 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import com.sipun.playora.R
 import com.sipun.playora.core.common.storagePermission
-import com.sipun.playora.core.domain.MediaHolder
 import com.sipun.playora.core.media.services.MediaOperationsService
 import com.sipun.playora.core.media.services.TransferMode
 import com.sipun.playora.core.media.services.TransferProgress
-import com.sipun.playora.core.model.ApplicationPreferences
-import com.sipun.playora.core.model.Folder
-import com.sipun.playora.core.model.MediaLayoutMode
-import com.sipun.playora.core.model.MediaViewMode
 import com.sipun.playora.core.model.Video
 import com.sipun.playora.core.ui.base.DataState
 import com.sipun.playora.core.ui.components.AppBackButton
@@ -111,17 +107,13 @@ import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.CancelButton
 import com.sipun.playora.core.ui.components.DeleteButton
 import com.sipun.playora.core.ui.components.DestructiveRed
-import com.sipun.playora.core.ui.components.TextIconToggleButton
 import com.sipun.playora.core.ui.composables.PermissionMissingView
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.extensions.copy
-import com.sipun.playora.core.ui.preview.DayNightPreview
-import com.sipun.playora.core.ui.preview.VideoPickerPreviewParameterProvider
 import com.sipun.playora.core.ui.theme.AppGlassBackdropBox
 import com.sipun.playora.core.ui.theme.AppGlassModalOverlay
 import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.core.ui.theme.appGlassContainer
 import com.sipun.playora.core.ui.theme.appGlassSurface
 import com.sipun.playora.core.ui.theme.rememberGlassBarBorderStroke
@@ -220,15 +212,12 @@ internal fun MediaPickerScreenContent(
 
     val isRoot = state.folderName == null
     var showVaultTooltip by remember { mutableStateOf(false) }
-    var isFromHide by remember { mutableStateOf(false) }
     val shakeOffset = remember { Animatable(0f) }
     val haptic = LocalHapticFeedback.current
 
-    // Trigger on first install when landing on homepage
     LaunchedEffect(state.preferences.hasSeenVaultHint, isRoot) {
         if (!state.preferences.hasSeenVaultHint && isRoot) {
             delay(800)
-            isFromHide = false
             showVaultTooltip = true
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             repeat(3) {
@@ -242,25 +231,6 @@ internal fun MediaPickerScreenContent(
             delay(5500)
             showVaultTooltip = false
             onAction(MediaPickerAction.UpdateMenu(state.preferences.copy(hasSeenVaultHint = true)))
-        }
-    }
-
-    // Trigger whenever videos are hidden
-    LaunchedEffect(state.showVaultHintTimestamp) {
-        if (state.showVaultHintTimestamp > 0L) {
-            isFromHide = true
-            showVaultTooltip = true
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-            repeat(3) {
-                shakeOffset.animateTo(-7f, animationSpec = tween(50, easing = LinearEasing))
-                shakeOffset.animateTo(7f, animationSpec = tween(50, easing = LinearEasing))
-            }
-            shakeOffset.animateTo(
-                0f,
-                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-            )
-            delay(5000)
-            showVaultTooltip = false
         }
     }
 
@@ -385,7 +355,7 @@ internal fun MediaPickerScreenContent(
                                         ),
                                     ) {
                                         VaultHintBubble(
-                                            isFromHide = isFromHide,
+                                            isFromHide = false,
                                             onClick = {
                                                 showVaultTooltip = false
                                                 if (!state.preferences.hasSeenVaultHint) {
@@ -1296,13 +1266,16 @@ private fun SetupPrivacyPinDialog(onDismiss: () -> Unit, onPinConfirmed: (String
 
     AppGlassModalOverlay(
         onDismissRequest = onDismiss,
-        modifier = Modifier.fillMaxWidth(0.90f),
+        modifier = Modifier
+            .fillMaxWidth(0.90f)
+            .widthIn(max = 420.dp),
         shape = MaterialTheme.shapes.extraLarge,
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(
                     horizontal = 24.dp,
                     vertical = 28.dp,
@@ -1314,9 +1287,12 @@ private fun SetupPrivacyPinDialog(onDismiss: () -> Unit, onPinConfirmed: (String
                 filledCount = currentPin.length,
                 showError = showError,
             )
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(28.dp))
             PinKeypad(
-                modifier = Modifier.padding(horizontal = 8.dp),
+                modifier = Modifier
+                    .widthIn(max = 280.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
                 onDigit = onDigit,
                 onBackspace = onBackspace,
             )
@@ -1431,159 +1407,133 @@ private fun SelectionActionsSheet(
             fallback = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
+            BoxWithConstraints(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .fillMaxWidth()
-                    .then(
-                        if (useGlass) {
-                            Modifier
-                                .navigationBarsPadding()
-                                .padding(horizontal = 12.dp, vertical = 8.dp)
-                                .appGlassSurface(
-                                    shape = shape,
-                                    state = sheetGlassState,
-                                    fallbackBackground = MaterialTheme.colorScheme.surfaceContainer,
-                                )
-                                .border(rememberGlassBarBorderStroke(), shape)
-                                .padding(horizontal = 4.dp, vertical = 10.dp)
-                        } else {
-                            Modifier
-                                .background(
-                                    color = MaterialTheme.colorScheme.surfaceContainer,
-                                    shape = shape,
-                                )
-                                .clip(shape = shape)
-                                .navigationBarsPadding()
-                                .padding(
-                                    horizontal = 4.dp,
-                                    vertical = 12.dp,
-                                )
-                        },
-                    ),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .widthIn(max = 640.dp)
+                    .fillMaxWidth(),
             ) {
-                SelectionAction(
-                    imageVector = AppIcons.Play,
-                    title = stringResource(R.string.play),
-                    tint = actionTint,
-                    onClick = onPlayAction,
-                    modifier = Modifier.weight(1f),
-                )
-                if (showRenameAction) {
+                val isNarrow = maxWidth < 440.dp
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(
+                            if (useGlass) {
+                                Modifier
+                                    .navigationBarsPadding()
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                                    .appGlassSurface(
+                                        shape = shape,
+                                        state = sheetGlassState,
+                                        fallbackBackground = MaterialTheme.colorScheme.surfaceContainer,
+                                    )
+                                    .border(rememberGlassBarBorderStroke(), shape)
+                                    .padding(horizontal = 4.dp, vertical = 10.dp)
+                            } else {
+                                Modifier
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surfaceContainer,
+                                        shape = shape,
+                                    )
+                                    .clip(shape = shape)
+                                    .navigationBarsPadding()
+                                    .padding(
+                                        horizontal = 4.dp,
+                                        vertical = 12.dp,
+                                    )
+                            },
+                        )
+                        .then(
+                            if (isNarrow) {
+                                Modifier.horizontalScroll(rememberScrollState())
+                            } else {
+                                Modifier
+                            },
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = if (isNarrow) {
+                        Arrangement.spacedBy(2.dp)
+                    } else {
+                        Arrangement.SpaceBetween
+                    },
+                ) {
+                    val itemModifier = if (isNarrow) {
+                        Modifier.width(56.dp)
+                    } else {
+                        Modifier.weight(1f)
+                    }
                     SelectionAction(
-                        imageVector = AppIcons.Edit,
-                        title = stringResource(R.string.rename),
+                        imageVector = AppIcons.Play,
+                        title = stringResource(R.string.play),
                         tint = actionTint,
-                        onClick = onRenameAction,
-                        modifier = Modifier.weight(1f),
+                        onClick = onPlayAction,
+                        modifier = itemModifier,
+                    )
+                    if (showRenameAction) {
+                        SelectionAction(
+                            imageVector = AppIcons.Edit,
+                            title = stringResource(R.string.rename),
+                            tint = actionTint,
+                            onClick = onRenameAction,
+                            modifier = itemModifier,
+                        )
+                    }
+                    SelectionAction(
+                        imageVector = AppIcons.Share,
+                        title = stringResource(R.string.share),
+                        tint = actionTint,
+                        onClick = onShareAction,
+                        modifier = itemModifier,
+                    )
+                    SelectionAction(
+                        imageVector = AppIcons.Copy,
+                        title = stringResource(R.string.copy),
+                        tint = actionTint,
+                        onClick = onCopyAction,
+                        modifier = itemModifier,
+                    )
+                    SelectionAction(
+                        imageVector = AppIcons.Move,
+                        title = stringResource(R.string.move),
+                        tint = actionTint,
+                        onClick = onMoveAction,
+                        modifier = itemModifier,
+                    )
+                    SelectionAction(
+                        imageVector = AppIcons.Check,
+                        title = stringResource(R.string.mark),
+                        tint = actionTint,
+                        onClick = onMarkAction,
+                        modifier = itemModifier,
+                    )
+                    if (showInfoAction) {
+                        SelectionAction(
+                            imageVector = AppIcons.Info,
+                            title = stringResource(id = R.string.info),
+                            tint = actionTint,
+                            onClick = onInfoAction,
+                            modifier = itemModifier,
+                        )
+                    }
+                    if (showHideAction) {
+                        SelectionAction(
+                            imageVector = AppIcons.HideSource,
+                            title = stringResource(id = R.string.hide),
+                            tint = actionTint,
+                            onClick = onHideAction,
+                            modifier = itemModifier,
+                        )
+                    }
+                    SelectionAction(
+                        imageVector = AppIcons.Delete,
+                        title = stringResource(id = R.string.delete),
+                        tint = DestructiveRed,
+                        onClick = onDeleteAction,
+                        modifier = itemModifier,
                     )
                 }
-                SelectionAction(
-                    imageVector = AppIcons.Share,
-                    title = stringResource(R.string.share),
-                    tint = actionTint,
-                    onClick = onShareAction,
-                    modifier = Modifier.weight(1f),
-                )
-                SelectionAction(
-                    imageVector = AppIcons.Copy,
-                    title = stringResource(R.string.copy),
-                    tint = actionTint,
-                    onClick = onCopyAction,
-                    modifier = Modifier.weight(1f),
-                )
-                SelectionAction(
-                    imageVector = AppIcons.Move,
-                    title = stringResource(R.string.move),
-                    tint = actionTint,
-                    onClick = onMoveAction,
-                    modifier = Modifier.weight(1f),
-                )
-                SelectionAction(
-                    imageVector = AppIcons.Check,
-                    title = stringResource(R.string.mark),
-                    tint = actionTint,
-                    onClick = onMarkAction,
-                    modifier = Modifier.weight(1f),
-                )
-                if (showInfoAction) {
-                    SelectionAction(
-                        imageVector = AppIcons.Info,
-                        title = stringResource(id = R.string.info),
-                        tint = actionTint,
-                        onClick = onInfoAction,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                if (showHideAction) {
-                    SelectionAction(
-                        imageVector = AppIcons.HideSource,
-                        title = stringResource(id = R.string.hide),
-                        tint = actionTint,
-                        onClick = onHideAction,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                SelectionAction(
-                    imageVector = AppIcons.Delete,
-                    title = stringResource(id = R.string.delete),
-                    tint = DestructiveRed,
-                    onClick = onDeleteAction,
-                    modifier = Modifier.weight(1f),
-                )
             }
         }
-    }
-}
-
-@PreviewScreenSizes
-@PreviewLightDark
-@Composable
-private fun MediaPickerScreenPreview(
-    @PreviewParameter(VideoPickerPreviewParameterProvider::class)
-    videos: List<Video>,
-) {
-    PlayoraTheme {
-        MediaPickerScreenContent(
-            state = MediaPickerUiState(
-                folderName = null,
-                mediaDataState = DataState.Success(
-                    value = MediaHolder(
-                        folders = listOf(
-                            Folder(
-                                name = "Folder 1",
-                                path = "/root/folder1",
-                                dateModified = System.currentTimeMillis(),
-                            ),
-                            Folder(
-                                name = "Folder 2",
-                                path = "/root/folder2",
-                                dateModified = System.currentTimeMillis(),
-                            ),
-                        ),
-                        videos = videos,
-                    ),
-                ),
-                preferences = ApplicationPreferences().copy(
-                    mediaViewMode = MediaViewMode.FOLDER_TREE,
-                    mediaLayoutMode = MediaLayoutMode.GRID,
-                ),
-            ),
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun ButtonPreview() {
-    Surface {
-        TextIconToggleButton(
-            text = "Title",
-            icon = AppIcons.Title,
-            onClick = {},
-        )
     }
 }
 
@@ -1602,7 +1552,6 @@ private fun VaultHintBubble(
             .padding(start = 2.dp, end = 16.dp)
             .widthIn(max = 290.dp),
     ) {
-        // Upward pointing caret
         Canvas(
             modifier = Modifier
                 .padding(start = 20.dp)
@@ -1617,7 +1566,6 @@ private fun VaultHintBubble(
             drawPath(path = path, color = bubbleColor)
         }
 
-        // Bubble Content Card
         Surface(
             onClick = onClick,
             shape = RoundedCornerShape(14.dp),
@@ -1683,38 +1631,6 @@ private fun VaultHintBubble(
                     )
                 }
             }
-        }
-    }
-}
-
-@DayNightPreview
-@Composable
-private fun MediaPickerNoVideosFoundPreview() {
-    PlayoraTheme {
-        Surface {
-            MediaPickerScreenContent(
-                state = MediaPickerUiState(
-                    folderName = null,
-                    mediaDataState = DataState.Success(value = null),
-                    preferences = ApplicationPreferences(),
-                ),
-            )
-        }
-    }
-}
-
-@DayNightPreview
-@Composable
-private fun MediaPickerLoadingPreview() {
-    PlayoraTheme {
-        Surface {
-            MediaPickerScreenContent(
-                state = MediaPickerUiState(
-                    folderName = null,
-                    mediaDataState = DataState.Loading,
-                    preferences = ApplicationPreferences(),
-                ),
-            )
         }
     }
 }

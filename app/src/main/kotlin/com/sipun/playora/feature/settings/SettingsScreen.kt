@@ -1,9 +1,12 @@
 ﻿package com.sipun.playora.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ListItemDefaults
@@ -13,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -21,6 +25,7 @@ import com.sipun.playora.R
 import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.components.ClickablePreferenceItem
+import com.sipun.playora.core.ui.components.PreferenceSectionCard
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.theme.AppGlassBackdropBox
 import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
@@ -77,25 +82,31 @@ private fun SettingsScreenContent(onAction: (SettingsAction) -> Unit) {
                 bottomPadding = innerPadding.calculateBottomPadding(),
                 modifier = Modifier.fillMaxSize(),
             ) {
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(state = rememberScrollState())
-                        .padding(paddingValues = innerPadding)
-                        .padding(horizontal = 16.dp)
-                        .padding(vertical = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+                        .verticalScroll(state = rememberScrollState()),
+                    contentAlignment = Alignment.TopCenter,
                 ) {
-                    settingRows.forEachIndexed { index, row ->
-                        key(row) {
-                            ClickablePreferenceItem(
-                                title = stringResource(id = row.titleResId),
-                                description = stringResource(id = row.descriptionResId),
-                                icon = row.icon,
-                                onClick = { onAction(SettingsAction.OpenSetting(row.setting)) },
-                                isFirstItem = index == 0,
-                                isLastItem = index == settingRows.lastIndex,
-                            )
+                    PreferenceSectionCard(
+                        modifier = Modifier
+                            .widthIn(max = 760.dp)
+                            .fillMaxWidth()
+                            .padding(paddingValues = innerPadding)
+                            .padding(horizontal = 16.dp)
+                            .padding(vertical = 16.dp),
+                    ) {
+                        settingRows.forEachIndexed { index, row ->
+                            key(row) {
+                                ClickablePreferenceItem(
+                                    title = stringResource(id = row.titleResId),
+                                    description = stringResource(id = row.descriptionResId),
+                                    icon = row.icon,
+                                    onClick = { onAction(SettingsAction.OpenSetting(row.setting)) },
+                                    isFirstItem = index == 0,
+                                    isLastItem = index == settingRows.lastIndex,
+                                )
+                            }
                         }
                     }
                 }

@@ -1,24 +1,36 @@
 ﻿package com.sipun.playora.core.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemColors
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -31,12 +43,84 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.theme.AppGlassSlider
-import com.sipun.playora.core.ui.theme.LocalAccentBrush
+import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
+import io.github.itshedimisawi.vitro.LocalGlassDarkTheme
 import kotlin.math.roundToInt
+
+internal val LocalInPreferenceSectionCard = compositionLocalOf { false }
+
+/**
+ * Groups related preference rows inside a single rounded section card,
+ * matching the unified outlined dark/light Settings card style.
+ */
+@Composable
+fun PreferenceSectionCard(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val cardShape = RoundedCornerShape(22.dp)
+    val isDark = LocalGlassDarkTheme.current ?: isSystemInDarkTheme()
+    val containerColor = if (isDark) {
+        Color(0xFF0B0C10).copy(alpha = if (LocalLiquidGlassEnabled.current) 0.88f else 1f)
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = if (LocalLiquidGlassEnabled.current) 0.92f else 1f)
+    }
+    val borderBrush = if (isDark) {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color.White.copy(alpha = 0.22f),
+                Color.White.copy(alpha = 0.10f),
+                Color.White.copy(alpha = 0.04f),
+            ),
+        )
+    } else {
+        Brush.verticalGradient(
+            colors = listOf(
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f),
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f),
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f),
+            ),
+        )
+    }
+
+    CompositionLocalProvider(LocalInPreferenceSectionCard provides true) {
+        if (LocalLiquidGlassEnabled.current) {
+            Column(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .clip(cardShape)
+                    .background(containerColor, cardShape)
+                    .border(1.dp, borderBrush, cardShape),
+                content = content,
+            )
+        } else {
+            Card(
+                modifier = modifier.fillMaxWidth(),
+                shape = cardShape,
+                colors = CardDefaults.cardColors(containerColor = containerColor),
+                border = BorderStroke(1.dp, borderBrush),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            ) {
+                Column(content = content)
+            }
+        }
+    }
+}
+
+@Composable
+private fun preferenceItemColors(inSectionCard: Boolean): ListItemColors {
+    val defaults = ListItemDefaults.segmentedColors()
+    return if (inSectionCard) {
+        defaults.copy(
+            containerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+        )
+    } else {
+        defaults
+    }
+}
 
 @Composable
 internal fun PreferenceIconBox(
@@ -44,24 +128,21 @@ internal fun PreferenceIconBox(
     enabled: Boolean = true,
     isDestructive: Boolean = false,
 ) {
+    val bgColor = when {
+        !enabled -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        isDestructive -> DestructiveRed.copy(alpha = 0.14f)
+        else -> MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+    }
+    val iconTint = when {
+        !enabled -> MaterialTheme.colorScheme.onSurfaceVariant
+        isDestructive -> DestructiveRed
+        else -> MaterialTheme.colorScheme.primary
+    }
     Box(
         modifier = Modifier
             .size(38.dp)
             .background(
-                brush = if (!enabled) {
-                    Brush.horizontalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.surfaceVariant,
-                            MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                    )
-                } else if (isDestructive) {
-                    Brush.horizontalGradient(
-                        listOf(DestructiveRed, DestructiveRed),
-                    )
-                } else {
-                    LocalAccentBrush.current
-                },
+                color = bgColor,
                 shape = RoundedCornerShape(12.dp),
             ),
         contentAlignment = Alignment.Center,
@@ -69,7 +150,7 @@ internal fun PreferenceIconBox(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (enabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = iconTint,
             modifier = Modifier.size(20.dp),
         )
     }
@@ -89,6 +170,7 @@ fun PreferenceItem(
     isLastItem: Boolean = false,
     trailingContent: @Composable () -> Unit = {},
 ) {
+    val inSectionCard = LocalInPreferenceSectionCard.current
     AppSegmentedListItem(
         modifier = modifier,
         onClick = onClick,
@@ -96,7 +178,8 @@ fun PreferenceItem(
         enabled = enabled,
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
-        enableGlassCard = true,
+        enableGlassCard = !inSectionCard,
+        colors = preferenceItemColors(inSectionCard),
         leadingContent = icon?.let {
             {
                 PreferenceIconBox(icon = icon, enabled = enabled, isDestructive = isDestructive)
@@ -169,26 +252,6 @@ fun SelectablePreference(
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreferenceItemPreview() {
-    PreferenceItem(
-        title = "Title",
-        description = "Description of the preference item goes here.",
-        icon = AppIcons.DoubleTap,
-        enabled = true,
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SelectablePreferencePreview() {
-    SelectablePreference(
-        title = "Title",
-        description = "Description of the preference item goes here.",
-    )
-}
-
 @Composable
 fun ClickablePreferenceItem(
     title: String,
@@ -213,18 +276,6 @@ fun ClickablePreferenceItem(
         onLongClick = onLongClick,
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
-    )
-}
-
-@Preview
-@Composable
-private fun ClickablePreferenceItemPreview() {
-    ClickablePreferenceItem(
-        title = "Title",
-        description = "Description of the preference item goes here.",
-        icon = AppIcons.DoubleTap,
-        onClick = {},
-        enabled = false,
     )
 }
 
@@ -257,6 +308,8 @@ fun PreferenceSlider(
         return if (keyStep < 1f) (raw * 10).roundToInt() / 10f else raw.roundToInt().toFloat()
     }
 
+    val inSectionCard = LocalInPreferenceSectionCard.current
+
     AppSegmentedListItem(
         modifier = modifier.onPreviewKeyEvent { event ->
             if (!enabled || event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
@@ -288,6 +341,8 @@ fun PreferenceSlider(
         enabled = enabled,
         isFirstItem = isFirstItem,
         isLastItem = isLastItem,
+        enableGlassCard = !inSectionCard,
+        colors = preferenceItemColors(inSectionCard),
         leadingContent = icon?.let {
             {
                 PreferenceIconBox(icon = icon, enabled = enabled)
@@ -350,17 +405,6 @@ fun PreferenceSwitch(
     )
 }
 
-@Preview
-@Composable
-fun PreferenceSwitchPreview() {
-    PreferenceSwitch(
-        title = "Title",
-        description = "Description of the preference item goes here.",
-        icon = AppIcons.DoubleTap,
-        onClick = {},
-    )
-}
-
 @Composable
 fun PreferenceSwitchWithDivider(
     title: String = "",
@@ -409,17 +453,5 @@ fun PreferenceSwitchWithDivider(
                 )
             }
         },
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreferenceSwitchWithDividerPreview() {
-    PreferenceSwitchWithDivider(
-        title = "Title",
-        description = "Description of the preference items goes here.",
-        icon = AppIcons.DoubleTap,
-        onClick = {},
-        onChecked = {},
     )
 }

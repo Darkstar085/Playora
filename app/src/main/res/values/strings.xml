@@ -144,17 +144,16 @@
     <string name="hundred_percent">100%</string>
     <string name="hundred_percent_description">Show the video at its original size</string>
     <string name="controls_unlock">Unlock controls</string>
-    <string name="control_buttons_alignment">Control buttons alignment</string>
-    <string name="control_buttons_alignment_left">Left</string>
-    <string name="control_buttons_alignment_right">Right</string>
     <string name="error_playing_video">Error: Can\'t play video</string>
     <string name="unknown_error">An unknown error has occurred</string>
 
     <string name="decoder">Decoder</string>
     <string name="select_decoders">Select decoders</string>
+    <string name="decoder_mode_auto_active">Auto (%1$s)</string>
     <string name="decoder_mode_hardware">HW</string>
     <string name="decoder_mode_hardware_plus">HW+</string>
     <string name="decoder_mode_app_software">SW</string>
+    <string name="decoder_auto_description">Automatically chooses best hardware or software decoder</string>
     <string name="decoder_system_description">Android system decoders (hardware or software)</string>
     <string name="decoder_hardware_plus_description">FFmpeg container reader with Android system decoders</string>
     <string name="decoder_app_software_description">Bundled FFmpeg software decoder</string>
@@ -381,5 +380,41 @@
     <string name="resume_no_desc">Always start from the beginning</string>
     <string name="subtitle_font_desc">Choose a font style for subtitles.</string>
     <string name="subtitle_preview_text">This is a subtitle preview</string>
+
+    <string name="lock_controls">Lock controls</string>
+    <string name="capturing_screenshot">Capturing screenshot…</string>
+    <string name="screenshot_saved">Screenshot saved to Pictures/Playora</string>
+    <string name="screenshot_failed">Failed to capture screenshot</string>
+    <string name="equalizer">Equalizer</string>
+    <string name="equalizer_not_available">Equalizer not available</string>
+    <string name="capture_screenshot">Capture screenshot</string>
+    <string name="rotate_screen">Rotate screen</string>
+    <string name="play_in_background">Play in background</string>
+    <string name="select_audio_track">Select audio track</string>
+    <string name="select_subtitle_track_desc">Select subtitle track</string>
+    <string name="audio_track_title">Audio track</string>
+    <string name="select_subtitle_and_adjust">Select subtitle and adjust settings</string>
+    <string name="decrease">Decrease</string>
+    <string name="increase">Increase</string>
+    <string name="custom_playback_speed">Custom playback speed</string>
+    <string name="enter_speed_range">Enter speed between 0.25x and 8.00x</string>
+    <string name="speed_hint">1.00</string>
+    <string name="reset_speed">Reset speed</string>
+    <string name="edit_speed">Edit speed</string>
+    <string name="decrease_speed">Decrease speed</string>
+    <string name="increase_speed">Increase speed</string>
+    <string name="reset_subtitle_text_size">Reset subtitle text size</string>
+    <string name="no_app_found">No app found to open this link</string>
+    <string name="privacy_pin_locked_seconds">Too many incorrect attempts. Try again in %1$ds</string>
+    <string name="change_privacy_pin">Change PIN</string>
+    <string name="change_privacy_pin_desc">Update your 4-digit Privacy PIN</string>
+    <string name="enter_current_pin">Enter current PIN</string>
+    <string name="enter_current_pin_description">Verify your current PIN before setting a new one</string>
+    <string name="mark_as_description">Set the watch status for the selected item</string>
+    <string name="mark_as_last_played_desc">Continue from where you left off</string>
+    <string name="mark_as_new_label">New</string>
+    <string name="mark_as_new_desc">Mark as newly added</string>
+    <string name="mark_as_finished_desc">Mark as completed</string>
+    <string name="mark_as_none_desc">Clear the watch status</string>
 </resources>
 

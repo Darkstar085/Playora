@@ -104,14 +104,12 @@ fun LanguageSelectionBottomSheet(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
         ) {
-            // Header
             SettingsBottomSheetHeader(
                 icon = AppIcons.Language,
                 title = title,
                 subtitle = subtitle,
             )
 
-            // Search Bar
             SettingsSearchBar(
                 query = searchQuery,
                 onQueryChange = { searchQuery = it },
@@ -120,7 +118,6 @@ fun LanguageSelectionBottomSheet(
 
             Spacer(Modifier.height(12.dp))
 
-            // Languages List
             val listState = rememberLazyListState()
             LazyColumn(
                 state = listState,
@@ -188,7 +185,6 @@ fun LanguageSelectionBottomSheet(
                 }
             }
 
-            // Bottom Actions (Cancel + Apply)
             SettingsBottomSheetActions(
                 onCancel = onDismiss,
                 onApply = {
@@ -217,14 +213,12 @@ fun ResumeSelectionBottomSheet(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
         ) {
-            // Header
             SettingsBottomSheetHeader(
                 icon = AppIcons.Resume,
                 title = stringResource(R.string.resume),
                 subtitle = stringResource(R.string.resume_desc),
             )
 
-            // Option: Yes
             ResumeOptionCard(
                 icon = AppIcons.Play,
                 title = stringResource(R.string.yes),
@@ -235,7 +229,6 @@ fun ResumeSelectionBottomSheet(
 
             Spacer(Modifier.height(10.dp))
 
-            // Option: No
             ResumeOptionCard(
                 icon = AppIcons.Replay,
                 title = stringResource(R.string.no),
@@ -244,7 +237,6 @@ fun ResumeSelectionBottomSheet(
                 onClick = { tempSelected = Resume.NO },
             )
 
-            // Bottom Actions (Cancel + Apply)
             SettingsBottomSheetActions(
                 onCancel = onDismiss,
                 onApply = {
@@ -368,14 +360,12 @@ fun SubtitleFontBottomSheet(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
         ) {
-            // Header
             SettingsBottomSheetHeader(
                 icon = AppIcons.Font,
                 title = stringResource(R.string.subtitle_font),
                 subtitle = stringResource(R.string.subtitle_font_desc),
             )
 
-            // Font options
             val fonts = listOf(Font.DEFAULT, Font.MONOSPACE, Font.SANS_SERIF, Font.SERIF)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 fonts.forEach { font ->
@@ -460,10 +450,8 @@ fun SubtitleFontBottomSheet(
 
             Spacer(Modifier.height(14.dp))
 
-            // Live Preview Card
             SubtitleLivePreviewCard(font = tempSelected)
 
-            // Bottom Actions (Cancel + Apply)
             SettingsBottomSheetActions(
                 onCancel = onDismiss,
                 onApply = {
@@ -489,12 +477,10 @@ private fun SubtitleLivePreviewCard(font: Font) {
             ),
         contentAlignment = Alignment.BottomCenter,
     ) {
-        // Mountain Landscape Canvas
         Canvas(modifier = Modifier.fillMaxSize()) {
             val w = size.width
             val h = size.height
 
-            // Dusk sky gradient
             drawRect(
                 brush = Brush.verticalGradient(
                     listOf(
@@ -505,7 +491,6 @@ private fun SubtitleLivePreviewCard(font: Font) {
                 ),
             )
 
-            // Distant mountain
             val distantMountain = Path().apply {
                 moveTo(0f, h * 0.72f)
                 lineTo(w * 0.25f, h * 0.44f)
@@ -518,7 +503,6 @@ private fun SubtitleLivePreviewCard(font: Font) {
             }
             drawPath(distantMountain, Color(0xFF1E1B4B).copy(alpha = 0.9f))
 
-            // Front dark ridge
             val frontRidge = Path().apply {
                 moveTo(0f, h * 0.85f)
                 lineTo(w * 0.35f, h * 0.52f)
@@ -532,7 +516,6 @@ private fun SubtitleLivePreviewCard(font: Font) {
             drawPath(frontRidge, Color(0xFF0B0F19))
         }
 
-        // Subtitle pill overlay
         Box(
             modifier = Modifier
                 .padding(bottom = 12.dp)
@@ -769,7 +752,6 @@ private fun SettingsBottomSheetActions(
                 )
             }
         } else {
-            // Cancel button
             Surface(
                 onClick = onCancel,
                 modifier = Modifier
@@ -794,7 +776,6 @@ private fun SettingsBottomSheetActions(
                 }
             }
 
-            // Apply button
             Button(
                 onClick = onApply,
                 modifier = Modifier
@@ -819,9 +800,6 @@ private fun SettingsBottomSheetActions(
     }
 }
 
-/**
- * Modern Bottom Sheet replacement for any other option dialogs.
- */
 @Composable
 fun OptionsDialog(
     text: String,

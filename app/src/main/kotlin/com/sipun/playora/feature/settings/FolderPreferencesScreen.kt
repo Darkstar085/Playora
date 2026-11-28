@@ -3,8 +3,11 @@
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
@@ -17,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,7 +32,6 @@ import com.sipun.playora.core.ui.extensions.plus
 import com.sipun.playora.core.ui.theme.AppGlassBackdropBox
 import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import io.github.itshedimisawi.vitro.rememberGlassBackdrop
 
 @Composable
@@ -90,22 +91,30 @@ private fun FolderPreferencesScreenContent(
                     }
 
                     is DataState.Success -> {
-                        LazyColumn(
+                        Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+                            contentAlignment = Alignment.TopCenter,
                         ) {
-                            itemsIndexed(state.foldersDataState.value) { index, folder ->
-                                SelectablePreference(
-                                    title = folder.name,
-                                    description = folder.path,
-                                    selected = folder.path in state.preferences.excludeFolders,
-                                    onClick = {
-                                        onAction(FolderPreferencesUiEvent.UpdateExcludeList(folder.path))
-                                    },
-                                    isFirstItem = index == 0,
-                                    isLastItem = index == state.foldersDataState.value.lastIndex,
-                                )
+                            LazyColumn(
+                                modifier = Modifier
+                                    .widthIn(max = 760.dp)
+                                    .fillMaxWidth()
+                                    .fillMaxHeight(),
+                                contentPadding = innerPadding + PaddingValues(horizontal = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+                            ) {
+                                itemsIndexed(state.foldersDataState.value) { index, folder ->
+                                    SelectablePreference(
+                                        title = folder.name,
+                                        description = folder.path,
+                                        selected = folder.path in state.preferences.excludeFolders,
+                                        onClick = {
+                                            onAction(FolderPreferencesUiEvent.UpdateExcludeList(folder.path))
+                                        },
+                                        isFirstItem = index == 0,
+                                        isLastItem = index == state.foldersDataState.value.lastIndex,
+                                    )
+                                }
                             }
                         }
                     }
@@ -114,16 +123,5 @@ private fun FolderPreferencesScreenContent(
                 }
             }
         }
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun FolderPreferencesScreenPreview() {
-    PlayoraTheme {
-        FolderPreferencesScreenContent(
-            state = FolderPreferencesUiState(),
-            onAction = {},
-        )
     }
 }

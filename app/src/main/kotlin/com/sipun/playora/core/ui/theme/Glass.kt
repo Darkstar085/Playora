@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -300,9 +301,9 @@ fun rememberGlassOverlayTint(): Color {
     val isDark = LocalGlassDarkTheme.current ?: isSystemInDarkTheme()
     val highContrastDark = LocalIsHighContrastDarkTheme.current
     return when {
-        isDark && highContrastDark -> Color(0x9E12161E)
-        isDark -> MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.54f)
-        else -> Color.White.copy(alpha = 0.48f)
+        isDark && highContrastDark -> Color(0x8812161E)
+        isDark -> MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.44f)
+        else -> Color.White.copy(alpha = 0.34f)
     }
 }
 
@@ -400,20 +401,25 @@ fun AppGlassModalOverlay(
                         scaleX = scale
                         scaleY = scale
                     }
-                    .appGlassSurface(
-                        shape = shape,
-                        tint = glassTint,
-                        blurRadius = 18.dp,
-                        fallbackBackground = containerColor,
-                        fallbackBorder = glassBorder,
-                    )
-                    .border(glassBorder, shape)
+                    .clip(shape)
                     .clickable(
                         interactionSource = noOpInteraction,
                         indication = null,
                         onClick = {},
                     ),
             ) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .appGlassSurface(
+                            shape = shape,
+                            tint = glassTint,
+                            blurRadius = 18.dp,
+                            fallbackBackground = containerColor,
+                            fallbackBorder = glassBorder,
+                        )
+                        .border(glassBorder, shape),
+                )
                 CompositionLocalProvider(
                     LocalContentColor provides MaterialTheme.colorScheme.onSurface,
                     LocalInsideGlassBackdrop provides true,
@@ -492,6 +498,7 @@ fun AppGlassBottomSheetOverlay(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
+                    .widthIn(max = 640.dp)
                     .fillMaxWidth()
                     .statusBarsPadding()
                     .navigationBarsPadding()

@@ -42,7 +42,8 @@ fun AppDialog(
     shape: Shape = RoundedCornerShape(28.dp),
 ) {
     val configuration = LocalConfiguration.current
-    val maxWidth = configuration.screenWidthDp.dp - AppDialogDefaults.dialogMargin * 2
+    val maxWidth = (configuration.screenWidthDp.dp - AppDialogDefaults.dialogMargin * 2)
+        .coerceAtMost(560.dp)
 
     if (isAppGlassActive()) {
         val cornerShape = (shape as? CornerBasedShape) ?: RoundedCornerShape(28.dp)

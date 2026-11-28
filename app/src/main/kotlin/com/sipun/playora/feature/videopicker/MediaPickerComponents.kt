@@ -193,7 +193,6 @@ fun MarkAsDialog(
                     .padding(horizontal = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                // Top Icon Badge
                 Box(
                     modifier = Modifier
                         .size(48.dp)
@@ -219,14 +218,13 @@ fun MarkAsDialog(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Set the watch status for the selected item",
+                    text = stringResource(R.string.mark_as_description),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Options list
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -238,25 +236,25 @@ fun MarkAsDialog(
                         val (title, subtitle, icon) = when (markType) {
                             MarkType.LAST_PLAYED -> Triple(
                                 stringResource(R.string.last_played),
-                                "Continue from where you left off",
+                                stringResource(R.string.mark_as_last_played_desc),
                                 Icons.Rounded.PlayCircle,
                             )
 
                             MarkType.NEW -> Triple(
-                                "New",
-                                "Mark as newly added",
+                                stringResource(R.string.mark_as_new_label),
+                                stringResource(R.string.mark_as_new_desc),
                                 Icons.Rounded.AutoAwesome,
                             )
 
                             MarkType.FINISHED -> Triple(
                                 stringResource(R.string.finished),
-                                "Mark as completed",
+                                stringResource(R.string.mark_as_finished_desc),
                                 Icons.Rounded.TaskAlt,
                             )
 
                             MarkType.NONE -> Triple(
                                 stringResource(R.string.none),
-                                "Clear the watch status",
+                                stringResource(R.string.mark_as_none_desc),
                                 Icons.Rounded.DoNotDisturbAlt,
                             )
                         }

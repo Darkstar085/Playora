@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -24,14 +26,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sipun.playora.R
-import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.ThemeConfig
 import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppSwitch
@@ -40,7 +41,6 @@ import com.sipun.playora.core.ui.components.ListSectionTitle
 import com.sipun.playora.core.ui.theme.AppGlassBackdropBox
 import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import io.github.itshedimisawi.vitro.rememberGlassBackdrop
 
 @Composable
@@ -100,13 +100,19 @@ private fun AppearancePreferencesScreenContent(
                     bottomPadding = innerPadding.calculateBottomPadding(),
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    Column(
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .verticalScroll(state = rememberScrollState())
-                            .padding(paddingValues = innerPadding)
-                            .padding(horizontal = 16.dp),
+                            .verticalScroll(state = rememberScrollState()),
+                        contentAlignment = Alignment.TopCenter,
                     ) {
+                        Column(
+                            modifier = Modifier
+                                .widthIn(max = 760.dp)
+                                .fillMaxWidth()
+                                .padding(paddingValues = innerPadding)
+                                .padding(horizontal = 16.dp),
+                        ) {
                         ListSectionTitle(text = stringResource(id = R.string.appearance_name))
 
                         AppearanceSectionCard {
@@ -183,6 +189,7 @@ private fun AppearancePreferencesScreenContent(
                         }
 
                         Spacer(modifier = Modifier.height(24.dp))
+                        }
                     }
                 }
             }
@@ -198,31 +205,5 @@ private fun AppearancePreferencesScreenContent(
                 )
             }
         }
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun AppearancePreferencesScreenPreview() {
-    PlayoraTheme {
-        AppearancePreferencesScreenContent(
-            state = AppearancePreferencesUiState(
-                preferences = ApplicationPreferences(useLiquidGlass = true),
-            ),
-            onAction = {},
-        )
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun AppearancePreferencesScreenGlassOffPreview() {
-    PlayoraTheme(preferences = ApplicationPreferences(useLiquidGlass = false)) {
-        AppearancePreferencesScreenContent(
-            state = AppearancePreferencesUiState(
-                preferences = ApplicationPreferences(useLiquidGlass = false),
-            ),
-            onAction = {},
-        )
     }
 }

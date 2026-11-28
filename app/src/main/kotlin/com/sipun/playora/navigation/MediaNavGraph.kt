@@ -67,7 +67,6 @@ internal fun Context.startPlayback(
 }
 
 private fun Context.startPlayback(uri: Uri, playlist: List<Uri>?, grantReadPermission: Boolean) {
-    // Dismiss any existing PiP window so it cancels and disappears
     runCatching {
         sendBroadcast(Intent(PlayerActivity.ACTION_CANCEL_PIP).setPackage(packageName))
     }

@@ -1,6 +1,5 @@
 package com.sipun.playora.core.ui.composables
 
-import android.Manifest
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,8 +23,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.sipun.playora.R
-import com.sipun.playora.core.ui.preview.DayNightPreview
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 
 @Composable
 fun PermissionDetailView(text: String) {
@@ -109,36 +105,5 @@ fun PermissionMissingView(
             ),
         )
         LaunchedEffect(key1 = Unit) { launchPermissionRequest() }
-    }
-}
-
-@DayNightPreview
-@Composable
-fun PermissionDetailViewPreview() {
-    PlayoraTheme {
-        Surface {
-            PermissionDetailView(
-                text = stringResource(
-                    id = R.string.permission_settings,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                ),
-            )
-        }
-    }
-}
-
-@DayNightPreview
-@Composable
-fun PermissionRationaleDialogPreview() {
-    PlayoraTheme {
-        Surface {
-            PermissionRationaleDialog(
-                text = stringResource(
-                    id = R.string.permission_info,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                ),
-                onConfirmButtonClick = {},
-            )
-        }
     }
 }

@@ -47,7 +47,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sipun.playora.R
@@ -56,7 +55,6 @@ import com.sipun.playora.core.model.Folder
 import com.sipun.playora.core.model.MediaLayoutMode
 import com.sipun.playora.core.ui.components.AppSegmentedListItem
 import com.sipun.playora.core.ui.components.DestructiveRed
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import java.util.Locale
 
 @Composable
@@ -472,62 +470,3 @@ private fun FolderGridItem(
     )
 }
 
-@PreviewLightDark
-@Composable
-fun FolderItemRecentlyPlayedPreview() {
-    PlayoraTheme {
-        FolderListItem(
-            folder = Folder.sample,
-            preferences = ApplicationPreferences(),
-            isRecentlyPlayedFolder = true,
-        )
-    }
-}
-
-@PreviewLightDark
-@Composable
-fun FolderItemPreview() {
-    PlayoraTheme {
-        FolderListItem(
-            folder = Folder.sample,
-            preferences = ApplicationPreferences(),
-            isRecentlyPlayedFolder = false,
-        )
-    }
-}
-
-@PreviewLightDark
-@Composable
-fun FolderGridViewPreview() {
-    PlayoraTheme {
-        FolderGridItem(
-            folder = Folder.sample,
-            preferences = ApplicationPreferences(),
-            isRecentlyPlayedFolder = true,
-        )
-    }
-}
-
-@PreviewLightDark
-@Composable
-fun FolderItemWithNewVideosPreview() {
-    PlayoraTheme {
-        FolderListItem(
-            folder = Folder.sample.copy(newVideosCount = 3),
-            preferences = ApplicationPreferences(),
-            isRecentlyPlayedFolder = false,
-        )
-    }
-}
-
-@PreviewLightDark
-@Composable
-fun FolderGridItemWithNewVideosOverflowPreview() {
-    PlayoraTheme {
-        FolderGridItem(
-            folder = Folder.sample.copy(newVideosCount = 42),
-            preferences = ApplicationPreferences(),
-            isRecentlyPlayedFolder = false,
-        )
-    }
-}

@@ -58,36 +58,13 @@ import com.sipun.playora.core.ui.theme.appGlassSurface
 import com.sipun.playora.core.ui.theme.rememberGlassCardBorderBrush
 import com.sipun.playora.core.ui.theme.rememberGlassCardTint
 
+import com.sipun.playora.core.ui.components.PreferenceSectionCard
+
 @Composable
 internal fun AppearanceSectionCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val cardShape = RoundedCornerShape(22.dp)
-    if (LocalLiquidGlassEnabled.current) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(cardShape)
-                .background(rememberGlassCardTint(), cardShape)
-                .border(0.85.dp, rememberGlassCardBorderBrush(), cardShape),
-            content = content,
-        )
-    } else {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = cardShape,
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            ),
-            border = BorderStroke(
-                0.85.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        ) {
-            Column(content = content)
-        }
-    }
+    PreferenceSectionCard(content = content)
 }
 
 @Composable
@@ -107,18 +84,18 @@ internal fun AppearanceRow(
     ) {
         Box(
             modifier = Modifier
-                .size(42.dp)
+                .size(40.dp)
                 .background(
-                    brush = LocalAccentBrush.current,
-                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                    shape = RoundedCornerShape(12.dp),
                 ),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = Color.White,
+                modifier = Modifier.size(22.dp),
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
         Column(

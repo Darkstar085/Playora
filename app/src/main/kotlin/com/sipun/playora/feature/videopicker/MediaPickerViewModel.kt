@@ -404,7 +404,6 @@ class MediaPickerViewModel(
             stateInternal.update {
                 it.copy(
                     hideFlow = HideFlowState.Idle,
-                    showVaultHintTimestamp = System.currentTimeMillis(),
                 )
             }
         }
@@ -424,7 +423,6 @@ class MediaPickerViewModel(
                 stateInternal.update {
                     it.copy(
                         hideFlow = HideFlowState.Idle,
-                        showVaultHintTimestamp = System.currentTimeMillis(),
                     )
                 }
             }
@@ -437,7 +435,6 @@ class MediaPickerViewModel(
         stateInternal.update {
             it.copy(
                 hideFlow = HideFlowState.Idle,
-                showVaultHintTimestamp = System.currentTimeMillis(),
             )
         }
     }

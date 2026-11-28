@@ -2,7 +2,6 @@ package com.sipun.playora.settings.screens.gesture
 
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
-import com.sipun.playora.core.common.extensions.round
 import com.sipun.playora.core.data.repository.PreferencesRepository
 import com.sipun.playora.core.model.DoubleTapGesture
 import com.sipun.playora.core.model.PlayerPreferences
@@ -62,28 +61,12 @@ class GesturePreferencesViewModel(
 
             is GesturePreferencesUiEvent.ToggleUseZoomControls -> toggleUseZoomControls()
 
-            is GesturePreferencesUiEvent.ToggleEnablePanGesture -> toggleEnablePanGesture()
-
             is GesturePreferencesUiEvent.UpdateLongPressControlsSpeed ->
                 updateLongPressControlsSpeed(
                     action.value,
                 )
 
             is GesturePreferencesUiEvent.UpdateSeekIncrement -> updateSeekIncrement(action.value)
-
-            is GesturePreferencesUiEvent.UpdateSeekSensitivity -> updateSeekSensitivity(
-                action.value,
-            )
-
-            is GesturePreferencesUiEvent.UpdateVolumeGestureSensitivity ->
-                updateVolumeGestureSensitivity(
-                    action.value,
-                )
-
-            is GesturePreferencesUiEvent.UpdateBrightnessGestureSensitivity ->
-                updateBrightnessGestureSensitivity(
-                    action.value,
-                )
         }
     }
 
@@ -151,14 +134,6 @@ class GesturePreferencesViewModel(
         }
     }
 
-    private fun toggleEnablePanGesture() {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(enablePanGesture = !it.enablePanGesture)
-            }
-        }
-    }
-
     private fun updateLongPressControlsSpeed(value: Float) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences {
@@ -170,30 +145,6 @@ class GesturePreferencesViewModel(
     private fun updateSeekIncrement(value: Int) {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(seekIncrement = value) }
-        }
-    }
-
-    private fun updateSeekSensitivity(value: Float) {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(seekSensitivity = value.round(decimalPlaces = 2))
-            }
-        }
-    }
-
-    private fun updateVolumeGestureSensitivity(value: Float) {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(volumeGestureSensitivity = value.round(decimalPlaces = 2))
-            }
-        }
-    }
-
-    private fun updateBrightnessGestureSensitivity(value: Float) {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(brightnessGestureSensitivity = value.round(decimalPlaces = 2))
-            }
         }
     }
 }
@@ -220,10 +171,6 @@ sealed interface GesturePreferencesUiEvent {
     data object ToggleEnableVolumeSwipeGesture : GesturePreferencesUiEvent
     data object ToggleUseSeekControls : GesturePreferencesUiEvent
     data object ToggleUseZoomControls : GesturePreferencesUiEvent
-    data object ToggleEnablePanGesture : GesturePreferencesUiEvent
     data class UpdateLongPressControlsSpeed(val value: Float) : GesturePreferencesUiEvent
     data class UpdateSeekIncrement(val value: Int) : GesturePreferencesUiEvent
-    data class UpdateSeekSensitivity(val value: Float) : GesturePreferencesUiEvent
-    data class UpdateVolumeGestureSensitivity(val value: Float) : GesturePreferencesUiEvent
-    data class UpdateBrightnessGestureSensitivity(val value: Float) : GesturePreferencesUiEvent
 }

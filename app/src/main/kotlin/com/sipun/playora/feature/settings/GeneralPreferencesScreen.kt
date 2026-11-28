@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
@@ -16,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -28,6 +30,7 @@ import com.sipun.playora.core.ui.components.CancelButton
 import com.sipun.playora.core.ui.components.ClickablePreferenceItem
 import com.sipun.playora.core.ui.components.DeleteButton
 import com.sipun.playora.core.ui.components.ListSectionTitle
+import com.sipun.playora.core.ui.components.PreferenceSectionCard
 import com.sipun.playora.core.ui.components.ResetButton
 import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.theme.AppGlassBackdropBox
@@ -81,63 +84,66 @@ private fun GeneralPreferencesScreenContent(
                     bottomPadding = innerPadding.calculateBottomPadding(),
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    Column(
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(state = rememberScrollState())
-                            .padding(paddingValues = innerPadding)
-                            .padding(horizontal = 16.dp),
+                            .padding(paddingValues = innerPadding),
+                        contentAlignment = Alignment.TopCenter,
                     ) {
-                        if (state.isBusy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-
-                        ListSectionTitle(text = stringResource(id = R.string.media_library))
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+                            modifier = Modifier
+                                .widthIn(max = 760.dp)
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
                         ) {
-                            ClickablePreferenceItem(
-                                title = stringResource(id = R.string.manage_folders),
-                                description = stringResource(id = R.string.manage_folders_desc),
-                                icon = AppIcons.FolderOff,
-                                onClick = { onAction(GeneralPreferencesUiEvent.OpenFolders) },
-                                isFirstItem = true,
-                                isLastItem = true,
-                            )
-                        }
+                            if (state.isBusy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
 
-                        ListSectionTitle(text = stringResource(id = R.string.user_data))
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
-                        ) {
-                            ClickablePreferenceItem(
-                                title = stringResource(R.string.delete_thumbnail_cache),
-                                description = stringResource(R.string.delete_thumbnail_cache_description),
-                                icon = AppIcons.DeleteSweep,
-                                enabled = !state.isBusy,
-                                isDestructive = true,
-                                onClick = {
-                                    onAction(
-                                        GeneralPreferencesUiEvent.ShowDialog(
-                                            value = GeneralPreferencesDialog.ClearThumbnailCacheDialog,
-                                        ),
-                                    )
-                                },
-                                isFirstItem = true,
-                            )
-                            ClickablePreferenceItem(
-                                title = stringResource(R.string.reset_settings),
-                                description = stringResource(R.string.reset_settings_description),
-                                icon = AppIcons.History,
-                                enabled = !state.isBusy,
-                                isDestructive = true,
-                                onClick = {
-                                    onAction(
-                                        GeneralPreferencesUiEvent.ShowDialog(
-                                            value = GeneralPreferencesDialog.ResetSettingsDialog,
-                                        ),
-                                    )
-                                },
-                                isLastItem = true,
-                            )
+                            ListSectionTitle(text = stringResource(id = R.string.media_library))
+                            PreferenceSectionCard {
+                                ClickablePreferenceItem(
+                                    title = stringResource(id = R.string.manage_folders),
+                                    description = stringResource(id = R.string.manage_folders_desc),
+                                    icon = AppIcons.FolderOff,
+                                    onClick = { onAction(GeneralPreferencesUiEvent.OpenFolders) },
+                                    isFirstItem = true,
+                                    isLastItem = true,
+                                )
+                            }
+
+                            ListSectionTitle(text = stringResource(id = R.string.user_data))
+                            PreferenceSectionCard {
+                                ClickablePreferenceItem(
+                                    title = stringResource(R.string.delete_thumbnail_cache),
+                                    description = stringResource(R.string.delete_thumbnail_cache_description),
+                                    icon = AppIcons.DeleteSweep,
+                                    enabled = !state.isBusy,
+                                    isDestructive = true,
+                                    onClick = {
+                                        onAction(
+                                            GeneralPreferencesUiEvent.ShowDialog(
+                                                value = GeneralPreferencesDialog.ClearThumbnailCacheDialog,
+                                            ),
+                                        )
+                                    },
+                                    isFirstItem = true,
+                                )
+                                ClickablePreferenceItem(
+                                    title = stringResource(R.string.reset_settings),
+                                    description = stringResource(R.string.reset_settings_description),
+                                    icon = AppIcons.History,
+                                    enabled = !state.isBusy,
+                                    isDestructive = true,
+                                    onClick = {
+                                        onAction(
+                                            GeneralPreferencesUiEvent.ShowDialog(
+                                                value = GeneralPreferencesDialog.ResetSettingsDialog,
+                                            ),
+                                        )
+                                    },
+                                    isLastItem = true,
+                                )
+                            }
                         }
                     }
                 }

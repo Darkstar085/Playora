@@ -3,22 +3,10 @@ package com.sipun.playora.settings.extensions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.sipun.playora.R
-import com.sipun.playora.core.model.ControlButtonsPosition
 import com.sipun.playora.core.model.DoubleTapGesture
-import com.sipun.playora.core.model.FastSeek
 import com.sipun.playora.core.model.Font
 import com.sipun.playora.core.model.Resume
 import com.sipun.playora.core.model.ThemeConfig
-
-@Composable
-fun ControlButtonsPosition.name(): String {
-    val stringRes = when (this) {
-        ControlButtonsPosition.LEFT -> R.string.control_buttons_alignment_left
-        ControlButtonsPosition.RIGHT -> R.string.control_buttons_alignment_right
-    }
-
-    return stringResource(id = stringRes)
-}
 
 @Composable
 fun DoubleTapGesture.name(): String {
@@ -27,17 +15,6 @@ fun DoubleTapGesture.name(): String {
         DoubleTapGesture.FAST_FORWARD_AND_REWIND -> R.string.ff_rewind
         DoubleTapGesture.BOTH -> R.string.play_pause_ff_rewind
         DoubleTapGesture.NONE -> R.string.none
-    }
-
-    return stringResource(id = stringRes)
-}
-
-@Composable
-fun FastSeek.name(): String {
-    val stringRes = when (this) {
-        FastSeek.AUTO -> R.string.auto
-        FastSeek.ENABLE -> R.string.enable
-        FastSeek.DISABLE -> R.string.disable
     }
 
     return stringResource(id = stringRes)

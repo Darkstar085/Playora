@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,10 +20,13 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material3.Button
@@ -71,115 +75,116 @@ fun WelcomeScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
-        // Soft ambient glow adapted to theme accent
         AmbientGlowBackground()
 
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding(),
-            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // Top Bar with App Logo & Skip button
-            TopHeaderRow(
-                showSkip = pagerState.currentPage < 2,
-                onSkip = onFinish,
-            )
-
-            // Pager content
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-            ) { page ->
-                when (page) {
-                    0 -> WelcomePage()
-                    1 -> PowerfulPlaybackPage()
-                    2 -> YourVideosYourWayPage()
-                }
-            }
-
-            // Bottom Navigation Area: Indicators and Action Button
+            val isShortHeight = maxHeight < 520.dp
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 20.dp),
+                modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                // Page Indicator Dots
-                PageIndicatorDots(
-                    pageCount = 3,
-                    currentPage = pagerState.currentPage,
+                TopHeaderRow(
+                    showSkip = pagerState.currentPage < 2,
+                    compact = isShortHeight,
+                    onSkip = onFinish,
                 )
 
-                Spacer(Modifier.height(20.dp))
-
-                // Action Button
-                val buttonText = when (pagerState.currentPage) {
-                    0 -> stringResource(R.string.onboarding_get_started)
-                    1 -> stringResource(R.string.onboarding_next)
-                    else -> stringResource(R.string.onboarding_start_watching)
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                ) { page ->
+                    when (page) {
+                        0 -> WelcomePage()
+                        1 -> PowerfulPlaybackPage()
+                        2 -> YourVideosYourWayPage()
+                    }
                 }
 
-                Button(
-                    onClick = {
-                        if (pagerState.currentPage < 2) {
-                            scope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            }
-                        } else {
-                            onFinish()
-                        }
-                    },
+                Column(
                     modifier = Modifier
+                        .widthIn(max = 560.dp)
                         .fillMaxWidth()
-                        .height(54.dp)
-                        .shadow(
-                            elevation = 12.dp,
-                            shape = CircleShape,
-                            spotColor = primaryColor.copy(alpha = 0.35f),
-                        ),
-                    shape = CircleShape,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = onPrimaryColor,
-                    ),
-                    contentPadding = PaddingValues(),
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = if (isShortHeight) 10.dp else 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Box(
+                    PageIndicatorDots(
+                        pageCount = 3,
+                        currentPage = pagerState.currentPage,
+                    )
+
+                    Spacer(Modifier.height(if (isShortHeight) 10.dp else 20.dp))
+
+                    val buttonText = when (pagerState.currentPage) {
+                        0 -> stringResource(R.string.onboarding_get_started)
+                        1 -> stringResource(R.string.onboarding_next)
+                        else -> stringResource(R.string.onboarding_start_watching)
+                    }
+
+                    Button(
+                        onClick = {
+                            if (pagerState.currentPage < 2) {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                }
+                            } else {
+                                onFinish()
+                            }
+                        },
                         modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.horizontalGradient(
-                                    listOf(
-                                        primaryColor,
-                                        primaryColor.copy(alpha = 0.85f),
+                            .fillMaxWidth()
+                            .height(if (isShortHeight) 44.dp else 54.dp)
+                            .shadow(
+                                elevation = 12.dp,
+                                shape = CircleShape,
+                                spotColor = primaryColor.copy(alpha = 0.35f),
+                            ),
+                        shape = CircleShape,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = onPrimaryColor,
+                        ),
+                        contentPadding = PaddingValues(),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(
+                                            primaryColor,
+                                            primaryColor.copy(alpha = 0.85f),
+                                        ),
                                     ),
                                 ),
-                            ),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            Text(
-                                text = buttonText,
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                ),
-                                color = onPrimaryColor,
-                            )
-                            Icon(
-                                imageVector = AppIcons.ArrowForward,
-                                contentDescription = null,
-                                tint = onPrimaryColor,
-                                modifier = Modifier.size(18.dp),
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Text(
+                                    text = buttonText,
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp,
+                                    ),
+                                    color = onPrimaryColor,
+                                )
+                                Icon(
+                                    imageVector = AppIcons.ArrowForward,
+                                    contentDescription = null,
+                                    tint = onPrimaryColor,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
                         }
                     }
                 }
@@ -191,6 +196,7 @@ fun WelcomeScreen(
 @Composable
 private fun TopHeaderRow(
     showSkip: Boolean,
+    compact: Boolean,
     onSkip: () -> Unit,
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -199,68 +205,108 @@ private fun TopHeaderRow(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 12.dp, start = 20.dp, end = 20.dp, bottom = 4.dp),
+            .padding(
+                top = if (compact) 6.dp else 12.dp,
+                start = 20.dp,
+                end = 20.dp,
+                bottom = 4.dp,
+            ),
     ) {
-        // App icon and title centered
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(54.dp)
-                    .clip(RoundedCornerShape(17.dp))
-                    .background(
-                        Brush.linearGradient(
-                            listOf(
-                                primaryColor,
-                                primaryColor.copy(alpha = 0.75f),
+        if (compact) {
+            Row(
+                modifier = Modifier.align(Alignment.Center),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(
+                                    primaryColor,
+                                    primaryColor.copy(alpha = 0.75f),
+                                ),
                             ),
                         ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Play,
+                        contentDescription = null,
+                        tint = onPrimaryColor,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
                     ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = AppIcons.Play,
-                    contentDescription = null,
-                    tint = onPrimaryColor,
-                    modifier = Modifier.size(34.dp),
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
             }
+        } else {
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(54.dp)
+                        .clip(RoundedCornerShape(17.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(
+                                    primaryColor,
+                                    primaryColor.copy(alpha = 0.75f),
+                                ),
+                            ),
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Play,
+                        contentDescription = null,
+                        tint = onPrimaryColor,
+                        modifier = Modifier.size(34.dp),
+                    )
+                }
 
-            Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(6.dp))
 
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    letterSpacing = 0.5.sp,
-                ),
-                color = MaterialTheme.colorScheme.onBackground,
-            )
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        letterSpacing = 0.5.sp,
+                    ),
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
 
-            Text(
-                text = stringResource(R.string.onboarding_video_player).uppercase(),
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 10.sp,
-                    letterSpacing = 2.5.sp,
-                ),
-                color = primaryColor,
-            )
+                Text(
+                    text = stringResource(R.string.onboarding_video_player).uppercase(),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp,
+                        letterSpacing = 2.5.sp,
+                    ),
+                    color = primaryColor,
+                )
+            }
         }
 
-        // Skip Button at top right
         if (showSkip) {
             Surface(
                 onClick = onSkip,
-                modifier = Modifier.align(Alignment.TopEnd),
+                modifier = Modifier.align(if (compact) Alignment.CenterEnd else Alignment.TopEnd),
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.85f),
                 border = BorderStroke(
                     1.dp,
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
                 ),
             ) {
                 Text(
@@ -276,68 +322,73 @@ private fun TopHeaderRow(
 
 @Composable
 private fun WelcomePage() {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+            .verticalScroll(rememberScrollState()),
+        contentAlignment = Alignment.Center,
     ) {
-        // Title
-        Text(
-            text = buildAnnotatedString {
-                append("Welcome to ")
-                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                    append("Playora")
-                }
-            },
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 26.sp,
-            ),
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(Modifier.height(10.dp))
-
-        // Subtitle
-        Text(
-            text = stringResource(R.string.onboarding_welcome_desc),
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 13.5.sp,
-                lineHeight = 20.sp,
-            ),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp),
-        )
-
-        Spacer(Modifier.height(30.dp))
-
-        // 3 Feature Cards
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        Column(
+            modifier = Modifier
+                .widthIn(max = 560.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            FeatureCard(
-                icon = AppIcons.Play,
-                title = stringResource(R.string.onboarding_smooth_playback),
-                subtitle = stringResource(R.string.onboarding_smooth_playback_desc),
-                modifier = Modifier.weight(1f),
+            Text(
+                text = buildAnnotatedString {
+                    append("Welcome to ")
+                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                        append("Playora")
+                    }
+                },
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 26.sp,
+                ),
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center,
             )
-            FeatureCard(
-                icon = AppIcons.Lock,
-                title = stringResource(R.string.onboarding_private_secure),
-                subtitle = stringResource(R.string.onboarding_private_secure_desc),
-                modifier = Modifier.weight(1f),
+
+            Spacer(Modifier.height(10.dp))
+
+            Text(
+                text = stringResource(R.string.onboarding_welcome_desc),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 13.5.sp,
+                    lineHeight = 20.sp,
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
-            FeatureCard(
-                icon = AppIcons.Sensitivity,
-                title = stringResource(R.string.onboarding_customizable),
-                subtitle = stringResource(R.string.onboarding_customizable_desc),
-                modifier = Modifier.weight(1f),
-            )
+
+            Spacer(Modifier.height(30.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                FeatureCard(
+                    icon = AppIcons.Play,
+                    title = stringResource(R.string.onboarding_smooth_playback),
+                    subtitle = stringResource(R.string.onboarding_smooth_playback_desc),
+                    modifier = Modifier.weight(1f),
+                )
+                FeatureCard(
+                    icon = AppIcons.Lock,
+                    title = stringResource(R.string.onboarding_private_secure),
+                    subtitle = stringResource(R.string.onboarding_private_secure_desc),
+                    modifier = Modifier.weight(1f),
+                )
+                FeatureCard(
+                    icon = AppIcons.Sensitivity,
+                    title = stringResource(R.string.onboarding_customizable),
+                    subtitle = stringResource(R.string.onboarding_customizable_desc),
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
     }
 }
@@ -407,281 +458,280 @@ private fun FeatureCard(
 @Composable
 private fun PowerfulPlaybackPage() {
     val primaryColor = MaterialTheme.colorScheme.primary
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+            .verticalScroll(rememberScrollState()),
+        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = buildAnnotatedString {
-                append("Powerful ")
-                withStyle(SpanStyle(color = primaryColor)) {
-                    append("Playback")
-                }
-            },
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 26.sp,
-            ),
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        Text(
-            text = stringResource(R.string.onboarding_playback_desc),
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 13.5.sp,
-                lineHeight = 19.sp,
-            ),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp),
-        )
-
-        Spacer(Modifier.height(24.dp))
-
-        // Mock video player card with glowing background
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth(0.94f)
-                .height(185.dp),
-            contentAlignment = Alignment.Center,
+                .widthIn(max = 560.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            // Tilted ambient card behind
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        rotationZ = -4.5f
-                        scaleX = 0.98f
-                        scaleY = 0.96f
+            Text(
+                text = buildAnnotatedString {
+                    append("Powerful ")
+                    withStyle(SpanStyle(color = primaryColor)) {
+                        append("Playback")
                     }
-                    .clip(RoundedCornerShape(22.dp))
-                    .background(
-                        Brush.linearGradient(
-                            listOf(
-                                primaryColor.copy(alpha = 0.35f),
-                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
-                            ),
-                        ),
-                    ),
+                },
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 26.sp,
+                ),
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center,
             )
 
-            // Front Mock Player Frame
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = stringResource(R.string.onboarding_playback_desc),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 13.5.sp,
+                    lineHeight = 19.sp,
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+
+            Spacer(Modifier.height(24.dp))
+
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(20.dp))
-                    .border(
-                        width = 1.5.dp,
-                        brush = Brush.verticalGradient(
-                            listOf(
-                                primaryColor.copy(alpha = 0.7f),
-                                primaryColor.copy(alpha = 0.25f),
-                            ),
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                    ),
+                    .fillMaxWidth(0.94f)
+                    .height(185.dp),
+                contentAlignment = Alignment.Center,
             ) {
-                // Mountain Landscape Canvas Background
-                LandscapeThumbnail(
-                    modifier = Modifier.fillMaxSize(),
-                    accentColor = primaryColor,
-                )
-
-                // Overlay Controls
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 14.dp, vertical = 10.dp),
-                    verticalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    // Top control bar
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            AppIcons.ArrowBack,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Icon(
-                                AppIcons.Rotation,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(15.dp)
-                            )
-                            Icon(
-                                AppIcons.Caption,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(15.dp)
-                            )
-                            Icon(
-                                AppIcons.MoreVert,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(15.dp)
-                            )
+                        .graphicsLayer {
+                            rotationZ = -4.5f
+                            scaleX = 0.98f
+                            scaleY = 0.96f
                         }
-                    }
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(
+                                    primaryColor.copy(alpha = 0.35f),
+                                    MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
+                                ),
+                            ),
+                        ),
+                )
 
-                    // Center Play Button
-                    Box(
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(20.dp))
+                        .border(
+                            width = 1.5.dp,
+                            brush = Brush.verticalGradient(
+                                listOf(
+                                    primaryColor.copy(alpha = 0.7f),
+                                    primaryColor.copy(alpha = 0.25f),
+                                ),
+                            ),
+                            shape = RoundedCornerShape(20.dp),
+                        ),
+                ) {
+                    LandscapeThumbnail(
+                        modifier = Modifier.fillMaxSize(),
+                        accentColor = primaryColor,
+                    )
+
+                    Column(
                         modifier = Modifier
-                            .size(46.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black.copy(alpha = 0.45f))
-                            .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape)
-                            .align(Alignment.CenterHorizontally),
-                        contentAlignment = Alignment.Center,
+                            .fillMaxSize()
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Icon(
-                            AppIcons.Play,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-
-                    // Bottom time bar and controls
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                "12:18",
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                                color = Color.White
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(3.dp)
-                                    .padding(horizontal = 8.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White.copy(alpha = 0.3f)),
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth(0.5f)
-                                        .height(3.dp)
-                                        .clip(CircleShape)
-                                        .background(primaryColor),
-                                )
-                            }
-                            Text(
-                                "24:56",
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                                color = Color.White
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceAround,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
                             Icon(
-                                AppIcons.Lock,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Icon(
-                                AppIcons.Replay,
+                                AppIcons.ArrowBack,
                                 contentDescription = null,
                                 tint = Color.White,
                                 modifier = Modifier.size(16.dp)
                             )
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White.copy(alpha = 0.25f)),
-                                contentAlignment = Alignment.Center,
-                            ) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 Icon(
-                                    Icons.Rounded.Pause,
+                                    AppIcons.Rotation,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                                Icon(
+                                    AppIcons.Caption,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                                Icon(
+                                    AppIcons.MoreVert,
                                     contentDescription = null,
                                     tint = Color.White,
                                     modifier = Modifier.size(15.dp)
                                 )
                             }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(46.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.45f))
+                                .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape)
+                                .align(Alignment.CenterHorizontally),
+                            contentAlignment = Alignment.Center,
+                        ) {
                             Icon(
-                                AppIcons.FastForward,
+                                AppIcons.Play,
                                 contentDescription = null,
                                 tint = Color.White,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(24.dp)
                             )
-                            Icon(
-                                AppIcons.Focus,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(14.dp)
-                            )
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    "12:18",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                    color = Color.White
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(3.dp)
+                                        .padding(horizontal = 8.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White.copy(alpha = 0.3f)),
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.5f)
+                                            .height(3.dp)
+                                            .clip(CircleShape)
+                                            .background(primaryColor),
+                                    )
+                                }
+                                Text(
+                                    "24:56",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                    color = Color.White
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceAround,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    AppIcons.Lock,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Icon(
+                                    AppIcons.Replay,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White.copy(alpha = 0.25f)),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.Pause,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                }
+                                Icon(
+                                    AppIcons.FastForward,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Icon(
+                                    AppIcons.Focus,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
 
-        Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(24.dp))
 
-        // Format Chips Row
-        val formats = listOf(
-            FormatInfo("MP4", AppIcons.Movie),
-            FormatInfo("MKV", AppIcons.Movie),
-            FormatInfo("WEBM", AppIcons.Video),
-            FormatInfo("AVI", AppIcons.Play),
-            FormatInfo("MOV", AppIcons.Search),
-            FormatInfo(stringResource(R.string.onboarding_and_more), AppIcons.More),
-        )
+            val formats = listOf(
+                FormatInfo("MP4", AppIcons.Movie),
+                FormatInfo("MKV", AppIcons.Movie),
+                FormatInfo("WEBM", AppIcons.Video),
+                FormatInfo("AVI", AppIcons.Play),
+                FormatInfo("MOV", AppIcons.Search),
+                FormatInfo(stringResource(R.string.onboarding_and_more), AppIcons.More),
+            )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            formats.forEach { format ->
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                        .border(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-                            RoundedCornerShape(12.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                formats.forEach { format ->
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                                RoundedCornerShape(12.dp),
+                            )
+                            .padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = format.icon,
+                            contentDescription = null,
+                            tint = primaryColor,
+                            modifier = Modifier.size(17.dp),
                         )
-                        .padding(vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Icon(
-                        imageVector = format.icon,
-                        contentDescription = null,
-                        tint = primaryColor,
-                        modifier = Modifier.size(17.dp),
-                    )
-                    Text(
-                        text = format.name,
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 9.sp,
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                    )
+                        Text(
+                            text = format.name,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 9.sp,
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                        )
+                    }
                 }
             }
         }
@@ -691,201 +741,201 @@ private fun PowerfulPlaybackPage() {
 @Composable
 private fun YourVideosYourWayPage() {
     val primaryColor = MaterialTheme.colorScheme.primary
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+            .verticalScroll(rememberScrollState()),
+        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = buildAnnotatedString {
-                append("Your Videos, ")
-                withStyle(SpanStyle(color = primaryColor)) {
-                    append("Your Way")
-                }
-            },
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 26.sp,
-            ),
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        Text(
-            text = stringResource(R.string.onboarding_privacy_desc),
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 13.5.sp,
-                lineHeight = 19.sp,
-            ),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp),
-        )
-
-        Spacer(Modifier.height(24.dp))
-
-        // Center Graphic: Screen with Shield and Floating Feature Chips
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth(0.94f)
-                .height(190.dp),
-            contentAlignment = Alignment.Center,
+                .widthIn(max = 560.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            // Landscape video frame in center
+            Text(
+                text = buildAnnotatedString {
+                    append("Your Videos, ")
+                    withStyle(SpanStyle(color = primaryColor)) {
+                        append("Your Way")
+                    }
+                },
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 26.sp,
+                ),
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = stringResource(R.string.onboarding_privacy_desc),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 13.5.sp,
+                    lineHeight = 19.sp,
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+
+            Spacer(Modifier.height(24.dp))
+
             Box(
                 modifier = Modifier
-                    .size(width = 210.dp, height = 125.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .border(
-                        width = 1.5.dp,
-                        brush = Brush.verticalGradient(
-                            listOf(
-                                primaryColor.copy(alpha = 0.6f),
-                                primaryColor.copy(alpha = 0.2f),
-                            ),
-                        ),
-                        shape = RoundedCornerShape(18.dp),
-                    ),
+                    .fillMaxWidth(0.94f)
+                    .height(190.dp),
+                contentAlignment = Alignment.Center,
             ) {
-                LandscapeThumbnail(
-                    modifier = Modifier.fillMaxSize(),
+                Box(
+                    modifier = Modifier
+                        .size(width = 210.dp, height = 125.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .border(
+                            width = 1.5.dp,
+                            brush = Brush.verticalGradient(
+                                listOf(
+                                    primaryColor.copy(alpha = 0.6f),
+                                    primaryColor.copy(alpha = 0.2f),
+                                ),
+                            ),
+                            shape = RoundedCornerShape(18.dp),
+                        ),
+                ) {
+                    LandscapeThumbnail(
+                        modifier = Modifier.fillMaxSize(),
+                        accentColor = primaryColor,
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(Color.Black.copy(alpha = 0.45f))
+                            .align(Alignment.Center),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Play,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .align(Alignment.BottomCenter)
+                            .background(Color.White.copy(alpha = 0.25f)),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(0.4f)
+                                .height(3.dp)
+                                .background(primaryColor),
+                        )
+                    }
+                }
+
+                ShieldBadge(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(x = 38.dp, y = 14.dp),
                     accentColor = primaryColor,
                 )
 
-                // Center mini play button
-                Box(
+                FloatingPill(
+                    icon = AppIcons.Lock,
+                    title = "PIN Lock",
                     modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(Color.Black.copy(alpha = 0.45f))
-                        .align(Alignment.Center),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = AppIcons.Play,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
+                        .align(Alignment.TopStart)
+                        .offset(x = 4.dp, y = 4.dp),
+                )
+                FloatingPill(
+                    icon = AppIcons.Sensitivity,
+                    title = "Customize",
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = (-4).dp, y = 4.dp),
+                )
+                FloatingPill(
+                    icon = AppIcons.Appearance,
+                    title = "Theming",
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .offset(x = 4.dp, y = (-4).dp),
+                )
+                FloatingPill(
+                    icon = AppIcons.Settings,
+                    title = "Controls",
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .offset(x = (-4).dp, y = (-4).dp),
+                )
+            }
 
-                // Mini progress bar at bottom
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(3.dp)
-                        .align(Alignment.BottomCenter)
-                        .background(Color.White.copy(alpha = 0.25f)),
+            Spacer(Modifier.height(24.dp))
+
+            Column(
+                modifier = Modifier.fillMaxWidth(0.9f),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                ChecklistItem(text = stringResource(R.string.onboarding_check_pin))
+                ChecklistItem(text = stringResource(R.string.onboarding_check_theming))
+                ChecklistItem(text = stringResource(R.string.onboarding_check_controls))
+            }
+
+            Spacer(Modifier.height(18.dp))
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(0.92f),
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.7f),
+                border = BorderStroke(1.dp, primaryColor.copy(alpha = 0.35f)),
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(0.4f)
-                            .height(3.dp)
-                            .background(primaryColor),
-                    )
-                }
-            }
-
-            // Big Glowing Shield Badge in front
-            ShieldBadge(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .offset(x = 38.dp, y = 14.dp),
-                accentColor = primaryColor,
-            )
-
-            // 4 Floating feature pills
-            FloatingPill(
-                icon = AppIcons.Lock,
-                title = "PIN Lock",
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .offset(x = 4.dp, y = 4.dp),
-            )
-            FloatingPill(
-                icon = AppIcons.Sensitivity,
-                title = "Customize",
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset(x = (-4).dp, y = 4.dp),
-            )
-            FloatingPill(
-                icon = AppIcons.Appearance,
-                title = "Theming",
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .offset(x = 4.dp, y = (-4).dp),
-            )
-            FloatingPill(
-                icon = AppIcons.Settings,
-                title = "Controls",
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .offset(x = (-4).dp, y = (-4).dp),
-            )
-        }
-
-        Spacer(Modifier.height(24.dp))
-
-        // 3 Checklist items
-        Column(
-            modifier = Modifier.fillMaxWidth(0.9f),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            ChecklistItem(text = stringResource(R.string.onboarding_check_pin))
-            ChecklistItem(text = stringResource(R.string.onboarding_check_theming))
-            ChecklistItem(text = stringResource(R.string.onboarding_check_controls))
-        }
-
-        Spacer(Modifier.height(18.dp))
-
-        // Quick Tip card for Secret Vault (Idea 4)
-        Surface(
-            modifier = Modifier.fillMaxWidth(0.92f),
-            shape = RoundedCornerShape(14.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.7f),
-            border = BorderStroke(1.dp, primaryColor.copy(alpha = 0.35f)),
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(primaryColor.copy(alpha = 0.15f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = AppIcons.Lock,
-                        contentDescription = null,
-                        tint = primaryColor,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        text = stringResource(R.string.onboarding_vault_tip_title),
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
-                        ),
-                        color = primaryColor,
-                    )
-                    Text(
-                        text = stringResource(R.string.onboarding_vault_tip_desc),
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontSize = 11.sp,
-                            lineHeight = 15.sp,
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(primaryColor.copy(alpha = 0.15f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Lock,
+                            contentDescription = null,
+                            tint = primaryColor,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = stringResource(R.string.onboarding_vault_tip_title),
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                            ),
+                            color = primaryColor,
+                        )
+                        Text(
+                            text = stringResource(R.string.onboarding_vault_tip_desc),
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontSize = 11.sp,
+                                lineHeight = 15.sp,
+                            ),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
@@ -912,7 +962,6 @@ private fun ShieldBadge(
                 cubicTo(0f, h * 0.12f, w * 0.15f, 0f, w * 0.5f, 0f)
                 close()
             }
-            // Fill gradient
             drawPath(
                 path = path,
                 brush = Brush.verticalGradient(
@@ -922,7 +971,6 @@ private fun ShieldBadge(
                     ),
                 ),
             )
-            // Border
             drawPath(
                 path = path,
                 color = Color.White.copy(alpha = 0.6f),
@@ -947,7 +995,6 @@ private fun LandscapeThumbnail(
         val w = size.width
         val h = size.height
 
-        // Sky gradient: twilight dusk
         drawRect(
             brush = Brush.verticalGradient(
                 colors = listOf(
@@ -959,7 +1006,6 @@ private fun LandscapeThumbnail(
             ),
         )
 
-        // Subtle horizon glow
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
@@ -974,7 +1020,6 @@ private fun LandscapeThumbnail(
             center = Offset(w * 0.45f, h * 0.45f),
         )
 
-        // Distant mountain ridge
         val distantRidge = Path().apply {
             moveTo(0f, h * 0.72f)
             lineTo(w * 0.2f, h * 0.44f)
@@ -991,7 +1036,6 @@ private fun LandscapeThumbnail(
             color = Color(0xFF1E1B4B).copy(alpha = 0.9f),
         )
 
-        // Sharp front mountain
         val frontMountain = Path().apply {
             moveTo(0f, h * 0.84f)
             lineTo(w * 0.32f, h * 0.52f)
@@ -1007,7 +1051,6 @@ private fun LandscapeThumbnail(
             color = Color(0xFF0B0F19),
         )
 
-        // Snow peak highlight
         val snowCap = Path().apply {
             moveTo(w * 0.8f, h * 0.46f)
             lineTo(w * 0.75f, h * 0.56f)
@@ -1121,7 +1164,6 @@ private fun AmbientGlowBackground() {
         val width = size.width
         val height = size.height
 
-        // Top right ambient glow
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(primaryColor.copy(alpha = 0.10f), Color.Transparent),
@@ -1132,7 +1174,6 @@ private fun AmbientGlowBackground() {
             center = Offset(width * 0.85f, height * 0.10f),
         )
 
-        // Bottom left ambient glow
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(primaryColor.copy(alpha = 0.08f), Color.Transparent),

@@ -1,6 +1,8 @@
 package com.sipun.playora.settings
 
+import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,12 +50,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.sipun.playora.BuildConfig
 import com.sipun.playora.R
-import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.ui.components.AppBackButton
 import com.sipun.playora.core.ui.components.AppTopAppBar
 import com.sipun.playora.core.ui.designsystem.AppIcons
@@ -61,7 +62,6 @@ import com.sipun.playora.core.ui.theme.LocalAccentBrush
 import com.sipun.playora.core.ui.theme.LocalAccentColor
 import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.core.ui.theme.rememberGlassCardBorderBrush
 import com.sipun.playora.core.ui.theme.rememberGlassCardTint
 import com.sipun.playora.core.update.UpdateManager
@@ -143,14 +143,20 @@ internal fun AboutScreenContent(navigateUp: () -> Unit) {
                     bottomPadding = innerPadding.calculateBottomPadding(),
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    Column(
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(innerPadding)
-                            .padding(horizontal = 14.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                            .verticalScroll(rememberScrollState()),
+                        contentAlignment = Alignment.TopCenter,
                     ) {
+                        Column(
+                            modifier = Modifier
+                                .widthIn(max = 760.dp)
+                                .fillMaxWidth()
+                                .padding(innerPadding)
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
                         val isDark = LocalGlassDarkTheme.current ?: isSystemInDarkTheme()
                         val heroShape = RoundedCornerShape(24.dp)
                         val cardBorderBrush = rememberGlassCardBorderBrush()
@@ -357,40 +363,19 @@ internal fun AboutScreenContent(navigateUp: () -> Unit) {
                             icon = ImageVector.vectorResource(R.drawable.ic_github),
                             title = stringResource(R.string.about_source),
                             description = stringResource(R.string.about_source_description),
-                            onClick = {
-                                context.startActivity(
-                                    Intent(
-                                        Intent.ACTION_VIEW,
-                                        REPOSITORY_URL.toUri(),
-                                    ),
-                                )
-                            },
+                            onClick = { openExternalUri(context, REPOSITORY_URL) },
                         )
                         AboutLinkCard(
                             icon = AppIcons.BugReport,
                             title = stringResource(R.string.about_contact),
                             description = stringResource(R.string.about_contact_description),
-                            onClick = {
-                                context.startActivity(
-                                    Intent(
-                                        Intent.ACTION_VIEW,
-                                        CONTACT_URL.toUri(),
-                                    ),
-                                )
-                            },
+                            onClick = { openExternalUri(context, CONTACT_URL) },
                         )
                         AboutLinkCard(
                             icon = AppIcons.Favorite,
                             title = stringResource(R.string.about_support),
                             description = stringResource(R.string.about_support_description),
-                            onClick = {
-                                context.startActivity(
-                                    Intent(
-                                        Intent.ACTION_VIEW,
-                                        SUPPORT_URL.toUri(),
-                                    ),
-                                )
-                            },
+                            onClick = { openExternalUri(context, SUPPORT_URL) },
                         )
                         val licenseShape = RoundedCornerShape(22.dp)
                         Row(
@@ -412,9 +397,7 @@ internal fun AboutScreenContent(navigateUp: () -> Unit) {
                                             )
                                     },
                                 )
-                                .clickable {
-                                    context.startActivity(Intent(Intent.ACTION_VIEW, LICENSE_URL.toUri()))
-                                }
+                                .clickable { openExternalUri(context, LICENSE_URL) }
                                 .padding(horizontal = 14.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -445,6 +428,7 @@ internal fun AboutScreenContent(navigateUp: () -> Unit) {
                                 style = MaterialTheme.typography.bodyMedium,
                                 textAlign = TextAlign.End,
                             )
+                        }
                         }
                     }
                 }
@@ -569,18 +553,14 @@ private fun AboutIconTile(icon: ImageVector) {
     }
 }
 
-@PreviewLightDark
-@Composable
-private fun AboutScreenGlassOnPreview() {
-    PlayoraTheme(preferences = ApplicationPreferences(useLiquidGlass = true)) {
-        AboutScreenContent(navigateUp = {})
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun AboutScreenGlassOffPreview() {
-    PlayoraTheme(preferences = ApplicationPreferences(useLiquidGlass = false)) {
-        AboutScreenContent(navigateUp = {})
+private fun openExternalUri(context: Context, uri: String) {
+    runCatching {
+        context.startActivity(Intent(Intent.ACTION_VIEW, uri.toUri()))
+    }.onFailure {
+        Toast.makeText(
+            context,
+            context.getString(R.string.no_app_found),
+            Toast.LENGTH_SHORT,
+        ).show()
     }
 }

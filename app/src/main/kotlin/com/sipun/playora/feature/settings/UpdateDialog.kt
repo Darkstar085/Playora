@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -113,6 +114,7 @@ fun UpdateDialog(
         },
         modifier = Modifier
             .fillMaxWidth(0.92f)
+            .widthIn(max = 520.dp)
             .heightIn(max = 680.dp),
         shape = RoundedCornerShape(28.dp),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -208,7 +210,6 @@ private fun UpdateAvailableContent(
             .padding(horizontal = 22.dp, vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Top row with close X button
         Box(modifier = Modifier.fillMaxWidth()) {
             val closeInteraction = remember { MutableInteractionSource() }
             val closeState = rememberGlassEffectState()
@@ -252,7 +253,6 @@ private fun UpdateAvailableContent(
             }
         }
 
-        // App icon with download badge
         Box(
             modifier = Modifier.size(68.dp),
             contentAlignment = Alignment.Center,
@@ -292,7 +292,6 @@ private fun UpdateAvailableContent(
 
         Spacer(Modifier.height(14.dp))
 
-        // Title and Subtitle
         Text(
             text = stringResource(R.string.update_available_title),
             style = MaterialTheme.typography.titleLarge.copy(
@@ -314,7 +313,6 @@ private fun UpdateAvailableContent(
 
         Spacer(Modifier.height(12.dp))
 
-        // Version & Status Pills
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -348,7 +346,6 @@ private fun UpdateAvailableContent(
 
         Spacer(Modifier.height(16.dp))
 
-        // Info Cards (Download size & Release date)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -372,7 +369,6 @@ private fun UpdateAvailableContent(
         if (changelogItems.isNotEmpty()) {
             Spacer(Modifier.height(16.dp))
 
-            // What's new section
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -399,7 +395,6 @@ private fun UpdateAvailableContent(
 
             Spacer(Modifier.height(8.dp))
 
-            // Changelog Box
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -448,7 +443,6 @@ private fun UpdateAvailableContent(
 
         Spacer(Modifier.height(20.dp))
 
-        // Action Buttons
         UpdatePrimaryButton(
             text = stringResource(R.string.update_now),
             icon = AppIcons.ArrowDownward,
@@ -575,7 +569,6 @@ private fun UpdateDownloadingContent(
 
         Spacer(Modifier.height(20.dp))
 
-        // Linear progress bar
         LinearProgressIndicator(
             progress = { (progress / 100f).coerceIn(0f, 1f) },
             modifier = Modifier

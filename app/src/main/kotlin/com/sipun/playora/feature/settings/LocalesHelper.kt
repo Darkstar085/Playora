@@ -18,10 +18,12 @@ object LocalesHelper {
         listOf()
     }
 
-    fun getLocaleDisplayLanguage(key: String): String = try {
-        Locale.getAvailableLocales().first { it.isO3Language == key }.displayLanguage
-    } catch (e: Exception) {
-        e.printStackTrace()
-        ""
+    fun getLocaleDisplayLanguage(key: String): String {
+        if (key.isBlank()) return ""
+        return try {
+            Locale.getAvailableLocales().firstOrNull { it.isO3Language == key }?.displayLanguage.orEmpty()
+        } catch (_: Exception) {
+            ""
+        }
     }
 }

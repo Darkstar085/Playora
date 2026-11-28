@@ -59,12 +59,6 @@ class SubtitlePreferencesViewModel(
 
             is SubtitlePreferencesUiEvent.ToggleSubtitleBackground -> toggleSubtitleBackground()
 
-            is SubtitlePreferencesUiEvent.ToggleApplyEmbeddedStyles -> toggleApplyEmbeddedStyles()
-
-            is SubtitlePreferencesUiEvent.UpdateSubtitleEncoding -> updateSubtitleEncoding(
-                action.value,
-            )
-
             is SubtitlePreferencesUiEvent.ToggleUseSystemCaptionStyle ->
                 toggleUseSystemCaptionStyle()
 
@@ -112,20 +106,6 @@ class SubtitlePreferencesViewModel(
         }
     }
 
-    private fun toggleApplyEmbeddedStyles() {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences {
-                it.copy(applyEmbeddedStyles = !it.applyEmbeddedStyles)
-            }
-        }
-    }
-
-    private fun updateSubtitleEncoding(value: String) {
-        viewModelScope.launch {
-            preferencesRepository.updatePlayerPreferences { it.copy(subtitleTextEncoding = value) }
-        }
-    }
-
     private fun resetSubtitlePosition() {
         viewModelScope.launch {
             preferencesRepository.updatePlayerPreferences { it.copy(subtitleOffsetY = 0f) }
@@ -161,8 +141,6 @@ sealed interface SubtitlePreferencesUiEvent {
     data object ToggleSubtitleTextBold : SubtitlePreferencesUiEvent
     data class UpdateSubtitleFontSize(val value: Int) : SubtitlePreferencesUiEvent
     data object ToggleSubtitleBackground : SubtitlePreferencesUiEvent
-    data object ToggleApplyEmbeddedStyles : SubtitlePreferencesUiEvent
-    data class UpdateSubtitleEncoding(val value: String) : SubtitlePreferencesUiEvent
     data object ToggleUseSystemCaptionStyle : SubtitlePreferencesUiEvent
     data object ResetSubtitlePosition : SubtitlePreferencesUiEvent
 }

@@ -67,8 +67,12 @@ fun MediaView(
         val maxWidth = this.maxWidth - (contentHorizontalPadding * 2) - itemSpacing
         val maxFolders = (maxWidth / folderMinWidth).toInt().coerceAtLeast(minimumValue = 1)
         val maxVideos = (maxWidth / videoMinWidth).toInt().coerceAtLeast(minimumValue = 1)
+        val maxListColumns = (maxWidth / 320.dp).toInt().coerceIn(
+            minimumValue = 1,
+            maximumValue = 3,
+        )
         val spans = when (preferences.mediaLayoutMode) {
-            MediaLayoutMode.LIST -> 1
+            MediaLayoutMode.LIST -> maxListColumns
 
             MediaLayoutMode.GRID -> lcm(
                 a = maxFolders,
@@ -84,6 +88,13 @@ fun MediaView(
             MediaLayoutMode.LIST -> 1
             MediaLayoutMode.GRID -> spans / maxVideos
         }
+        val horizontalItemSpacing = if (
+            preferences.mediaLayoutMode == MediaLayoutMode.LIST && maxListColumns > 1
+        ) {
+            8.dp
+        } else {
+            itemSpacing
+        }
 
         LazyVerticalGrid(
             modifier = modifier.fillMaxSize(),
@@ -96,7 +107,7 @@ fun MediaView(
                             vertical = 8.dp,
                         ),
             verticalArrangement = Arrangement.spacedBy(space = itemSpacing),
-            horizontalArrangement = Arrangement.spacedBy(space = itemSpacing),
+            horizontalArrangement = Arrangement.spacedBy(space = horizontalItemSpacing),
         ) {
             if (showHeaders && mediaHolder.folders.isNotEmpty()) {
                 item(span = { GridItemSpan(currentLineSpan = maxLineSpan) }) {

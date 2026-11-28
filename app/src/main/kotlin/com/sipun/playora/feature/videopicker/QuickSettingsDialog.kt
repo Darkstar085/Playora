@@ -53,7 +53,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sipun.playora.R
@@ -62,7 +62,6 @@ import com.sipun.playora.core.model.MediaLayoutMode
 import com.sipun.playora.core.model.MediaViewMode
 import com.sipun.playora.core.model.Sort
 import com.sipun.playora.core.ui.theme.AppGlassBottomSheetOverlay
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.core.ui.theme.appGlassSurface
 import com.sipun.playora.core.ui.theme.isAppGlassActive
 import com.sipun.playora.core.ui.theme.rememberGlassContentColor
@@ -92,7 +91,6 @@ fun QuickSettingsDialog(
                 .verticalScroll(rememberScrollState())
                 .then(if (useGlass) Modifier else Modifier.navigationBarsPadding()),
         ) {
-            // Header: Title
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -110,7 +108,6 @@ fun QuickSettingsDialog(
                 )
             }
 
-            // 1. Media view mode
             SectionHeader(
                 icon = Icons.Rounded.Folder,
                 title = stringResource(R.string.media_view_mode),
@@ -133,7 +130,6 @@ fun QuickSettingsDialog(
                 },
             )
 
-            // 2. Media Layout
             SectionHeader(
                 icon = Icons.Rounded.GridView,
                 title = stringResource(R.string.media_layout),
@@ -156,7 +152,6 @@ fun QuickSettingsDialog(
                 },
             )
 
-            // 3. Sort
             SectionHeader(
                 icon = Icons.Rounded.SwapVert,
                 title = stringResource(R.string.sort),
@@ -176,7 +171,6 @@ fun QuickSettingsDialog(
                 },
             )
 
-            // 4. Fields
             SectionHeader(
                 icon = Icons.Rounded.Layers,
                 title = stringResource(R.string.fields),
@@ -254,7 +248,6 @@ fun QuickSettingsDialog(
                 )
             }
 
-            // Bottom Buttons: Cancel & Done
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -504,6 +497,8 @@ private fun <T> SegmentedPillRow(
                             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
                         ),
                         color = contentColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -733,17 +728,5 @@ fun QuickSettingFieldChip(
                 color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-    }
-}
-
-@Preview
-@Composable
-fun QuickSettingsPreview() {
-    PlayoraTheme {
-        QuickSettingsDialog(
-            applicationPreferences = ApplicationPreferences(),
-            onDismiss = {},
-            updatePreferences = {},
-        )
     }
 }
