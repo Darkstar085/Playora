@@ -116,8 +116,7 @@ internal fun AppearanceRow(
 @Composable
 internal fun ThemeSelectionDialog(
     themeConfig: ThemeConfig,
-    useHighContrastDarkTheme: Boolean,
-    onSelect: (ThemeConfig, Boolean) -> Unit,
+    onSelect: (ThemeConfig) -> Unit,
     onDismiss: () -> Unit,
 ) {
     AppDialog(
@@ -146,9 +145,9 @@ internal fun ThemeSelectionDialog(
                     title = stringResource(R.string.theme_device_default),
                     icon = Icons.Default.BrightnessAuto,
                     description = stringResource(R.string.theme_device_default_desc),
-                    selected = !useHighContrastDarkTheme && themeConfig == ThemeConfig.SYSTEM,
+                    selected = themeConfig == ThemeConfig.SYSTEM,
                     onClick = {
-                        onSelect(ThemeConfig.SYSTEM, false)
+                        onSelect(ThemeConfig.SYSTEM)
                         onDismiss()
                     },
                 )
@@ -156,9 +155,9 @@ internal fun ThemeSelectionDialog(
                     title = stringResource(R.string.theme_light),
                     icon = Icons.Default.LightMode,
                     description = stringResource(R.string.theme_light_desc),
-                    selected = !useHighContrastDarkTheme && themeConfig == ThemeConfig.OFF,
+                    selected = themeConfig == ThemeConfig.OFF,
                     onClick = {
-                        onSelect(ThemeConfig.OFF, false)
+                        onSelect(ThemeConfig.OFF)
                         onDismiss()
                     },
                 )
@@ -166,19 +165,9 @@ internal fun ThemeSelectionDialog(
                     title = stringResource(R.string.theme_dark),
                     icon = Icons.Default.DarkMode,
                     description = stringResource(R.string.theme_dark_desc),
-                    selected = !useHighContrastDarkTheme && themeConfig == ThemeConfig.ON,
+                    selected = themeConfig == ThemeConfig.ON,
                     onClick = {
-                        onSelect(ThemeConfig.ON, false)
-                        onDismiss()
-                    },
-                )
-                ThemeOptionCard(
-                    title = stringResource(R.string.theme_pure_black),
-                    icon = Icons.Default.DarkMode,
-                    description = stringResource(R.string.theme_pure_black_desc),
-                    selected = useHighContrastDarkTheme,
-                    onClick = {
-                        onSelect(ThemeConfig.ON, true)
+                        onSelect(ThemeConfig.ON)
                         onDismiss()
                     },
                 )

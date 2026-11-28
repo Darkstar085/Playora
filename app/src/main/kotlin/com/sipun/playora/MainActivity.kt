@@ -104,8 +104,7 @@ class MainActivity : FragmentActivity() {
             val preferences =
                 (state as? MainActivityUiState.Success)?.preferences ?: ApplicationPreferences()
             val shouldUseDarkTheme = shouldUseDarkTheme(state = state)
-            val shouldUseHighContrastDarkTheme = shouldUseHighContrastDarkTheme(state = state)
-            val isEffectiveDarkTheme = shouldUseDarkTheme || shouldUseHighContrastDarkTheme
+            val isEffectiveDarkTheme = shouldUseDarkTheme
 
             val scope = rememberCoroutineScope()
             var autoUpdateFlowState by remember { mutableStateOf<UpdateFlowState?>(null) }
@@ -142,7 +141,6 @@ class MainActivity : FragmentActivity() {
             PlayoraTheme(
                 preferences = preferences,
                 darkTheme = shouldUseDarkTheme,
-                highContrastDarkTheme = shouldUseHighContrastDarkTheme,
                 dynamicColor = shouldUseDynamicTheming(state = state),
             ) {
                 when (val currentState = state) {
@@ -321,12 +319,6 @@ fun shouldUseDarkTheme(state: MainActivityUiState): Boolean = when (state) {
         ThemeConfig.OFF -> false
         ThemeConfig.ON -> true
     }
-}
-
-@Composable
-fun shouldUseHighContrastDarkTheme(state: MainActivityUiState): Boolean = when (state) {
-    MainActivityUiState.Loading -> false
-    is MainActivityUiState.Success -> state.preferences.useHighContrastDarkTheme
 }
 
 @Composable

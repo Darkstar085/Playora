@@ -115,12 +115,11 @@ fun PlayoraTheme(
         ThemeConfig.OFF -> false
         ThemeConfig.ON -> true
     },
-    highContrastDarkTheme: Boolean = preferences.useHighContrastDarkTheme,
     dynamicColor: Boolean = preferences.useDynamicColors,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
-    val isDark = highContrastDarkTheme || darkTheme
+    val isDark = darkTheme
 
     val baseDynamicScheme = if (dynamicColor) {
         if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -131,7 +130,7 @@ fun PlayoraTheme(
     val onAccentColor = contrastColorFor(accentColor)
 
     val colorScheme = when {
-        isDark && highContrastDarkTheme -> (baseDynamicScheme ?: darkScheme).copy(
+        isDark -> (baseDynamicScheme ?: darkScheme).copy(
             primary = accentColor,
             onPrimary = onAccentColor,
             primaryContainer = accentColor.copy(alpha = 0.35f),
@@ -155,24 +154,6 @@ fun PlayoraTheme(
             surfaceContainerHigh = surfaceContainerHighPureBlack,
             surfaceContainerHighest = surfaceContainerHighestPureBlack,
             outline = Color(0xFF3A3A3A),
-        )
-
-        dynamicColor && baseDynamicScheme != null -> baseDynamicScheme
-
-        isDark -> darkScheme.copy(
-            primary = accentColor,
-            onPrimary = onAccentColor,
-            primaryContainer = accentColor.copy(alpha = 0.35f),
-            onPrimaryContainer = Color.White,
-            secondary = accentColor,
-            onSecondary = onAccentColor,
-            secondaryContainer = accentColor.copy(alpha = 0.28f),
-            onSecondaryContainer = Color.White,
-            tertiary = accentColor,
-            onTertiary = onAccentColor,
-            tertiaryContainer = accentColor.copy(alpha = 0.28f),
-            onTertiaryContainer = Color.White,
-            inversePrimary = accentColor,
         )
 
         else -> lightScheme.copy(
@@ -209,7 +190,7 @@ fun PlayoraTheme(
         LocalAccentColor provides accentColor,
         LocalGlassDarkTheme provides isDark,
         LocalLiquidGlassEnabled provides preferences.useLiquidGlass,
-        LocalIsHighContrastDarkTheme provides (isDark && highContrastDarkTheme),
+        LocalIsHighContrastDarkTheme provides false,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

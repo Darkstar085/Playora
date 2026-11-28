@@ -215,8 +215,6 @@
     <string name="theme_light_desc">Bright and clear</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_dark_desc">Easy on the eyes</string>
-    <string name="theme_pure_black">Pure black</string>
-    <string name="theme_pure_black_desc">True black surfaces for dark mode</string>
     <string name="dynamic_color">Dynamic color</string>
     <string name="dynamic_color_desc">Use colors from your wallpaper</string>
     <string name="liquid_glass">Liquid Glass</string>

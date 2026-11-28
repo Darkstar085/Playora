@@ -61,12 +61,10 @@ private fun AppearancePreferencesScreenContent(
     val preferences = state.preferences
     var showThemeDialog by remember { mutableStateOf(false) }
 
-    val themeLabel = when {
-        preferences.useHighContrastDarkTheme -> stringResource(R.string.theme_pure_black)
-        preferences.themeConfig == ThemeConfig.SYSTEM -> stringResource(R.string.theme_device_default)
-        preferences.themeConfig == ThemeConfig.OFF -> stringResource(R.string.theme_light)
-        preferences.themeConfig == ThemeConfig.ON -> stringResource(R.string.theme_dark)
-        else -> stringResource(R.string.theme_device_default)
+    val themeLabel = when (preferences.themeConfig) {
+        ThemeConfig.SYSTEM -> stringResource(R.string.theme_device_default)
+        ThemeConfig.OFF -> stringResource(R.string.theme_light)
+        ThemeConfig.ON -> stringResource(R.string.theme_dark)
     }
 
     val liquidGlassEnabled = LocalLiquidGlassEnabled.current
@@ -197,9 +195,8 @@ private fun AppearancePreferencesScreenContent(
             if (showThemeDialog) {
                 ThemeSelectionDialog(
                     themeConfig = preferences.themeConfig,
-                    useHighContrastDarkTheme = preferences.useHighContrastDarkTheme,
-                    onSelect = { config, pureBlack ->
-                        onAction(AppearancePreferencesEvent.SetTheme(config, pureBlack))
+                    onSelect = { config ->
+                        onAction(AppearancePreferencesEvent.SetTheme(config))
                     },
                     onDismiss = { showThemeDialog = false },
                 )

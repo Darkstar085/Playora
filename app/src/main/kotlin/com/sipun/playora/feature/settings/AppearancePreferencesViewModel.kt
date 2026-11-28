@@ -41,10 +41,7 @@ class AppearancePreferencesViewModel(
         when (action) {
             is AppearancePreferencesEvent.NavigateUp -> output.navigateUp()
 
-            is AppearancePreferencesEvent.SetTheme -> setTheme(
-                themeConfig = action.themeConfig,
-                pureBlack = action.pureBlack,
-            )
+            is AppearancePreferencesEvent.SetTheme -> setTheme(action.themeConfig)
 
             is AppearancePreferencesEvent.SetDynamicColor -> setDynamicColor(action.enabled)
 
@@ -54,12 +51,12 @@ class AppearancePreferencesViewModel(
         }
     }
 
-    private fun setTheme(themeConfig: ThemeConfig, pureBlack: Boolean) {
+    private fun setTheme(themeConfig: ThemeConfig) {
         viewModelScope.launch {
             preferencesRepository.updateApplicationPreferences {
                 it.copy(
                     themeConfig = themeConfig,
-                    useHighContrastDarkTheme = pureBlack,
+                    useHighContrastDarkTheme = false,
                 )
             }
         }
@@ -98,10 +95,7 @@ data class AppearancePreferencesUiState(
 sealed interface AppearancePreferencesEvent {
     data object NavigateUp : AppearancePreferencesEvent
 
-    data class SetTheme(
-        val themeConfig: ThemeConfig,
-        val pureBlack: Boolean,
-    ) : AppearancePreferencesEvent
+    data class SetTheme(val themeConfig: ThemeConfig) : AppearancePreferencesEvent
 
     data class SetDynamicColor(val enabled: Boolean) : AppearancePreferencesEvent
     data class SetLiquidGlass(val enabled: Boolean) : AppearancePreferencesEvent
