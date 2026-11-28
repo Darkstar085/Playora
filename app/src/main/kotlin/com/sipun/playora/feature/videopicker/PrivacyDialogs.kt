@@ -1,6 +1,7 @@
 ﻿package com.sipun.playora.feature.videopicker.composables.privacy
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,7 +22,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sipun.playora.R
 import com.sipun.playora.core.ui.components.AppDialog
+import com.sipun.playora.core.ui.components.ClickablePreferenceItem
 import com.sipun.playora.core.ui.components.PreferenceSwitch
+import com.sipun.playora.core.ui.designsystem.AppIcons
 import com.sipun.playora.core.ui.theme.AppGlassModalOverlay
 
 @Composable
@@ -96,6 +99,7 @@ fun PrivacyProgressDialog(message: String) {
 internal fun PrivacySettingsDialog(
     biometricEnabled: Boolean,
     onBiometricEnabledChange: (Boolean) -> Unit,
+    onChangePinClick: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val available = rememberPrivacyBiometricAvailable()
@@ -105,23 +109,36 @@ internal fun PrivacySettingsDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = stringResource(R.string.privacy_settings)) },
         content = {
-            PreferenceSwitch(
-                title = stringResource(R.string.unlock_with_biometrics),
-                description = stringResource(
-                    id = if (available || biometricEnabled) {
-                        R.string.privacy_biometric_description
-                    } else {
-                        R.string.privacy_biometric_unavailable
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                PreferenceSwitch(
+                    title = stringResource(R.string.unlock_with_biometrics),
+                    description = stringResource(
+                        id = if (available || biometricEnabled) {
+                            R.string.privacy_biometric_description
+                        } else {
+                            R.string.privacy_biometric_unavailable
+                        },
+                    ),
+                    isChecked = biometricEnabled,
+                    enabled = !authenticating && (biometricEnabled || available),
+                    isFirstItem = true,
+                    isLastItem = false,
+                    onClick = {
+                        if (biometricEnabled) onBiometricEnabledChange(false) else authenticating = true
                     },
-                ),
-                isChecked = biometricEnabled,
-                enabled = !authenticating && (biometricEnabled || available),
-                isFirstItem = true,
-                isLastItem = true,
-                onClick = {
-                    if (biometricEnabled) onBiometricEnabledChange(false) else authenticating = true
-                },
-            )
+                )
+                ClickablePreferenceItem(
+                    title = stringResource(R.string.change_privacy_pin),
+                    description = stringResource(R.string.change_privacy_pin_desc),
+                    icon = AppIcons.Lock,
+                    isFirstItem = false,
+                    isLastItem = true,
+                    onClick = {
+                        onDismiss()
+                        onChangePinClick()
+                    },
+                )
+            }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.done)) }

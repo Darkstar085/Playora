@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Backspace
@@ -26,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -83,10 +85,17 @@ fun PinDotsIndicator(filledCount: Int, error: Boolean, modifier: Modifier = Modi
 }
 
 @Composable
-fun PinKeypad(onDigit: (Char) -> Unit, onBackspace: () -> Unit, modifier: Modifier = Modifier) {
+fun PinKeypad(
+    onDigit: (Char) -> Unit,
+    onBackspace: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
     Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = modifier
+            .widthIn(max = 320.dp)
+            .alpha(if (enabled) 1f else 0.45f),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         val rows = listOf(
             listOf('1', '2', '3'),
@@ -102,6 +111,7 @@ fun PinKeypad(onDigit: (Char) -> Unit, onBackspace: () -> Unit, modifier: Modifi
                 row.forEach { digit ->
                     KeyButton(
                         modifier = Modifier.weight(weight = 1f),
+                        enabled = enabled,
                         onClick = { onDigit(digit) },
                     ) {
                         Text(
@@ -121,6 +131,7 @@ fun PinKeypad(onDigit: (Char) -> Unit, onBackspace: () -> Unit, modifier: Modifi
             Spacer(modifier = Modifier.weight(weight = 1f))
             KeyButton(
                 modifier = Modifier.weight(weight = 1f),
+                enabled = enabled,
                 onClick = { onDigit('0') },
             ) {
                 Text(
@@ -131,6 +142,7 @@ fun PinKeypad(onDigit: (Char) -> Unit, onBackspace: () -> Unit, modifier: Modifi
             }
             KeyButton(
                 modifier = Modifier.weight(weight = 1f),
+                enabled = enabled,
                 onClick = onBackspace,
             ) {
                 Icon(
@@ -146,6 +158,7 @@ fun PinKeypad(onDigit: (Char) -> Unit, onBackspace: () -> Unit, modifier: Modifi
 @Composable
 private fun KeyButton(
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onClick: () -> Unit,
     content: @Composable () -> Unit,
 ) {
@@ -160,13 +173,14 @@ private fun KeyButton(
                 .appGlassSurface(
                     shape = shape,
                     tint = rememberGlassCardTint(),
-                    interactive = true,
+                    interactive = enabled,
                     interactionSource = interactionSource,
                     fallbackBackground = MaterialTheme.colorScheme.surfaceContainerHigh,
                     fallbackBorder = BorderStroke(0.85.dp, fallbackBorderColor),
                 )
                 .border(0.85.dp, borderBrush, shape)
                 .clickable(
+                    enabled = enabled,
                     interactionSource = interactionSource,
                     indication = null,
                     onClick = onClick,
@@ -185,7 +199,7 @@ private fun KeyButton(
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                     shape = shape,
                 )
-                .clickable(onClick = onClick),
+                .clickable(enabled = enabled, onClick = onClick),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {

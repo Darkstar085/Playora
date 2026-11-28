@@ -12,6 +12,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -40,7 +42,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -63,7 +64,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -84,7 +84,6 @@ import com.sipun.playora.core.ui.extensions.copy
 import com.sipun.playora.core.ui.theme.AppGlassBackdropBox
 import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.core.ui.theme.appGlassBackdrop
 import com.sipun.playora.core.ui.theme.appGlassContainer
 import com.sipun.playora.core.ui.theme.appGlassSurface
@@ -151,7 +150,12 @@ internal fun PrivacyScreenContent(state: PrivacyUiState, onAction: (PrivacyActio
             title = stringResource(R.string.enter_privacy_pin),
             description = stringResource(R.string.enter_privacy_pin_description),
             pinErrorCount = state.pinErrorCount,
-            errorMessage = stringResource(R.string.incorrect_pin),
+            lockoutRemainingSeconds = state.lockoutRemainingSeconds,
+            errorMessage = if (state.lockoutRemainingSeconds > 0) {
+                stringResource(R.string.privacy_pin_locked_seconds, state.lockoutRemainingSeconds)
+            } else {
+                stringResource(R.string.incorrect_pin)
+            },
             onSubmit = { onAction(PrivacyAction.SubmitUnlockPin(pin = it)) },
             onBiometricAuthenticated = if (state.biometricEnabled) {
                 { onAction(PrivacyAction.BiometricAuthenticated) }
@@ -161,12 +165,39 @@ internal fun PrivacyScreenContent(state: PrivacyUiState, onAction: (PrivacyActio
             onNavigateUp = { onAction(PrivacyAction.NavigateUp) },
         )
 
+        PrivacyStage.VERIFY_CURRENT_PIN -> PrivacyPinContent(
+            title = stringResource(R.string.enter_current_pin),
+            description = stringResource(R.string.enter_current_pin_description),
+            pinErrorCount = state.pinErrorCount,
+            lockoutRemainingSeconds = state.lockoutRemainingSeconds,
+            errorMessage = if (state.lockoutRemainingSeconds > 0) {
+                stringResource(R.string.privacy_pin_locked_seconds, state.lockoutRemainingSeconds)
+            } else {
+                stringResource(R.string.incorrect_pin)
+            },
+            onSubmit = { onAction(PrivacyAction.SubmitCurrentPin(pin = it)) },
+            onNavigateUp = { onAction(PrivacyAction.CancelPinChange) },
+            interceptSystemBack = true,
+        )
+
         PrivacyStage.SET_PIN -> PrivacyPinContent(
             title = stringResource(R.string.set_privacy_pin),
             description = stringResource(R.string.set_privacy_pin_description),
             pinErrorCount = state.setPinGeneration,
+            errorMessage = if (state.setPinGeneration > 0) {
+                stringResource(R.string.pins_do_not_match)
+            } else {
+                ""
+            },
             onSubmit = { onAction(PrivacyAction.SubmitNewPin(pin = it)) },
-            onNavigateUp = { onAction(PrivacyAction.NavigateUp) },
+            onNavigateUp = {
+                if (state.isChangingPin) {
+                    onAction(PrivacyAction.CancelPinChange)
+                } else {
+                    onAction(PrivacyAction.NavigateUp)
+                }
+            },
+            interceptSystemBack = state.isChangingPin,
         )
 
         PrivacyStage.CONFIRM_PIN -> PrivacyPinContent(
@@ -175,7 +206,14 @@ internal fun PrivacyScreenContent(state: PrivacyUiState, onAction: (PrivacyActio
             pinErrorCount = state.pinErrorCount,
             errorMessage = stringResource(R.string.pins_do_not_match),
             onSubmit = { onAction(PrivacyAction.SubmitPinConfirmation(pin = it)) },
-            onNavigateUp = { onAction(PrivacyAction.NavigateUp) },
+            onNavigateUp = {
+                if (state.isChangingPin) {
+                    onAction(PrivacyAction.CancelPinChange)
+                } else {
+                    onAction(PrivacyAction.NavigateUp)
+                }
+            },
+            interceptSystemBack = state.isChangingPin,
         )
 
         PrivacyStage.BIOMETRIC_SETUP -> PrivacyBiometricSetupDialog(
@@ -200,9 +238,14 @@ private fun PrivacyPinContent(
     pinErrorCount: Int,
     onSubmit: (String) -> Unit,
     onNavigateUp: () -> Unit,
+    lockoutRemainingSeconds: Int = 0,
     errorMessage: String = "",
+    interceptSystemBack: Boolean = false,
     onBiometricAuthenticated: (() -> Unit)? = null,
 ) {
+    if (interceptSystemBack) {
+        BackHandler(onBack = onNavigateUp)
+    }
     val liquidGlassEnabled = LocalLiquidGlassEnabled.current
     val backdrop = rememberGlassBackdrop()
     val containerColor = if (liquidGlassEnabled) {
@@ -268,6 +311,7 @@ private fun PrivacyPinContent(
                     title = title,
                     description = description,
                     pinErrorCount = pinErrorCount,
+                    lockoutRemainingSeconds = lockoutRemainingSeconds,
                     errorMessage = errorMessage,
                     onSubmit = onSubmit,
                 )
@@ -282,15 +326,28 @@ private fun PinEntryContent(
     title: String,
     description: String,
     pinErrorCount: Int,
+    lockoutRemainingSeconds: Int,
     errorMessage: String,
     onSubmit: (String) -> Unit,
 ) {
-
+    val isLockedOut = lockoutRemainingSeconds > 0
     var pin by rememberSaveable(pinErrorCount) { mutableStateOf(value = "") }
     var showError by rememberSaveable(pinErrorCount) { mutableStateOf(value = pinErrorCount > 0) }
+    var wasLockedOut by rememberSaveable { mutableStateOf(value = isLockedOut) }
+
+    LaunchedEffect(isLockedOut) {
+        if (isLockedOut) {
+            wasLockedOut = true
+            pin = ""
+            showError = true
+        } else if (wasLockedOut) {
+            wasLockedOut = false
+            showError = false
+        }
+    }
 
     val onDigit: (Char) -> Unit = { digit ->
-        if (pin.length < PRIVACY_PIN_LENGTH) {
+        if (!isLockedOut && pin.length < PRIVACY_PIN_LENGTH) {
             showError = false
             pin += digit
             if (pin.length == PRIVACY_PIN_LENGTH) {
@@ -299,30 +356,76 @@ private fun PinEntryContent(
         }
     }
     val onBackspace: () -> Unit = {
-        if (pin.isNotEmpty()) pin = pin.dropLast(n = 1)
+        if (!isLockedOut && pin.isNotEmpty()) pin = pin.dropLast(n = 1)
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    BoxWithConstraints(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
     ) {
-        Spacer(modifier = Modifier.size(16.dp))
-        PinEntryHeader(
-            title = title,
-            description = description,
-            filledCount = pin.length,
-            showError = showError,
-            errorMessage = errorMessage,
-        )
-        Spacer(modifier = Modifier.size(32.dp))
-        PinKeypad(
-            modifier = Modifier.padding(horizontal = 24.dp),
-            onDigit = onDigit,
-            onBackspace = onBackspace,
-        )
-        Spacer(modifier = Modifier.size(16.dp))
+        val useHorizontalSplit = maxWidth >= 600.dp && maxHeight < 620.dp
+        if (useHorizontalSplit) {
+            val landscapeKeypadMaxWidth = ((maxHeight - 48.dp) * 0.68f).coerceIn(180.dp, 260.dp)
+            Row(
+                modifier = Modifier
+                    .widthIn(max = 820.dp)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 32.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(32.dp),
+            ) {
+                PinEntryHeader(
+                    title = title,
+                    description = description,
+                    filledCount = pin.length,
+                    showError = showError || isLockedOut,
+                    errorMessage = errorMessage,
+                    compact = true,
+                    modifier = Modifier.weight(1f),
+                )
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    PinKeypad(
+                        modifier = Modifier
+                            .widthIn(max = landscapeKeypadMaxWidth)
+                            .fillMaxWidth(),
+                        enabled = !isLockedOut,
+                        onDigit = onDigit,
+                        onBackspace = onBackspace,
+                    )
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                PinEntryHeader(
+                    title = title,
+                    description = description,
+                    filledCount = pin.length,
+                    showError = showError || isLockedOut,
+                    errorMessage = errorMessage,
+                )
+                Spacer(modifier = Modifier.size(28.dp))
+                PinKeypad(
+                    modifier = Modifier
+                        .widthIn(max = 320.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    enabled = !isLockedOut,
+                    onDigit = onDigit,
+                    onBackspace = onBackspace,
+                )
+            }
+        }
     }
 }
 
@@ -334,6 +437,7 @@ private fun PinEntryHeader(
     showError: Boolean,
     errorMessage: String,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     Column(
         modifier = modifier,
@@ -343,31 +447,31 @@ private fun PinEntryHeader(
             modifier = Modifier
                 .clip(MaterialTheme.shapes.large)
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .padding(20.dp),
+                .padding(if (compact) 14.dp else 20.dp),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = AppIcons.Lock,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(if (compact) 26.dp else 32.dp),
             )
         }
-        Spacer(modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.size(if (compact) 12.dp else 20.dp))
         Text(
             text = title,
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
         )
-        Spacer(modifier = Modifier.size(8.dp))
+        Spacer(modifier = Modifier.size(if (compact) 4.dp else 8.dp))
         Text(
             text = description,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
-        Spacer(modifier = Modifier.size(32.dp))
+        Spacer(modifier = Modifier.size(if (compact) 16.dp else 32.dp))
         PinDotsIndicator(
             filledCount = filledCount,
             error = showError,
@@ -703,20 +807,32 @@ private fun PrivacyGalleryContent(state: PrivacyUiState, onAction: (PrivacyActio
                     }
 
                     else -> {
-                        LazyVerticalGrid(
-                            modifier = Modifier.fillMaxSize(),
-                            columns = if (state.preferences.mediaLayoutMode == MediaLayoutMode.GRID) {
-                                GridCells.Adaptive(minSize = 130.dp)
-                            } else {
-                                GridCells.Fixed(count = 1)
-                            },
-                            contentPadding = PaddingValues(
-                                start = 8.dp,
-                                end = 8.dp,
-                                top = updatedPadding.calculateTopPadding() + 8.dp,
-                                bottom = updatedPadding.calculateBottomPadding() + 8.dp,
-                            ),
-                        ) {
+                        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                            val listColumns = (maxWidth / 320.dp).toInt().coerceIn(
+                                minimumValue = 1,
+                                maximumValue = 3,
+                            )
+                            LazyVerticalGrid(
+                                modifier = Modifier.fillMaxSize(),
+                                columns = if (state.preferences.mediaLayoutMode == MediaLayoutMode.GRID) {
+                                    GridCells.Adaptive(minSize = 130.dp)
+                                } else {
+                                    GridCells.Fixed(count = listColumns)
+                                },
+                                horizontalArrangement = Arrangement.spacedBy(
+                                    if (state.preferences.mediaLayoutMode == MediaLayoutMode.LIST && listColumns > 1) {
+                                        8.dp
+                                    } else {
+                                        0.dp
+                                    },
+                                ),
+                                contentPadding = PaddingValues(
+                                    start = 8.dp,
+                                    end = 8.dp,
+                                    top = updatedPadding.calculateTopPadding() + 8.dp,
+                                    bottom = updatedPadding.calculateBottomPadding() + 8.dp,
+                                ),
+                            ) {
                             itemsIndexed(
                                 items = state.hiddenVideos,
                                 key = { _, video -> video.uriString },
@@ -740,6 +856,7 @@ private fun PrivacyGalleryContent(state: PrivacyUiState, onAction: (PrivacyActio
                                     },
                                 )
                             }
+                        }
                         }
                     }
                 }
@@ -779,6 +896,10 @@ private fun PrivacyGalleryContent(state: PrivacyUiState, onAction: (PrivacyActio
         PrivacySettingsDialog(
             biometricEnabled = state.biometricEnabled,
             onBiometricEnabledChange = { onAction(PrivacyAction.SetBiometricEnabled(enabled = it)) },
+            onChangePinClick = {
+                showSettings = false
+                onAction(PrivacyAction.StartChangePin)
+            },
             onDismiss = { showSettings = false },
         )
     }
@@ -952,10 +1073,13 @@ private fun PrivacySelectionActionsSheet(
             state = sheetGlassState,
             fallback = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Row(
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
+                    .widthIn(max = 640.dp)
                     .fillMaxWidth()
                     .then(
                         if (useGlass) {
@@ -1017,24 +1141,4 @@ private fun PrivacySelectionActionsSheet(
             }
         }
     }
-}
-
-@PreviewLightDark
-@Composable
-private fun PrivacyPinContentPreview() {
-    PlayoraTheme {
-        PrivacyPinContent(
-            title = stringResource(R.string.enter_privacy_pin),
-            description = stringResource(R.string.enter_privacy_pin_description),
-            pinErrorCount = 0,
-            onSubmit = {},
-            onNavigateUp = {},
-        )
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun PrivacyEmptyStatePreview() {
-    PlayoraTheme { Surface { PrivacyEmptyState(contentPadding = PaddingValues()) } }
 }

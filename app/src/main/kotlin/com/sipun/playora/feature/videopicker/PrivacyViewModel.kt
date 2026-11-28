@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.core.net.toUri
 import androidx.lifecycle.viewModelScope
+import com.sipun.playora.core.data.repository.PinVerificationResult
 import com.sipun.playora.core.data.repository.PreferencesRepository
 import com.sipun.playora.core.data.repository.PrivacyPinRepository
 import com.sipun.playora.core.data.repository.PrivacyRepository
@@ -17,6 +18,7 @@ import com.sipun.playora.core.ui.base.MviViewModel
 import com.sipun.playora.feature.videopicker.state.SelectionItem
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
+import kotlin.time.Duration.Companion.seconds
 
 const val PRIVACY_PIN_LENGTH = 4
 
@@ -50,17 +53,23 @@ class PrivacyViewModel(
     val events = eventsInternal.receiveAsFlow()
 
     private var hiddenVideosJob: Job? = null
+    private var lockoutJob: Job? = null
     private var hasPrivacySortOverride = false
 
     init {
         viewModelScope.launch {
             val hasPin = privacyPinRepository.hasPinSet()
             val biometricEnabled = hasPin && privacyPinRepository.isBiometricEnabled()
+            val lockoutSeconds = if (hasPin) privacyPinRepository.getLockoutRemainingSeconds() else 0
             stateInternal.update {
                 it.copy(
                     stage = if (hasPin) PrivacyStage.LOCKED else PrivacyStage.SET_PIN,
                     biometricEnabled = biometricEnabled,
+                    lockoutRemainingSeconds = lockoutSeconds,
                 )
+            }
+            if (lockoutSeconds > 0) {
+                startLockoutCountdown(lockoutSeconds)
             }
         }
         viewModelScope.launch {
@@ -86,6 +95,12 @@ class PrivacyViewModel(
     override fun onAction(action: PrivacyAction) {
         when (action) {
             is PrivacyAction.NavigateUp -> output.navigateUp()
+
+            is PrivacyAction.StartChangePin -> startChangePin()
+
+            is PrivacyAction.CancelPinChange -> cancelPinChange()
+
+            is PrivacyAction.SubmitCurrentPin -> submitCurrentPin(action.pin)
 
             is PrivacyAction.SubmitNewPin -> submitNewPin(action.pin)
 
@@ -138,6 +153,73 @@ class PrivacyViewModel(
         if (shouldRefresh) collectHiddenVideos()
     }
 
+    private fun startChangePin() {
+        if (stateInternal.value.stage != PrivacyStage.UNLOCKED) return
+        viewModelScope.launch {
+            val lockoutSeconds = privacyPinRepository.getLockoutRemainingSeconds()
+            stateInternal.update {
+                it.copy(
+                    stage = PrivacyStage.VERIFY_CURRENT_PIN,
+                    pendingPin = null,
+                    pinErrorCount = 0,
+                    setPinGeneration = 0,
+                    isChangingPin = true,
+                    lockoutRemainingSeconds = lockoutSeconds,
+                )
+            }
+            if (lockoutSeconds > 0) {
+                startLockoutCountdown(lockoutSeconds)
+            }
+        }
+    }
+
+    private fun cancelPinChange() {
+        lockoutJob?.cancel()
+        if (stateInternal.value.isChangingPin) {
+            stateInternal.update {
+                it.copy(
+                    stage = PrivacyStage.UNLOCKED,
+                    pendingPin = null,
+                    pinErrorCount = 0,
+                    setPinGeneration = 0,
+                    isChangingPin = false,
+                    lockoutRemainingSeconds = 0,
+                )
+            }
+        } else {
+            output.navigateUp()
+        }
+    }
+
+    private fun submitCurrentPin(pin: String) {
+        if (stateInternal.value.lockoutRemainingSeconds > 0) return
+        viewModelScope.launch {
+            when (val result = privacyPinRepository.verifyPinWithLockout(pin = pin)) {
+                PinVerificationResult.Success -> {
+                    lockoutJob?.cancel()
+                    stateInternal.update {
+                        it.copy(
+                            stage = PrivacyStage.SET_PIN,
+                            pendingPin = null,
+                            pinErrorCount = 0,
+                            setPinGeneration = 0,
+                            lockoutRemainingSeconds = 0,
+                            isChangingPin = true,
+                        )
+                    }
+                }
+
+                is PinVerificationResult.Invalid -> {
+                    stateInternal.update { it.copy(pinErrorCount = it.pinErrorCount + 1) }
+                }
+
+                is PinVerificationResult.LockedOut -> {
+                    startLockoutCountdown(result.remainingSeconds)
+                }
+            }
+        }
+    }
+
     private fun submitNewPin(pin: String) {
         stateInternal.update {
             it.copy(
@@ -151,7 +233,6 @@ class PrivacyViewModel(
     private fun submitPinConfirmation(pin: String) {
         val pendingPin = stateInternal.value.pendingPin
         if (pin != pendingPin) {
-
             stateInternal.update {
                 it.copy(
                     stage = PrivacyStage.SET_PIN,
@@ -162,25 +243,66 @@ class PrivacyViewModel(
             }
             return
         }
+        val changingPin = stateInternal.value.isChangingPin
         viewModelScope.launch {
-            privacyPinRepository.setPin(pin = pin)
-            stateInternal.update {
-                it.copy(
-                    stage = PrivacyStage.BIOMETRIC_SETUP,
-                    pendingPin = null,
-                    pinErrorCount = 0,
-                )
+            privacyPinRepository.setPin(pin = pin, preserveBiometric = changingPin)
+            if (changingPin) {
+                stateInternal.update {
+                    it.copy(
+                        stage = PrivacyStage.UNLOCKED,
+                        pendingPin = null,
+                        pinErrorCount = 0,
+                        setPinGeneration = 0,
+                        isChangingPin = false,
+                    )
+                }
+            } else {
+                stateInternal.update {
+                    it.copy(
+                        stage = PrivacyStage.BIOMETRIC_SETUP,
+                        pendingPin = null,
+                        pinErrorCount = 0,
+                        setPinGeneration = 0,
+                    )
+                }
             }
         }
     }
 
     private fun submitUnlockPin(pin: String) {
+        if (stateInternal.value.lockoutRemainingSeconds > 0) return
         viewModelScope.launch {
-            val isValid = privacyPinRepository.verifyPin(pin = pin)
-            if (isValid) {
-                unlockPrivacy()
-            } else {
-                stateInternal.update { it.copy(pinErrorCount = it.pinErrorCount + 1) }
+            when (val result = privacyPinRepository.verifyPinWithLockout(pin = pin)) {
+                PinVerificationResult.Success -> {
+                    lockoutJob?.cancel()
+                    unlockPrivacy()
+                }
+
+                is PinVerificationResult.Invalid -> {
+                    stateInternal.update { it.copy(pinErrorCount = it.pinErrorCount + 1) }
+                }
+
+                is PinVerificationResult.LockedOut -> {
+                    startLockoutCountdown(result.remainingSeconds)
+                }
+            }
+        }
+    }
+
+    private fun startLockoutCountdown(initialSeconds: Int) {
+        lockoutJob?.cancel()
+        stateInternal.update {
+            it.copy(
+                lockoutRemainingSeconds = initialSeconds,
+                pinErrorCount = it.pinErrorCount + 1,
+            )
+        }
+        lockoutJob = viewModelScope.launch {
+            var remaining = initialSeconds
+            while (remaining > 0) {
+                delay(1.seconds)
+                remaining = privacyPinRepository.getLockoutRemainingSeconds()
+                stateInternal.update { it.copy(lockoutRemainingSeconds = remaining) }
             }
         }
     }
@@ -207,6 +329,8 @@ class PrivacyViewModel(
             it.copy(
                 stage = PrivacyStage.UNLOCKED,
                 pinErrorCount = 0,
+                lockoutRemainingSeconds = 0,
+                isChangingPin = false,
             )
         }
         collectHiddenVideos()
@@ -272,6 +396,7 @@ class PrivacyViewModel(
 enum class PrivacyStage {
     LOADING,
     LOCKED,
+    VERIFY_CURRENT_PIN,
     SET_PIN,
     CONFIRM_PIN,
     BIOMETRIC_SETUP,
@@ -284,6 +409,8 @@ data class PrivacyUiState(
     val pendingPin: String? = null,
     val pinErrorCount: Int = 0,
     val setPinGeneration: Int = 0,
+    val lockoutRemainingSeconds: Int = 0,
+    val isChangingPin: Boolean = false,
     val biometricEnabled: Boolean = false,
     val hiddenVideos: List<Video> = emptyList(),
     val isLoading: Boolean = false,
@@ -298,7 +425,9 @@ data class PrivacyUiState(
 
 sealed interface PrivacyAction {
     data object NavigateUp : PrivacyAction
-
+    data object StartChangePin : PrivacyAction
+    data object CancelPinChange : PrivacyAction
+    data class SubmitCurrentPin(val pin: String) : PrivacyAction
     data class SubmitNewPin(val pin: String) : PrivacyAction
     data class SubmitPinConfirmation(val pin: String) : PrivacyAction
     data class SubmitUnlockPin(val pin: String) : PrivacyAction

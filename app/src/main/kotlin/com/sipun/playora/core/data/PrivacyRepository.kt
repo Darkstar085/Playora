@@ -62,11 +62,14 @@ class LocalPrivacyRepository(
     private val pendingPrivacyPaths = MutableStateFlow<Set<String>>(value = emptySet())
 
     private val privacyDir: File by lazy {
-        val base = context.getExternalFilesDir(null) ?: context.filesDir
         File(
-            base,
+            context.filesDir,
             PRIVACY_DIR_NAME,
-        ).apply { if (!exists()) mkdirs() }
+        ).apply {
+            if (!exists()) mkdirs()
+            val nomedia = File(this, ".nomedia")
+            if (!nomedia.exists()) runCatching { nomedia.createNewFile() }
+        }
     }
 
     override fun observeHiddenVideos(): Flow<List<Video>> = combine(
