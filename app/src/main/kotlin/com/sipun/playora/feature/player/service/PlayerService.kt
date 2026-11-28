@@ -427,7 +427,23 @@ class PlayerService : MediaSessionService() {
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            val item = mediaSession?.player?.currentMediaItem
+            val player = mediaSession?.player
+            val duration = player?.duration ?: C.TIME_UNSET
+            if (
+                error is ExoPlaybackException &&
+                error.type == ExoPlaybackException.TYPE_SOURCE &&
+                player != null &&
+                !player.hasNextMediaItem() &&
+                duration > 0 &&
+                player.currentPosition >= (duration - 1000).coerceAtLeast(0)
+            ) {
+                player.clearMediaItems()
+                player.stop()
+                stopSelf()
+                return
+            }
+
+            val item = player?.currentMediaItem
             val primaryParserError = item != null &&
                     item.copy(videoDecoderMode = DecoderMode.HW_PLUS).usesFfmpegExtractor &&
                     item.hasPrimaryParserError(error)
