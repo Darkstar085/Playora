@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.core.net.toUri
 import com.sipun.nextlib.mediainfo.MediaInfoBuilder
 import com.sipun.playora.core.common.Utils
-import com.sipun.playora.core.common.extensions.mapAsync
 import com.sipun.playora.core.data.mappers.toAudioStreamInfo
 import com.sipun.playora.core.data.mappers.toFolder
 import com.sipun.playora.core.data.mappers.toSubtitleStreamInfo
@@ -27,6 +26,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -41,7 +41,6 @@ interface MediaRepository {
     fun observeVideos(folderPath: String? = null): Flow<List<Video>>
 
     fun observePlaybackHistory(): Flow<List<Video>>
-    fun observeTrashVideos(): Flow<List<Video>>
 
     suspend fun fetchFolders(folderPath: String? = null): List<Folder>
 
@@ -79,7 +78,7 @@ class LocalMediaRepository(
     override fun observeFolders(folderPath: String?): Flow<List<Folder>> =
         mediaService.observeFolders(folderPath = folderPath).map { mediaFolders ->
             mediaFolders.map { it.toFolder() }
-        }
+        }.distinctUntilChanged()
 
     override fun observeVideos(folderPath: String?): Flow<List<Video>> = combine(
         mediaService.observeVideos(folderPath = folderPath),
@@ -93,16 +92,19 @@ class LocalMediaRepository(
             val mediaState = statesMap[mediaVideo.uri.toString()]
             mediaVideo.toVideo(mediaState = mediaState)
         }
-    }
+    }.distinctUntilChanged()
 
     override suspend fun fetchFolders(folderPath: String?): List<Folder> =
         mediaService.fetchFolders(folderPath = folderPath).map { it.toFolder() }
 
-    override suspend fun fetchVideos(folderPath: String?): List<Video> =
-        mediaService.fetchVideos(folderPath = folderPath).mapAsync { mediaVideo ->
-            val mediaState = mediumStateDao.get(mediaVideo.uri.toString())
+    override suspend fun fetchVideos(folderPath: String?): List<Video> {
+        val mediaVideos = mediaService.fetchVideos(folderPath = folderPath)
+        val statesMap = mediumStateDao.getAll().first().associateBy { it.uriString }
+        return mediaVideos.map { mediaVideo ->
+            val mediaState = statesMap[mediaVideo.uri.toString()]
             mediaVideo.toVideo(mediaState = mediaState)
         }
+    }
 
     override fun observePlaybackHistory(): Flow<List<Video>> = combine(
         mediaService.observeVideos(),
@@ -119,10 +121,7 @@ class LocalMediaRepository(
                 videosByUri[state.uriString]?.toVideo(mediaState = state)
                     ?: state.toHistoryVideo()
             }
-    }
-
-    override fun observeTrashVideos(): Flow<List<Video>> =
-        mediaService.observeTrashVideos().map { videos -> videos.map { it.toVideo() } }
+    }.distinctUntilChanged()
 
     override suspend fun getVideoByUri(uri: String): Video? = coroutineScope {
         val mediaVideoDeferred = async { mediaService.findVideo(uri.toUri()) }

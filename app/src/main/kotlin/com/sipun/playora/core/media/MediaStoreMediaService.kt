@@ -5,7 +5,6 @@ import android.content.Context
 import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
-import android.os.Bundle
 import android.provider.MediaStore
 import android.util.LruCache
 import com.sipun.nextlib.mediainfo.MediaInfoBuilder
@@ -43,6 +42,7 @@ class MediaStoreMediaService(
 
     companion object {
         private const val OBSERVER_DEBOUNCE_MS = 250L
+        private val NEGATIVE_METADATA = VideoMetadata(-1L, -1, -1)
 
         private val VIDEO_PROJECTION = arrayOf(
             MediaStore.Video.Media._ID,
@@ -87,16 +87,11 @@ class MediaStoreMediaService(
         fetchVideos(folderPath = folderPath)
     }
 
-    override fun observeTrashVideos(): Flow<List<MediaVideo>> = observeMedia {
-        queryTrashVideos()
-    }
-
     private fun <T> observeMedia(query: suspend () -> List<T>): Flow<List<T>> = mediaChanges
         .map {
             try {
                 query()
             } catch (e: IllegalArgumentException) {
-
                 if (e.message?.startsWith(prefix = "Volume ") == true &&
                     e.message?.endsWith(suffix = " not found") == true
                 ) {
@@ -112,7 +107,6 @@ class MediaStoreMediaService(
     override suspend fun fetchFolders(folderPath: String?): List<MediaFolder> =
         withContext(Dispatchers.IO) {
             val videos = fetchVideos(folderPath = folderPath)
-
             val videosByFolder = videos.groupBy { File(it.path).parentFile }
 
             return@withContext videosByFolder.mapNotNull { (folder, folderVideos) ->
@@ -178,33 +172,7 @@ class MediaStoreMediaService(
 
     private fun File.walkUp() = generateSequence(seed = parentFile) { it.parentFile }
 
-    private fun queryTrashVideos(): List<MediaVideo> {
-        val queryArgs = Bundle().apply {
-            putInt(
-                MediaStore.QUERY_ARG_MATCH_TRASHED,
-                MediaStore.MATCH_ONLY,
-            )
-            putStringArray(
-                android.content.ContentResolver.QUERY_ARG_SORT_COLUMNS,
-                arrayOf(MediaStore.Video.Media.DATE_MODIFIED),
-            )
-            putInt(
-                android.content.ContentResolver.QUERY_ARG_SORT_DIRECTION,
-                android.content.ContentResolver.QUERY_SORT_DIRECTION_DESCENDING,
-            )
-        }
-        return queryVideoCursor {
-            context.contentResolver.query(
-                VIDEO_COLLECTION_URI,
-                VIDEO_PROJECTION,
-                queryArgs,
-                null,
-            )
-        }
-    }
-
     private fun queryVideos(folderPath: String?): List<MediaVideo> {
-
         val selection = if (folderPath == null) {
             null
         } else {
@@ -295,7 +263,6 @@ class MediaStoreMediaService(
     }
 
     private fun MediaVideo.withMissingMetadata(): MediaVideo {
-        // shortcut: probe on IO; use background indexing if incomplete files slow initial scans.
         if (duration > 0 && width > 0 && height > 0) return this
         val key = MetadataKey(
             uri,
@@ -308,28 +275,29 @@ class MediaStoreMediaService(
                     uri,
                     "r",
                 )?.use { descriptor ->
-                    val info = MediaInfoBuilder().from(descriptor).build() ?: return@use null
-                    try {
-                        VideoMetadata(
-                            duration = info.duration.coerceAtLeast(0),
-                            width = info.videoStream?.frameWidth ?: 0,
-                            height = info.videoStream?.frameHeight ?: 0,
-                        ).also {
-                            if (it.duration > 0 && it.width > 0 && it.height > 0) {
-                                missingMetadata.put(
-                                    key,
-                                    it,
-                                )
-                            }
+                    val info = MediaInfoBuilder().from(descriptor).build()
+                    if (info == null) {
+                        NEGATIVE_METADATA
+                    } else {
+                        try {
+                            VideoMetadata(
+                                duration = info.duration.coerceAtLeast(0),
+                                width = info.videoStream?.frameWidth ?: 0,
+                                height = info.videoStream?.frameHeight ?: 0,
+                            ).takeIf { it.duration > 0 || (it.width > 0 && it.height > 0) }
+                                ?: NEGATIVE_METADATA
+                        } finally {
+                            info.release()
                         }
-                    } finally {
-                        info.release()
                     }
-                }
+                } ?: NEGATIVE_METADATA
             } catch (_: Exception) {
-                null
+                NEGATIVE_METADATA
+            }.also {
+                missingMetadata.put(key, it)
             }
-        } ?: return this
+        }
+        if (metadata === NEGATIVE_METADATA || metadata.duration < 0) return this
         return copy(
             duration = duration.takeIf { it > 0 } ?: metadata.duration,
             width = width.takeIf { it > 0 } ?: metadata.width,

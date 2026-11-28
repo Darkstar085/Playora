@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import coil3.ImageLoader
+import com.sipun.playora.core.common.Logger
 import com.sipun.playora.core.common.di.DiQualifiers
 import com.sipun.playora.core.common.extensions.getStorageVolumes
 import com.sipun.playora.core.common.extensions.scanPaths
@@ -54,8 +55,8 @@ class LocalMediaSynchronizer(
         if (mediaSyncingJob?.isActive == true) return
         mediaSyncingJob = mediaService.observeVideos()
             .onEach { media -> updateMedia(media = media) }
-            .catch {
-
+            .catch { error ->
+                Logger.logError("LocalMediaSynchronizer", error.stackTraceToString())
             }
             .launchIn(scope = applicationScope)
     }

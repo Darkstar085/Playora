@@ -9,8 +9,6 @@ interface MediaService {
 
     fun observeVideos(folderPath: String? = null): Flow<List<MediaVideo>>
 
-    fun observeTrashVideos(): Flow<List<MediaVideo>>
-
     suspend fun fetchFolders(folderPath: String? = null): List<MediaFolder>
 
     suspend fun fetchVideos(folderPath: String? = null): List<MediaVideo>

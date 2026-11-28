@@ -60,13 +60,6 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
             return@withContext if (permanently) deleteMediaR(uris = uris) else trashMediaR(uris = uris)
         }
 
-    override suspend fun restoreMedia(uris: List<Uri>): Boolean = withContext(Dispatchers.IO) {
-        return@withContext trashMediaR(
-            uris = uris,
-            trashed = false,
-        )
-    }
-
     override suspend fun renameMedia(uri: Uri, to: String): Boolean = withContext(Dispatchers.IO) {
         return@withContext renameMediaR(
             uri = uri,
@@ -543,24 +536,19 @@ class LocalMediaOperationsService(private val context: Context) : MediaOperation
         request = ::requestDeleteR,
     )
 
-    private suspend fun trashMediaR(uris: List<Uri>, trashed: Boolean = true): Boolean =
+    private suspend fun trashMediaR(uris: List<Uri>): Boolean =
         runMediaRequests(
             items = uris,
             itemExists = ::mediaExists,
-            request = {
-                requestTrashR(
-                    uris = it,
-                    trashed = trashed,
-                )
-            },
+            request = ::requestTrashR,
         )
 
-    private suspend fun requestTrashR(uris: List<Uri>, trashed: Boolean): Boolean =
+    private suspend fun requestTrashR(uris: List<Uri>): Boolean =
         requestMediaAccess(
             pendingIntent = MediaStore.createTrashRequest(
                 contentResolver,
                 uris,
-                trashed,
+                true,
             ),
         )
 

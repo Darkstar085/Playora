@@ -98,17 +98,18 @@ kotlin {
     }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.biometric)
 
-    // Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material3.adaptive)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
@@ -123,19 +124,15 @@ dependencies {
     implementation(libs.reorderable)
     implementation(libs.vitro)
 
-    // Material Icons Extended
     implementation(libs.androidx.compose.material.iconsExtended)
 
-    // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    // DataStore & Serialization
     implementation(libs.androidx.datastore.core)
     implementation(libs.kotlinx.serialization.json)
 
-    // Media3
     implementation(libs.androidx.media3.common)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
@@ -145,7 +142,6 @@ dependencies {
     implementation(libs.nextlib.extended.mediainfo)
     implementation(libs.github.albfernandez.juniversalchardet)
 
-    // Koin
     implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.koin.annotations)
@@ -155,6 +151,5 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.guava)
 
-    debugImplementation(libs.androidx.compose.ui.tooling)
     testImplementation(libs.junit)
 }

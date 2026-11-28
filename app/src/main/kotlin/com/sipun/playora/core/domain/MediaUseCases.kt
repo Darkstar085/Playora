@@ -144,11 +144,12 @@ class GetPopularFoldersUseCase(
         flow = getSortedFoldersUseCase(),
         flow2 = getSortedVideosUseCase(),
     ) { folders, videos ->
+        val videosByParent = videos.groupBy { it.parentPath }
         folders.sortedWith(
             compareByDescending<Folder> { folder ->
-                videos.count { it.parentPath == folder.path && it.lastPlayedAt != null }
+                videosByParent[folder.path].orEmpty().count { it.lastPlayedAt != null }
             }.thenByDescending { folder ->
-                videos.filter { it.parentPath == folder.path }.maxOfOrNull {
+                videosByParent[folder.path].orEmpty().maxOfOrNull {
                     it.lastPlayedAt?.time ?: 0L
                 } ?: 0L
             }.thenByDescending { folder -> folder.videosCount },
