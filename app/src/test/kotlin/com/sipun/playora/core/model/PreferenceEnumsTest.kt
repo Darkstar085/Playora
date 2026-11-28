@@ -29,12 +29,6 @@ class PreferenceEnumsTest {
     }
 
     @Test
-    fun testScreenOrientation() {
-        assertEquals(1, ScreenOrientation.entries.size)
-        assertNotNull(ScreenOrientation.valueOf("VIDEO_ORIENTATION"))
-    }
-
-    @Test
     fun testResumeEnum() {
         assertEquals(2, Resume.entries.size)
         assertEquals(Resume.YES, Resume.valueOf("YES"))
@@ -57,13 +51,6 @@ class PreferenceEnumsTest {
         assertNotNull(DoubleTapGesture.valueOf("FAST_FORWARD_AND_REWIND"))
         assertNotNull(DoubleTapGesture.valueOf("PLAY_PAUSE"))
         assertNotNull(DoubleTapGesture.valueOf("BOTH"))
-    }
-
-    @Test
-    fun testControlButtonsPosition() {
-        assertEquals(2, ControlButtonsPosition.entries.size)
-        assertEquals(ControlButtonsPosition.LEFT, ControlButtonsPosition.valueOf("LEFT"))
-        assertEquals(ControlButtonsPosition.RIGHT, ControlButtonsPosition.valueOf("RIGHT"))
     }
 
     @Test

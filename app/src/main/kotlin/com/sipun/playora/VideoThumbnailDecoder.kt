@@ -104,11 +104,9 @@ class VideoThumbnailDecoder(
                     ffmpegRetriever.setDataSource(source = source)
                     ffmpegRetriever
                 } catch (_: IllegalArgumentException) {
-                    // Either reader can reject a source the other one supports.
                     null
                 }
 
-                // First, try to get embedded picture (album art/metadata thumbnail)
                 val embeddedPicture =
                     runCatching { systemRetriever?.embeddedPicture }.getOrNull()
                         ?: fallbackRetriever?.getEmbeddedPicture()

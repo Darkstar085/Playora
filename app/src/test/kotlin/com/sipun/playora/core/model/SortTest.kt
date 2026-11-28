@@ -38,7 +38,6 @@ class SortTest {
         val videos = listOf(sampleVideo10, sampleVideo2, sampleVideo1)
         val sorted = videos.sortedWith(sortAsc.videoComparator())
 
-        // Natural sort: Episode 1, Episode 2, Episode 10 (not Episode 1, Episode 10, Episode 2)
         assertEquals(listOf(sampleVideo1, sampleVideo2, sampleVideo10), sorted)
 
         val sortDesc = Sort(by = Sort.By.TITLE, order = Sort.Order.DESCENDING)
@@ -52,7 +51,6 @@ class SortTest {
         val videos = listOf(sampleVideo2, sampleVideo10, sampleVideo1)
         val sorted = videos.sortedWith(sortAsc.videoComparator())
 
-        // Durations: 10_000 (v1), 30_000 (v10), 50_000 (v2)
         assertEquals(listOf(sampleVideo1, sampleVideo10, sampleVideo2), sorted)
 
         val sortDesc = Sort(by = Sort.By.LENGTH, order = Sort.Order.DESCENDING)
@@ -66,7 +64,6 @@ class SortTest {
         val videos = listOf(sampleVideo2, sampleVideo10, sampleVideo1)
         val sorted = videos.sortedWith(sortAsc.videoComparator())
 
-        // Sizes: 1000 (v1), 3000 (v10), 5000 (v2)
         assertEquals(listOf(sampleVideo1, sampleVideo10, sampleVideo2), sorted)
 
         val sortDesc = Sort(by = Sort.By.SIZE, order = Sort.Order.DESCENDING)
@@ -80,7 +77,6 @@ class SortTest {
         val videos = listOf(sampleVideo10, sampleVideo1, sampleVideo2)
         val sorted = videos.sortedWith(sortAsc.videoComparator())
 
-        // Dates: 100 (v1), 200 (v2), 300 (v10)
         assertEquals(listOf(sampleVideo1, sampleVideo2, sampleVideo10), sorted)
 
         val sortDesc = Sort(by = Sort.By.DATE, order = Sort.Order.DESCENDING)

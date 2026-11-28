@@ -65,7 +65,6 @@ class MediaModelsTest {
 
     @Test
     fun testVideoIsNew() {
-        // Unplayed video: lastPlayedAt == null and playbackPosition == null -> isNew is true regardless of dateAdded
         val unplayedVideoNullPos = Video.sample.copy(
             dateAdded = 1000L,
             lastPlayedAt = null,
@@ -73,7 +72,6 @@ class MediaModelsTest {
         )
         assertTrue(unplayedVideoNullPos.isNew())
 
-        // Unplayed video: lastPlayedAt == null and playbackPosition <= 0L -> isNew is true
         val unplayedVideoZeroPos = Video.sample.copy(
             dateAdded = 1000L,
             lastPlayedAt = null,
@@ -88,14 +86,12 @@ class MediaModelsTest {
         )
         assertTrue(unplayedVideoNegativePos.isNew())
 
-        // Played video: playbackPosition > 0L even if lastPlayedAt == null -> isNew is false
         val playedPositionVideo = Video.sample.copy(
             lastPlayedAt = null,
             playbackPosition = 150L,
         )
         assertFalse(playedPositionVideo.isNew())
 
-        // Played video: lastPlayedAt is set -> isNew is false regardless of playbackPosition
         val playedDateVideoNullPos = Video.sample.copy(
             lastPlayedAt = Date(),
             playbackPosition = null,

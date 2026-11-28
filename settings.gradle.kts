@@ -14,7 +14,6 @@ dependencyResolutionManagement {
     }
 }
 
-// Opt in with -PnextlibPath=../nextlib to test unpublished decoder changes.
 providers.gradleProperty("nextlibPath").orNull?.let { nextlibPath ->
     includeBuild(nextlibPath) {
         dependencySubstitution {
