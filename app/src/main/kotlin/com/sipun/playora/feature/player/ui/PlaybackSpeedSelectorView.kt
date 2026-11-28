@@ -51,11 +51,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import com.sipun.playora.R
 import com.sipun.playora.core.ui.theme.AppDarkGlassSheet
 import com.sipun.playora.core.ui.theme.AppGlassSlider
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
@@ -91,7 +93,7 @@ fun PlaybackSpeedSelectorView(
             onDismissRequest = { showCustomSpeedDialog = false },
             title = {
                 Text(
-                    text = "Custom playback speed",
+                    text = stringResource(R.string.custom_playback_speed),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                 )
@@ -99,7 +101,7 @@ fun PlaybackSpeedSelectorView(
             text = {
                 Column {
                     Text(
-                        text = "Enter speed between 0.25x and 8.00x",
+                        text = stringResource(R.string.enter_speed_range),
                         color = Color(0xFF9EABB8),
                         fontSize = 14.sp,
                     )
@@ -108,7 +110,7 @@ fun PlaybackSpeedSelectorView(
                         value = customSpeedText,
                         onValueChange = { customSpeedText = it },
                         singleLine = true,
-                        placeholder = { Text("1.00") },
+                        placeholder = { Text(stringResource(R.string.speed_hint)) },
                     )
                 }
             },
@@ -122,12 +124,12 @@ fun PlaybackSpeedSelectorView(
                         showCustomSpeedDialog = false
                     },
                 ) {
-                    Text("OK", color = Color(0xFF1B88F5))
+                    Text(stringResource(R.string.okay), color = Color(0xFF1B88F5))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showCustomSpeedDialog = false }) {
-                    Text("Cancel", color = Color(0xFF9EABB8))
+                    Text(stringResource(R.string.cancel), color = Color(0xFF9EABB8))
                 }
             },
             containerColor = Color(0xFF1A222C),
@@ -139,7 +141,6 @@ fun PlaybackSpeedSelectorView(
         enter = fadeIn(animationSpec = tween(150)),
         exit = fadeOut(animationSpec = tween(150)),
     ) {
-        // Scrim
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -185,13 +186,11 @@ fun PlaybackSpeedSelectorView(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
-                        // Top Row: Minus | Speed Pill (with Edit) | Plus
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
-                            // Minus Button
                             val minusInteraction = remember { MutableInteractionSource() }
                             Box(
                                 modifier = Modifier
@@ -230,13 +229,12 @@ fun PlaybackSpeedSelectorView(
                             ) {
                                 Icon(
                                     imageVector = Icons.Rounded.Remove,
-                                    contentDescription = "Decrease speed",
+                                    contentDescription = stringResource(R.string.decrease_speed),
                                     tint = Color.White,
                                     modifier = Modifier.size(22.dp),
                                 )
                             }
 
-                            // Center Speed Pill
                             val speedPillInteraction = remember { MutableInteractionSource() }
                             val speedPillModifier = if (useGlass) {
                                 Modifier
@@ -290,13 +288,12 @@ fun PlaybackSpeedSelectorView(
                                 )
                                 Icon(
                                     imageVector = Icons.Rounded.Edit,
-                                    contentDescription = "Edit speed",
+                                    contentDescription = stringResource(R.string.edit_speed),
                                     tint = Color(0xFF9EABB8),
                                     modifier = Modifier.size(15.dp),
                                 )
                             }
 
-                            // Plus Button
                             val plusInteraction = remember { MutableInteractionSource() }
                             Box(
                                 modifier = Modifier
@@ -335,14 +332,13 @@ fun PlaybackSpeedSelectorView(
                             ) {
                                 Icon(
                                     imageVector = Icons.Rounded.Add,
-                                    contentDescription = "Increase speed",
+                                    contentDescription = stringResource(R.string.increase_speed),
                                     tint = Color.White,
                                     modifier = Modifier.size(22.dp),
                                 )
                             }
                         }
 
-                        // Middle Row: Slider with tick dots + Reset Button
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
@@ -355,7 +351,6 @@ fun PlaybackSpeedSelectorView(
                             ) {
                                 val tickValues = listOf(0.25f, 1.0f, 2.0f, 3.0f, 4.0f)
 
-                                // Slider
                                 AppGlassSlider(
                                     value = playbackParametersState.speed.coerceIn(
                                         minValue,
@@ -372,7 +367,6 @@ fun PlaybackSpeedSelectorView(
                                     inactiveTrackColor = Color(0xFF2A3542),
                                     modifier = Modifier.fillMaxWidth(),
                                 )
-                                // Tick dots on track
                                 Canvas(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -395,7 +389,6 @@ fun PlaybackSpeedSelectorView(
 
                             Spacer(modifier = Modifier.width(8.dp))
 
-                            // Reset button
                             IconButton(
                                 onClick = {
                                     playbackParametersState.setPlaybackSpeed(1.0f)
@@ -405,14 +398,13 @@ fun PlaybackSpeedSelectorView(
                             ) {
                                 Icon(
                                     imageVector = Icons.Rounded.Refresh,
-                                    contentDescription = "Reset speed",
+                                    contentDescription = stringResource(R.string.reset_speed),
                                     tint = Color(0xFF9EABB8),
                                     modifier = Modifier.size(22.dp),
                                 )
                             }
                         }
 
-                        // Bottom Row: Preset Buttons (0.25x, 1.0x, 2.0x, 3.0x, 4.0x)
                         val presets = listOf(0.25f, 1.0f, 2.0f, 3.0f, 4.0f)
                         Row(
                             modifier = Modifier.fillMaxWidth(),

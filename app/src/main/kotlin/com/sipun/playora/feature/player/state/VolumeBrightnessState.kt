@@ -27,6 +27,7 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
 import androidx.core.app.PictureInPictureModeChangedInfo
+import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.util.Consumer
 import androidx.media3.common.Player
@@ -226,9 +227,11 @@ class VolumeState(
                 }
             }
 
-            context.registerReceiver(
+            ContextCompat.registerReceiver(
+                context,
                 receiver,
                 IntentFilter(VOLUME_CHANGED_ACTION),
+                ContextCompat.RECEIVER_EXPORTED,
             )
 
             onDispose { context.unregisterReceiver(receiver) }
@@ -343,6 +346,10 @@ fun rememberVolumeAndBrightnessGestureState(
     val volumeAndBrightnessGestureState = remember(
         volumeState,
         brightnessState,
+        enableVolumeGesture,
+        enableBrightnessGesture,
+        volumeGestureSensitivity,
+        brightnessGestureSensitivity,
     ) {
         VolumeAndBrightnessGestureState(
             volumeState = volumeState,

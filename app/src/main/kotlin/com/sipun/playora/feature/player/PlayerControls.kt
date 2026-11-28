@@ -6,11 +6,18 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.state.ProgressStateWithTickInterval
@@ -22,8 +29,9 @@ import com.sipun.playora.feature.player.state.SeekGestureState
 import com.sipun.playora.feature.player.state.VideoZoomAndContentScaleState
 import com.sipun.playora.feature.player.state.seekAmountFormatted
 import com.sipun.playora.feature.player.state.seekToPositionFormated
-import com.sipun.playora.feature.player.ui.InfoView
+import com.sipun.playora.feature.player.ui.InfoPill
 import com.sipun.playora.feature.player.ui.OverlayView
+import com.sipun.playora.feature.player.ui.SeekFeedbackPill
 import com.sipun.playora.feature.player.ui.controls.ControlsBottomView
 import com.sipun.playora.feature.player.ui.controls.ControlsMiniIndicatorsView
 import com.sipun.playora.feature.player.ui.controls.ControlsTopView
@@ -35,6 +43,7 @@ fun PlayerControls(
     title: String,
     playerPreferences: PlayerPreferences,
     videoDecoderMode: DecoderMode?,
+    activeVideoDecoderMode: DecoderMode?,
     controlsVisibilityState: ControlsVisibilityState,
     seekGestureState: SeekGestureState,
     videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
@@ -48,6 +57,10 @@ fun PlayerControls(
     onPictureInPictureClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val topSafePadding = WindowInsets.systemBars.union(
+        WindowInsets.displayCutout,
+    ).asPaddingValues().calculateTopPadding()
+
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
@@ -61,6 +74,7 @@ fun PlayerControls(
                 ControlsTopView(
                     title = title,
                     videoDecoderMode = videoDecoderMode,
+                    activeVideoDecoderMode = activeVideoDecoderMode,
                     player = player,
                     onDecoderClick = { onShowOverlay(OverlayView.DECODER_SELECTOR) },
                     onAudioClick = { onShowOverlay(OverlayView.AUDIO_SELECTOR) },
@@ -70,11 +84,35 @@ fun PlayerControls(
                     onBackClick = onBackClick,
                 )
             }
-            Spacer(modifier = Modifier.weight(weight = 1f))
+            Box(
+                modifier = Modifier
+                    .weight(weight = 1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.TopCenter,
+            ) {
+                val topMargin = if (controlsVisibilityState.controlsVisible) {
+                    12.dp
+                } else {
+                    topSafePadding + 16.dp
+                }
+                when {
+                    seekGestureState.seekAmount != null -> SeekFeedbackPill(
+                        seekAmountMs = seekGestureState.seekAmount ?: 0L,
+                        seekAmountFormatted = seekGestureState.seekAmountFormatted,
+                        seekToPositionFormatted = seekGestureState.seekToPositionFormated,
+                        modifier = Modifier.padding(top = topMargin),
+                    )
+
+                    videoZoomAndContentScaleState.isZooming -> InfoPill(
+                        info = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%",
+                        modifier = Modifier.padding(top = topMargin),
+                    )
+                }
+            }
             AnimatedVisibility(
                 visible =
                     controlsVisibilityState.controlsVisible &&
-                            !controlsVisibilityState.controlsLocked,
+                        !controlsVisibilityState.controlsLocked,
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
@@ -111,17 +149,6 @@ fun PlayerControls(
         ) {
             ControlsMiniIndicatorsView(
                 progressState = progressState,
-            )
-        }
-        when {
-            seekGestureState.seekAmount != null -> InfoView(
-                info =
-                    "${seekGestureState.seekAmountFormatted}\n" +
-                            "[${seekGestureState.seekToPositionFormated}]",
-            )
-
-            videoZoomAndContentScaleState.isZooming -> InfoView(
-                info = "${(videoZoomAndContentScaleState.zoom * 100).toInt()}%",
             )
         }
     }

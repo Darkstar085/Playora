@@ -1,6 +1,7 @@
 ﻿package com.sipun.playora.feature.player.ui.controls
 
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.ContentValues
 import android.content.Context
 import android.content.ContextWrapper
@@ -23,7 +24,9 @@ import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -36,6 +39,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -47,10 +51,10 @@ import androidx.compose.material.icons.rounded.Subtitles
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -71,16 +75,18 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.sipun.playora.R
 import com.sipun.playora.core.ui.extensions.copy
 import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.core.ui.theme.appGlassContainer
 import com.sipun.playora.core.ui.theme.appGlassSurface
 import com.sipun.playora.feature.player.buttons.LoopButton
@@ -90,18 +96,26 @@ import com.sipun.playora.feature.player.buttons.ShuffleButton
 import com.sipun.playora.feature.player.model.DecoderMode
 import com.sipun.playora.feature.player.model.labelRes
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+
+@Stable
+data class BatteryAndClockStatus(
+    val batteryPercentage: Int,
+    val isCharging: Boolean,
+    val currentTime: String,
+)
 
 @Composable
-fun BatteryAndClockView(modifier: Modifier = Modifier) {
+fun rememberBatteryAndClockStatus(uppercaseAmPm: Boolean = true): BatteryAndClockStatus {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var batteryPercentage by remember { mutableIntStateOf(100) }
     var isCharging by remember { mutableStateOf(false) }
     var currentTime by remember { mutableStateOf("") }
@@ -110,30 +124,98 @@ fun BatteryAndClockView(modifier: Modifier = Modifier) {
         SimpleDateFormat("h:mm a", Locale.getDefault())
     }
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            val batteryIntent = context.registerReceiver(
+    DisposableEffect(context, lifecycleOwner, uppercaseAmPm) {
+        fun updateFromBatteryIntent(intent: Intent?) {
+            intent ?: return
+            val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+            val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+            val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+            val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
+            isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == BatteryManager.BATTERY_STATUS_FULL ||
+                plugged > 0
+            if (level >= 0 && scale > 0) {
+                batteryPercentage = (level * 100) / scale
+            }
+        }
+
+        fun updateClock() {
+            val formatted = timeFormatter.format(Date())
+            currentTime = if (uppercaseAmPm) {
+                formatted.uppercase(Locale.getDefault())
+            } else {
+                formatted.lowercase(Locale.getDefault())
+            }
+        }
+
+        updateFromBatteryIntent(
+            ContextCompat.registerReceiver(
+                context,
                 null,
                 IntentFilter(Intent.ACTION_BATTERY_CHANGED),
-            )
-            batteryIntent?.let { intent ->
-                val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-                val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-                val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
-                val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
-                isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                        status == BatteryManager.BATTERY_STATUS_FULL ||
-                        plugged > 0
-                if (level >= 0 && scale > 0) {
-                    batteryPercentage = (level * 100) / scale
+                ContextCompat.RECEIVER_EXPORTED,
+            ),
+        )
+        updateClock()
+
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: Context, intent: Intent) {
+                when (intent.action) {
+                    Intent.ACTION_BATTERY_CHANGED -> updateFromBatteryIntent(intent)
+                    Intent.ACTION_TIME_TICK,
+                    Intent.ACTION_TIME_CHANGED,
+                    Intent.ACTION_TIMEZONE_CHANGED,
+                        -> updateClock()
                 }
             }
-            currentTime = timeFormatter.format(Date()).uppercase(Locale.getDefault())
-            delay(10_000)
+        }
+
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_BATTERY_CHANGED)
+            addAction(Intent.ACTION_TIME_TICK)
+            addAction(Intent.ACTION_TIME_CHANGED)
+            addAction(Intent.ACTION_TIMEZONE_CHANGED)
+        }
+        ContextCompat.registerReceiver(
+            context,
+            receiver,
+            filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+
+        val lifecycleObserver = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                updateFromBatteryIntent(
+                    ContextCompat.registerReceiver(
+                        context,
+                        null,
+                        IntentFilter(Intent.ACTION_BATTERY_CHANGED),
+                        ContextCompat.RECEIVER_EXPORTED,
+                    ),
+                )
+                updateClock()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+            runCatching { context.unregisterReceiver(receiver) }
         }
     }
 
-    androidx.compose.foundation.layout.Box(
+    return BatteryAndClockStatus(
+        batteryPercentage = batteryPercentage,
+        isCharging = isCharging,
+        currentTime = currentTime,
+    )
+}
+
+@Composable
+fun BatteryAndClockView(modifier: Modifier = Modifier) {
+    val status = rememberBatteryAndClockStatus(uppercaseAmPm = true)
+
+    Box(
         modifier = modifier.appGlassSurface(
             shape = CircleShape,
             clear = true,
@@ -147,14 +229,18 @@ fun BatteryAndClockView(modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            val batteryText = if (isCharging) "⚡ $batteryPercentage%" else "$batteryPercentage%"
+            val batteryText = if (status.isCharging) {
+                "⚡ ${status.batteryPercentage}%"
+            } else {
+                "${status.batteryPercentage}%"
+            }
             Text(
                 text = batteryText,
                 style = MaterialTheme.typography.labelMedium,
                 color = Color.White,
             )
             Text(
-                text = currentTime,
+                text = status.currentTime,
                 style = MaterialTheme.typography.labelMedium,
                 color = Color.White,
             )
@@ -190,13 +276,16 @@ fun openEqualizer(context: Context) {
                 context.startActivity(settingsIntent)
             }
         } catch (_: Exception) {
-            Toast.makeText(context, "Equalizer not available", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                context.getString(R.string.equalizer_not_available),
+                Toast.LENGTH_SHORT,
+            ).show()
         }
     }
 }
 
 suspend fun captureVideoFrame(context: Context, player: Player?): Boolean {
-    // Read player parameters on main thread before coroutine switch
     val uri = try {
         player?.currentMediaItem?.localConfiguration?.uri
     } catch (_: Throwable) {
@@ -211,8 +300,8 @@ suspend fun captureVideoFrame(context: Context, player: Player?): Boolean {
     return withContext(Dispatchers.IO) {
         var bitmap: Bitmap? = null
         if (uri != null) {
+            val retriever = MediaMetadataRetriever()
             try {
-                val retriever = MediaMetadataRetriever()
                 try {
                     context.contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
                         retriever.setDataSource(pfd.fileDescriptor)
@@ -225,37 +314,61 @@ suspend fun captureVideoFrame(context: Context, player: Player?): Boolean {
                 val currentPosUs = (currentPositionMs * 1000L).coerceAtLeast(0L)
                 bitmap = retriever.getFrameAtTime(
                     currentPosUs,
-                    MediaMetadataRetriever.OPTION_CLOSEST_SYNC
-                )
-                    ?: retriever.getFrameAtTime(currentPosUs)
-                retriever.release()
-            } catch (e: Exception) {
-                e.printStackTrace()
+                    MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
+                ) ?: retriever.getFrameAtTime(currentPosUs)
+            } catch (_: Exception) {
+            } finally {
+                runCatching { retriever.release() }
             }
         }
         if (bitmap == null) {
-            withContext(Dispatchers.Main) {
-                val activity = context.findActivity() ?: return@withContext
-                val window = activity.window ?: return@withContext
+            bitmap = withContext(Dispatchers.Main) {
+                val activity = context.findActivity() ?: return@withContext null
+                val window = activity.window ?: return@withContext null
                 val bounds = window.decorView.let { Rect(0, 0, it.width, it.height) }
-                if (bounds.width() > 0 && bounds.height() > 0) {
-                    val bmp = createBitmap(bounds.width(), bounds.height())
-                    val latch = CountDownLatch(1)
-                    var success = false
-                    PixelCopy.request(window, bmp, { copyResult ->
-                        success = (copyResult == PixelCopy.SUCCESS)
-                        latch.countDown()
-                    }, Handler(Looper.getMainLooper()))
-                    latch.await(1, TimeUnit.SECONDS)
-                    if (success) bitmap = bmp
+                if (bounds.width() <= 0 || bounds.height() <= 0) return@withContext null
+                val bmp = createBitmap(bounds.width(), bounds.height())
+                val captured = withTimeoutOrNull(1_000L) {
+                    suspendCancellableCoroutine { continuation ->
+                        continuation.invokeOnCancellation { bmp.recycle() }
+                        try {
+                            PixelCopy.request(
+                                window,
+                                bmp,
+                                { copyResult ->
+                                    if (continuation.isActive) {
+                                        if (copyResult == PixelCopy.SUCCESS) {
+                                            continuation.resume(bmp)
+                                        } else {
+                                            bmp.recycle()
+                                            continuation.resume(null)
+                                        }
+                                    } else {
+                                        bmp.recycle()
+                                    }
+                                },
+                                Handler(Looper.getMainLooper()),
+                            )
+                        } catch (_: Exception) {
+                            bmp.recycle()
+                            if (continuation.isActive) continuation.resume(null)
+                        }
+                    }
                 }
+                if (captured == null && !bmp.isRecycled) {
+                    bmp.recycle()
+                }
+                captured
             }
         }
 
-        if (bitmap != null) {
-            saveBitmapToGallery(context, bitmap)
-        } else {
-            false
+        val capturedBitmap = bitmap ?: return@withContext false
+        try {
+            saveBitmapToGallery(context, capturedBitmap)
+        } finally {
+            if (!capturedBitmap.isRecycled) {
+                capturedBitmap.recycle()
+            }
         }
     }
 }
@@ -268,13 +381,13 @@ private fun saveBitmapToGallery(context: Context, bitmap: Bitmap): Boolean {
             put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
             put(
                 MediaStore.MediaColumns.RELATIVE_PATH,
-                Environment.DIRECTORY_PICTURES + "/Playora"
+                Environment.DIRECTORY_PICTURES + "/Playora",
             )
             put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
         val uri = context.contentResolver.insert(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            contentValues
+            contentValues,
         )
         if (uri != null) {
             context.contentResolver.openOutputStream(uri)?.use { os ->
@@ -287,8 +400,7 @@ private fun saveBitmapToGallery(context: Context, bitmap: Bitmap): Boolean {
         } else {
             false
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
+    } catch (_: Exception) {
         false
     }
 }
@@ -299,6 +411,7 @@ fun ControlsTopView(
     modifier: Modifier = Modifier,
     title: String,
     videoDecoderMode: DecoderMode?,
+    activeVideoDecoderMode: DecoderMode? = null,
     player: Player? = null,
     onBackClick: () -> Unit = {},
     onDecoderClick: () -> Unit = {},
@@ -314,6 +427,9 @@ fun ControlsTopView(
         WindowInsets.displayCutout,
     ).asPaddingValues()
     val decoderDescription = stringResource(R.string.select_decoders)
+    val capturingText = stringResource(R.string.capturing_screenshot)
+    val savedText = stringResource(R.string.screenshot_saved)
+    val failedText = stringResource(R.string.screenshot_failed)
     val extraTopPadding = if (systemBarsPadding.calculateTopPadding() == 0.dp) 16.dp else 0.dp
     val useGlass = LocalLiquidGlassEnabled.current && LocalGlassBackdrop.current != null
 
@@ -336,7 +452,6 @@ fun ControlsTopView(
             .focusProperties { onEnter = { firstControlFocusRequester.requestFocus() } }
             .focusGroup(),
     ) {
-        // Top Header Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -349,7 +464,7 @@ fun ControlsTopView(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.navigate_up),
                 )
             }
             val validTitle = title.takeIf { it.isNotBlank() }
@@ -382,7 +497,7 @@ fun ControlsTopView(
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Audiotrack,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.select_audio_track),
                     )
                 }
                 PlayerButton(
@@ -392,8 +507,17 @@ fun ControlsTopView(
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Subtitles,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.select_subtitle_track_desc),
                     )
+                }
+                val selectedMode = videoDecoderMode ?: DecoderMode.AUTO
+                val decoderText = if (selectedMode == DecoderMode.AUTO && activeVideoDecoderMode != null) {
+                    stringResource(
+                        R.string.decoder_mode_auto_active,
+                        stringResource(activeVideoDecoderMode.labelRes),
+                    )
+                } else {
+                    stringResource(selectedMode.labelRes)
                 }
                 PlayerButton(
                     modifier = Modifier
@@ -404,7 +528,7 @@ fun ControlsTopView(
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                 ) {
                     Text(
-                        text = stringResource((videoDecoderMode ?: DecoderMode.HARDWARE).labelRes),
+                        text = decoderText,
                         style = MaterialTheme.typography.labelLarge,
                         maxLines = 1,
                     )
@@ -412,20 +536,19 @@ fun ControlsTopView(
             }
         }
 
-        // Secondary Quick Actions Row
         val configuration = LocalConfiguration.current
         val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 6.dp)
+                .horizontalScroll(rememberScrollState())
                 .appGlassContainer(enabled = useGlass),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(if (isLandscape) 12.dp else 8.dp),
         ) {
             val activeAccent = MaterialTheme.colorScheme.primary
 
-            // Equalizer
             PlayerButton(
                 modifier = Modifier.size(40.dp),
                 onClick = { openEqualizer(context) },
@@ -433,12 +556,11 @@ fun ControlsTopView(
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Tune,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.equalizer),
                     modifier = Modifier.size(20.dp),
                 )
             }
 
-            // Playback speed
             val speed = player?.playbackParameters?.speed ?: 1.0f
             val isSpeedActive = speed != 1.0f
             val speedText =
@@ -458,39 +580,28 @@ fun ControlsTopView(
                 )
             }
 
-            // Screenshot / Frame capture
             PlayerButton(
                 modifier = Modifier.size(40.dp),
                 onClick = {
                     coroutineScope.launch {
-                        Toast.makeText(context, "Capturing screenshot...", Toast.LENGTH_SHORT)
-                            .show()
+                        Toast.makeText(context, capturingText, Toast.LENGTH_SHORT).show()
                         val success = captureVideoFrame(context, player)
-                        if (success) {
-                            Toast.makeText(
-                                context,
-                                "Screenshot saved to Pictures/Playora",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Failed to capture screenshot",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                        Toast.makeText(
+                            context,
+                            if (success) savedText else failedText,
+                            Toast.LENGTH_SHORT,
+                        ).show()
                     }
                 },
                 containerColor = PlayerButtonBlackAlpha,
             ) {
                 Icon(
                     imageVector = Icons.Rounded.CameraAlt,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.capture_screenshot),
                     modifier = Modifier.size(20.dp),
                 )
             }
 
-            // Background play
             PlayerButton(
                 modifier = Modifier.size(40.dp),
                 onClick = onPlayInBackgroundClick,
@@ -498,20 +609,19 @@ fun ControlsTopView(
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Headset,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.play_in_background),
                     modifier = Modifier.size(20.dp),
                 )
             }
 
-            // Screen Rotation toggle
             PlayerButton(
                 modifier = Modifier.size(40.dp),
                 onClick = {
                     val activity = context.findActivity()
                     activity?.let { act ->
-                        val isLandscape =
+                        val isLandscapeMode =
                             act.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-                        act.requestedOrientation = if (isLandscape) {
+                        act.requestedOrientation = if (isLandscapeMode) {
                             ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                         } else {
                             ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
@@ -522,7 +632,7 @@ fun ControlsTopView(
             ) {
                 Icon(
                     imageVector = Icons.Rounded.ScreenRotationAlt,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.rotate_screen),
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -534,20 +644,6 @@ fun ControlsTopView(
             LoopButton(
                 modifier = Modifier.size(40.dp),
                 player = player,
-            )
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun ControlsTopViewPreview() {
-    PlayoraTheme(darkTheme = true) {
-        Surface {
-            ControlsTopView(
-                title = "Title",
-                videoDecoderMode = DecoderMode.HARDWARE,
-                onBackClick = {},
             )
         }
     }

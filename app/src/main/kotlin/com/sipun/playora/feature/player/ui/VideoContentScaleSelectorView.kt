@@ -74,7 +74,6 @@ fun BoxScope.VideoContentScaleSelectorView(
         enter = fadeIn(animationSpec = tween(150)),
         exit = fadeOut(animationSpec = tween(150)),
     ) {
-        // Scrim
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -137,7 +136,6 @@ fun BoxScope.VideoContentScaleSelectorView(
                             .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        // Header: Icon + Title & Subtitle (No drag handle indicator pill)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -174,7 +172,6 @@ fun BoxScope.VideoContentScaleSelectorView(
                             }
                         }
 
-                        // Options list
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -224,7 +221,6 @@ private fun VideoContentScaleCard(
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Icon container
             Box(
                 modifier = Modifier
                     .size(40.dp)

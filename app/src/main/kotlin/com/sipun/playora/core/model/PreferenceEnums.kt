@@ -2,22 +2,11 @@ package com.sipun.playora.core.model
 
 import kotlinx.serialization.Serializable
 
-enum class ControlButtonsPosition {
-    LEFT,
-    RIGHT,
-}
-
 enum class DoubleTapGesture {
     PLAY_PAUSE,
     FAST_FORWARD_AND_REWIND,
     BOTH,
     NONE,
-}
-
-enum class FastSeek {
-    AUTO,
-    ENABLE,
-    DISABLE,
 }
 
 enum class Font {
@@ -48,10 +37,6 @@ enum class MediaViewMode {
 enum class Resume {
     YES,
     NO,
-}
-
-enum class ScreenOrientation {
-    VIDEO_ORIENTATION,
 }
 
 enum class ThemeConfig {

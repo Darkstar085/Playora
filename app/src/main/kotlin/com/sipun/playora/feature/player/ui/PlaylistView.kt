@@ -90,9 +90,17 @@ fun BoxScope.PlaylistView(modifier: Modifier = Modifier, show: Boolean, player: 
         title = stringResource(R.string.now_playing),
     ) {
         if (playlistState.mediaItemCount == 0) {
-
             EmptyPlaylistView()
         } else {
+            val itemKeys = remember(playlistState.timeline, playlistState.mediaItemCount) {
+                val counts = HashMap<String, Int>(playlistState.mediaItemCount)
+                List(playlistState.mediaItemCount) { index ->
+                    val id = playlistState.getMediaItemAt(index = index).mediaId
+                    val occurrence = counts.getOrDefault(id, 0)
+                    counts[id] = occurrence + 1
+                    "$id#$occurrence"
+                }
+            }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = lazyListState,
@@ -101,12 +109,12 @@ fun BoxScope.PlaylistView(modifier: Modifier = Modifier, show: Boolean, player: 
             ) {
                 items(
                     count = playlistState.mediaItemCount,
-                    key = { index -> playlistState.getMediaItemAt(index = index).mediaId },
+                    key = { index -> itemKeys[index] },
                 ) { index ->
                     val mediaItem = playlistState.getMediaItemAt(index = index)
                     ReorderableItem(
                         state = reorderableLazyListState,
-                        key = mediaItem.mediaId,
+                        key = itemKeys[index],
                     ) {
                         val isCurrentItem = index == playlistState.currentMediaItemIndex
                         PlaylistItemView(
@@ -156,6 +164,7 @@ private fun ReorderableCollectionItemScope.PlaylistItemView(
         contentPadding = PaddingValues(8.dp),
         interactionSource = interactionSource,
         colors = ListItemDefaults.segmentedColors(
+            containerColor = Color.Transparent,
             contentColor = if (isCurrentItem) {
                 MaterialTheme.colorScheme.primary
             } else {

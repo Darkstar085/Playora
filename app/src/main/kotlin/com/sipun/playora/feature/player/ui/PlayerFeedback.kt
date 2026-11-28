@@ -6,18 +6,20 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.displayCutoutPadding
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.BrightnessMedium
@@ -29,15 +31,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.sipun.playora.core.ui.extensions.copy
+import androidx.compose.ui.unit.max
 import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
 import com.sipun.playora.core.ui.theme.appGlassSurface
@@ -49,84 +48,90 @@ import kotlin.time.Duration.Companion.milliseconds
 import com.sipun.playora.R as coreUiR
 
 @Composable
-internal fun InfoView(
-    modifier: Modifier = Modifier,
+internal fun InfoPill(
     info: String,
-    textStyle: TextStyle = MaterialTheme.typography.displaySmall.copy(
-        fontWeight = FontWeight.Bold,
-        shadow = Shadow(
-            color = Color.Black.copy(alpha = 0.8f),
-            offset = Offset(x = 2f, y = 2f),
-            blurRadius = 6f,
-        ),
-    ),
+    modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    Box(
+        modifier = modifier.appGlassSurface(
+            shape = CircleShape,
+            clear = true,
+            dimmed = 0.35f,
+            forceDark = true,
+            fallbackBackground = Color.Black.copy(alpha = 0.65f),
+        ),
     ) {
         Text(
             text = info,
-            style = textStyle,
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
             color = Color.White,
-            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
     }
 }
 
 @Composable
-internal fun BoxScope.DpadSeekIndicator(visible: Boolean, offsetMs: Long, positionMs: Long) {
+internal fun SeekFeedbackPill(
+    seekAmountMs: Long,
+    seekAmountFormatted: String,
+    seekToPositionFormatted: String,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier.appGlassSurface(
+            shape = CircleShape,
+            clear = true,
+            dimmed = 0.35f,
+            forceDark = true,
+            fallbackBackground = Color.Black.copy(alpha = 0.65f),
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.FastForward,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier
+                    .size(20.dp)
+                    .rotate(degrees = if (seekAmountMs < 0L) 180f else 0f),
+            )
+            Text(
+                text = seekAmountFormatted,
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = Color.White,
+            )
+            Text(
+                text = seekToPositionFormatted,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                color = Color.White.copy(alpha = 0.8f),
+            )
+        }
+    }
+}
+
+@Composable
+internal fun DpadSeekIndicator(
+    visible: Boolean,
+    offsetMs: Long,
+    positionMs: Long,
+    modifier: Modifier = Modifier,
+) {
     AnimatedVisibility(
-        modifier = Modifier.align(Alignment.Center),
+        modifier = modifier,
         visible = visible,
         enter = fadeIn(),
         exit = fadeOut(),
     ) {
-        Box(
-            modifier = Modifier.appGlassSurface(
-                shape = RoundedCornerShape(16.dp),
-                clear = true,
-                dimmed = 0.35f,
-                forceDark = true,
-                fallbackBackground = Color.Black.copy(alpha = 0.6f),
-            ),
-        ) {
-            Row(
-                modifier = Modifier.padding(
-                    horizontal = 20.dp,
-                    vertical = 12.dp,
-                ),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.FastForward,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier
-                        .size(28.dp)
-                        .rotate(degrees = if (offsetMs < 0) 180f else 0f),
-                )
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "${if (offsetMs >= 0) "+" else "-"}${
-                            abs(
-                                n = offsetMs,
-                            ).milliseconds.inWholeSeconds
-                        }s",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                    )
-                    Text(
-                        text = positionMs.milliseconds.formatted(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.8f),
-                    )
-                }
-            }
-        }
+        val sign = if (offsetMs >= 0L) "+" else "-"
+        SeekFeedbackPill(
+            seekAmountMs = offsetMs,
+            seekAmountFormatted = "$sign${abs(offsetMs).milliseconds.inWholeSeconds}s",
+            seekToPositionFormatted = positionMs.milliseconds.formatted(),
+        )
     }
 }
 
@@ -134,10 +139,13 @@ internal fun BoxScope.DpadSeekIndicator(visible: Boolean, offsetMs: Long, positi
 internal fun BoxScope.PlayerGestureIndicators(tapGestureState: TapGestureState) {
     DoubleTapIndicator(tapGestureState = tapGestureState)
     val useGlass = LocalLiquidGlassEnabled.current && LocalGlassBackdrop.current != null
+    val topSafePadding = WindowInsets.systemBars.union(
+        WindowInsets.displayCutout,
+    ).asPaddingValues().calculateTopPadding()
 
     AnimatedVisibility(
         modifier = Modifier
-            .padding(top = 24.dp)
+            .padding(top = topSafePadding + 16.dp)
             .align(Alignment.TopCenter),
         visible = tapGestureState.isLongPressGestureInAction,
         enter = fadeIn(),
@@ -178,19 +186,24 @@ internal fun BoxScope.PlayerVerticalGestureIndicators(
     maxVolumePercentage: Int,
     brightnessPercentage: Int,
 ) {
-    val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
-    Box(
+    val safeInsets = WindowInsets.systemBars.union(
+        WindowInsets.displayCutout,
+    ).asPaddingValues()
+    val layoutDirection = LocalLayoutDirection.current
+    val contentPadding = PaddingValues(
+        start = max(safeInsets.calculateStartPadding(layoutDirection), 16.dp),
+        top = max(safeInsets.calculateTopPadding(), 16.dp),
+        end = max(safeInsets.calculateEndPadding(layoutDirection), 16.dp),
+        bottom = max(safeInsets.calculateBottomPadding(), 16.dp),
+    )
+
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .displayCutoutPadding()
-            .padding(
-                systemBarsPadding.copy(
-                    top = 0.dp,
-                    bottom = 0.dp,
-                ),
-            )
-            .padding(24.dp),
+            .padding(contentPadding),
     ) {
+        val adaptiveMaxHeight = (maxHeight * 0.44f).coerceIn(136.dp, 210.dp)
+
         AnimatedVisibility(
             modifier = Modifier.align(Alignment.CenterStart),
             visible = activeGesture == VerticalGesture.VOLUME,
@@ -200,6 +213,7 @@ internal fun BoxScope.PlayerVerticalGestureIndicators(
             VerticalProgressView(
                 value = volumePercentage,
                 maxValue = maxVolumePercentage,
+                maxBarHeight = adaptiveMaxHeight,
                 icon = Icons.AutoMirrored.Rounded.VolumeUp,
             )
         }
@@ -212,6 +226,7 @@ internal fun BoxScope.PlayerVerticalGestureIndicators(
         ) {
             VerticalProgressView(
                 value = brightnessPercentage,
+                maxBarHeight = adaptiveMaxHeight,
                 icon = Icons.Rounded.BrightnessMedium,
             )
         }

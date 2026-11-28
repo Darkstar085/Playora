@@ -95,7 +95,6 @@ fun Player.addAdditionalSubtitleConfiguration(subtitle: MediaItem.SubtitleConfig
     reloadCurrentMediaItem(updateMediaItem)
 }
 
-/** Recreates only the current source, retaining the playlist, shuffle order and playback position. */
 @OptIn(UnstableApi::class)
 fun Player.reloadCurrentMediaItem(item: MediaItem) {
     val position = currentPosition

@@ -23,7 +23,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.listen
 import androidx.media3.common.util.UnstableApi
 import com.sipun.playora.core.model.DoubleTapGesture
-import com.sipun.playora.core.model.ScreenOrientation
 import com.sipun.playora.feature.player.extensions.formatted
 import com.sipun.playora.feature.player.extensions.isPortrait
 import com.sipun.playora.feature.player.extensions.setIsScrubbingModeEnabled
@@ -38,14 +37,12 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun PlayerOrientationEffect(
     player: Player,
-    screenOrientation: ScreenOrientation = ScreenOrientation.VIDEO_ORIENTATION,
     orientationOverride: Int? = null,
 ) {
     val activity = LocalActivity.current ?: return
     LaunchedEffect(
         activity,
         player,
-        screenOrientation,
         orientationOverride,
     ) {
         if (orientationOverride != null) {
@@ -211,7 +208,13 @@ fun rememberTapGestureState(
     longPressSpeed: Float,
 ): TapGestureState {
     val coroutineScope = rememberCoroutineScope()
-    val tapGestureState = remember {
+    val tapGestureState = remember(
+        player,
+        doubleTapGesture,
+        seekIncrementMillis,
+        useLongPressGesture,
+        longPressSpeed,
+    ) {
         TapGestureState(
             player = player,
             doubleTapGesture = doubleTapGesture,

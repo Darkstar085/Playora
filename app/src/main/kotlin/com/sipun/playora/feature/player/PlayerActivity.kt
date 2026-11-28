@@ -181,7 +181,6 @@ class PlayerActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Dismiss any existing PiP window
         runCatching {
             sendBroadcast(Intent(ACTION_CANCEL_PIP).setPackage(packageName))
         }
@@ -481,7 +480,7 @@ class PlayerActivity : ComponentActivity() {
         val apiSubs = request.getSubs().map { subtitle ->
             uriToSubtitleConfiguration(
                 uri = subtitle.uri,
-                subtitleEncoding = playerPreferences.subtitleTextEncoding,
+                subtitleEncoding = "UTF-8",
                 isSelected = subtitle.isSelected,
                 label = subtitle.name,
                 filename = subtitle.filename,
@@ -636,7 +635,6 @@ class PlayerActivity : ComponentActivity() {
         super.onNewIntent(intent)
         if (intent.data != null) {
             if (isInPictureInPictureMode) {
-                // Cancel PiP: finish current PiP instance and start new video in fullscreen
                 finish()
                 val fullScreenIntent = Intent(intent).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)

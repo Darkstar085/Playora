@@ -18,8 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -28,7 +26,6 @@ import androidx.media3.common.util.UnstableApi
 import com.sipun.playora.R
 import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.core.ui.theme.appGlassBackdrop
 import com.sipun.playora.feature.player.state.ControlsVisibilityState
 import com.sipun.playora.feature.player.state.PlayerOrientationEffect
@@ -47,7 +44,6 @@ import com.sipun.playora.feature.player.ui.PlayerErrorDialogs
 import com.sipun.playora.feature.player.ui.PlayerGestures
 import com.sipun.playora.feature.player.ui.PlayerVerticalGestureIndicators
 import com.sipun.playora.feature.player.ui.SubtitleConfiguration
-import com.sipun.playora.feature.player.ui.preview.rememberPreviewPlayer
 import com.sipun.playora.feature.player.utils.PlayerApi
 import io.github.itshedimisawi.vitro.rememberGlassBackdrop
 import kotlin.time.Duration.Companion.seconds
@@ -76,28 +72,22 @@ internal fun MediaPlayerContent(
     api: PlayerApi? = null,
 ) {
     val playerPreferences = state.playerPreferences
-    val isPreview = LocalInspectionMode.current
-
-    val volumeState = if (!isPreview) {
-        rememberVolumeState(
-            player = player,
-            showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
-        )
-    } else {
-        null
-    }
+    val volumeState = rememberVolumeState(
+        player = player,
+        showVolumePanelIfHeadsetIsOn = playerPreferences.showSystemVolumePanel,
+    )
     if (player == null) {
         Box(
             Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(Color.Black),
         )
         return
     }
     val context = LocalContext.current
     val controlsVisibilityState = rememberControlsVisibilityState(
         player = player,
-        hideAfter = playerPreferences.controllerAutoHideTimeout.seconds,
+        hideAfter = 4.seconds,
     )
     val tapGestureState = rememberTapGestureState(
         player = player,
@@ -108,43 +98,33 @@ internal fun MediaPlayerContent(
     )
     val seekGestureState = rememberSeekGestureState(
         player = player,
-        sensitivity = playerPreferences.seekSensitivity,
+        sensitivity = 1.0f,
         enableSeekGesture = playerPreferences.useSeekControls,
     )
-    val pictureInPictureState = if (!isPreview) {
-        rememberPictureInPictureState(
-            player = player,
-            autoEnter = playerPreferences.autoPip,
-        )
-    } else {
-        null
-    }
+    val pictureInPictureState = rememberPictureInPictureState(
+        player = player,
+        autoEnter = playerPreferences.autoPip,
+    )
     val videoZoomAndContentScaleState = rememberVideoZoomAndContentScaleState(
         player = player,
         initialContentScale = api?.videoContentScale ?: playerPreferences.playerVideoZoom,
         enableZoomGesture = playerPreferences.useZoomControls,
-        enablePanGesture = playerPreferences.enablePanGesture,
+        enablePanGesture = true,
         onEvent = { onAction(PlayerAction.OnVideoZoomEvent(event = it)) },
     )
-    val brightnessState = if (!isPreview) rememberBrightnessState() else null
-    val volumeAndBrightnessGestureState = if (volumeState != null && brightnessState != null) {
-        rememberVolumeAndBrightnessGestureState(
-            volumeState = volumeState,
-            brightnessState = brightnessState,
-            enableVolumeGesture = playerPreferences.enableVolumeSwipeGesture,
-            enableBrightnessGesture = playerPreferences.enableBrightnessSwipeGesture,
-            volumeGestureSensitivity = playerPreferences.volumeGestureSensitivity,
-            brightnessGestureSensitivity = playerPreferences.brightnessGestureSensitivity,
-        )
-    } else {
-        null
-    }
-    if (!isPreview) {
-        PlayerOrientationEffect(
-            player = player,
-            orientationOverride = api?.orientation,
-        )
-    }
+    val brightnessState = rememberBrightnessState()
+    val volumeAndBrightnessGestureState = rememberVolumeAndBrightnessGestureState(
+        volumeState = volumeState,
+        brightnessState = brightnessState,
+        enableVolumeGesture = playerPreferences.enableVolumeSwipeGesture,
+        enableBrightnessGesture = playerPreferences.enableBrightnessSwipeGesture,
+        volumeGestureSensitivity = 1.0f,
+        brightnessGestureSensitivity = 1.0f,
+    )
+    PlayerOrientationEffect(
+        player = player,
+        orientationOverride = api?.orientation,
+    )
     val errorState = rememberErrorState(player = player)
     val cuesState = rememberCuesState(player = player)
     val subtitlePositionState = rememberSubtitlePositionState(
@@ -164,25 +144,19 @@ internal fun MediaPlayerContent(
         }
     }
 
-    LaunchedEffect(pictureInPictureState?.isInPictureInPictureMode) {
-        if (pictureInPictureState?.isInPictureInPictureMode == true) {
+    LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
+        if (pictureInPictureState.isInPictureInPictureMode) {
             controlsVisibilityState.hideControls()
         }
     }
     LaunchedEffect(tapGestureState.isLongPressGestureInAction) {
         if (tapGestureState.isLongPressGestureInAction) controlsVisibilityState.hideControls()
     }
-    if (brightnessState != null) {
-        LifecycleEventEffect(Lifecycle.Event.ON_START) {
-            if (playerPreferences.rememberPlayerBrightness) {
-                brightnessState.setBrightness(playerPreferences.playerBrightness)
-            }
-        }
-        LaunchedEffect(brightnessState.currentBrightness) {
-            if (playerPreferences.rememberPlayerBrightness) {
-                onAction(PlayerAction.UpdatePlayerBrightness(brightnessState.currentBrightness))
-            }
-        }
+    LifecycleEventEffect(Lifecycle.Event.ON_START) {
+        brightnessState.setBrightness(playerPreferences.playerBrightness)
+    }
+    LaunchedEffect(brightnessState.currentBrightness) {
+        onAction(PlayerAction.UpdatePlayerBrightness(brightnessState.currentBrightness))
     }
 
     val liquidGlassEnabled = LocalLiquidGlassEnabled.current
@@ -202,40 +176,36 @@ internal fun MediaPlayerContent(
                     .appGlassBackdrop(playerBackdrop, enabled = liquidGlassEnabled)
                     .background(Color.Black),
             ) {
-                if (pictureInPictureState != null) {
-                    PlayerContentFrame(
-                        player = player,
-                        pictureInPictureState = pictureInPictureState,
-                        videoZoomAndContentScaleState = videoZoomAndContentScaleState,
-                        videoVisible = api?.videoVisible ?: true,
-                        displayAspectRatio = api?.displayAspectRatio,
-                        cuesState = cuesState,
-                        subtitlePositionState = subtitlePositionState,
-                        subtitleConfiguration = SubtitleConfiguration(
-                            useSystemCaptionStyle = playerPreferences.useSystemCaptionStyle,
-                            showBackground = playerPreferences.subtitleBackground,
-                            font = playerPreferences.subtitleFont,
-                            textSize = playerPreferences.subtitleTextSize,
-                            textBold = playerPreferences.subtitleTextBold,
-                            applyEmbeddedStyles = playerPreferences.applyEmbeddedStyles,
-                            controlsVisible = controlsVisibilityState.controlsVisible &&
-                                    !controlsVisibilityState.controlsLocked,
-                        ),
-                    )
-                    if (volumeAndBrightnessGestureState != null) {
-                        PlayerGestures(
-                            controlsVisibilityState = controlsVisibilityState,
-                            tapGestureState = tapGestureState,
-                            pictureInPictureState = pictureInPictureState,
-                            seekGestureState = seekGestureState,
-                            videoZoomAndContentScaleState = videoZoomAndContentScaleState,
-                            volumeAndBrightnessGestureState = volumeAndBrightnessGestureState,
-                            subtitlePositionState = subtitlePositionState,
-                            hasSubtitles = cuesState.currentCues?.cues?.isNotEmpty() == true,
-                            canRepositionSubtitles = cuesState.canReposition,
-                        )
-                    }
-                }
+                PlayerContentFrame(
+                    player = player,
+                    pictureInPictureState = pictureInPictureState,
+                    videoZoomAndContentScaleState = videoZoomAndContentScaleState,
+                    videoVisible = api?.videoVisible ?: true,
+                    displayAspectRatio = api?.displayAspectRatio,
+                    cuesState = cuesState,
+                    subtitlePositionState = subtitlePositionState,
+                    subtitleConfiguration = SubtitleConfiguration(
+                        useSystemCaptionStyle = playerPreferences.useSystemCaptionStyle,
+                        showBackground = playerPreferences.subtitleBackground,
+                        font = playerPreferences.subtitleFont,
+                        textSize = playerPreferences.subtitleTextSize,
+                        textBold = playerPreferences.subtitleTextBold,
+                        applyEmbeddedStyles = true,
+                        controlsVisible = controlsVisibilityState.controlsVisible &&
+                            !controlsVisibilityState.controlsLocked,
+                    ),
+                )
+                PlayerGestures(
+                    controlsVisibilityState = controlsVisibilityState,
+                    tapGestureState = tapGestureState,
+                    pictureInPictureState = pictureInPictureState,
+                    seekGestureState = seekGestureState,
+                    videoZoomAndContentScaleState = videoZoomAndContentScaleState,
+                    volumeAndBrightnessGestureState = volumeAndBrightnessGestureState,
+                    subtitlePositionState = subtitlePositionState,
+                    hasSubtitles = cuesState.currentCues?.cues?.isNotEmpty() == true,
+                    canRepositionSubtitles = cuesState.canReposition,
+                )
             }
             MediaPlayerControls(
                 player = player,
@@ -246,33 +216,25 @@ internal fun MediaPlayerContent(
                 seekGestureState = seekGestureState,
                 videoZoomAndContentScaleState = videoZoomAndContentScaleState,
                 dpadUpDown = api?.dpadUpDown,
-                isPipSupported = pictureInPictureState?.isPipSupported == true,
+                isPipSupported = pictureInPictureState.isPipSupported,
                 onPictureInPictureClick = {
-                    android.util.Log.d("PlayoraPip", "onPictureInPictureClick triggered!")
-                    pictureInPictureState?.let { pip ->
-                        val entered = pip.enterPictureInPictureMode()
-                        android.util.Log.d("PlayoraPip", "onPictureInPictureClick: entered=$entered")
-                        if (!entered && !pip.hasPipPermission) {
-                            Toast.makeText(
-                                context,
-                                R.string.enable_pip_from_settings,
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                            pip.openPictureInPictureSettings()
-                        }
+                    val entered = pictureInPictureState.enterPictureInPictureMode()
+                    if (!entered && !pictureInPictureState.hasPipPermission) {
+                        Toast.makeText(
+                            context,
+                            R.string.enable_pip_from_settings,
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        pictureInPictureState.openPictureInPictureSettings()
                     }
                 },
             )
-            if (volumeAndBrightnessGestureState != null && volumeState != null &&
-                brightnessState != null
-            ) {
-                PlayerVerticalGestureIndicators(
-                    activeGesture = volumeAndBrightnessGestureState.activeGesture,
-                    volumePercentage = volumeState.volumePercentage,
-                    maxVolumePercentage = volumeState.maxVolumePercentage,
-                    brightnessPercentage = brightnessState.brightnessPercentage,
-                )
-            }
+            PlayerVerticalGestureIndicators(
+                activeGesture = volumeAndBrightnessGestureState.activeGesture,
+                volumePercentage = volumeState.volumePercentage,
+                maxVolumePercentage = volumeState.maxVolumePercentage,
+                brightnessPercentage = brightnessState.brightnessPercentage,
+            )
         }
     }
 
@@ -284,35 +246,13 @@ internal fun MediaPlayerContent(
             onTryDecoderFallback = { onAction(PlayerAction.TryDecoderFallback) },
             onPlayNextVideo = {
                 errorState.dismiss()
-                player.seekToNext()
+                player.seekToNextMediaItem()
                 player.play()
             },
             onExit = {
                 errorState.dismiss()
                 onAction(PlayerAction.NavigateUp)
             },
-        )
-    }
-}
-
-@OptIn(UnstableApi::class)
-@Preview(
-    name = "Landscape",
-    widthDp = 960,
-    heightDp = 540,
-)
-@Preview(
-    name = "Portrait",
-    widthDp = 540,
-    heightDp = 960,
-)
-@Composable
-private fun MediaPlayerContentPreview() {
-    PlayoraTheme(darkTheme = true) {
-        MediaPlayerContent(
-            player = rememberPreviewPlayer(),
-            state = PlayerUiState(),
-            onAction = {},
         )
     }
 }

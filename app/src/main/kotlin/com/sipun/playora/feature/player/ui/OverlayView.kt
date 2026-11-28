@@ -14,11 +14,11 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -31,11 +31,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.core.ui.theme.appGlassSurface
 
 @Composable
@@ -75,10 +73,12 @@ fun BoxScope.OverlayView(
         val panelSizeModifier = modifier.then(
             other = if (configuration.isPortrait) {
                 Modifier
+                    .widthIn(max = 600.dp)
                     .fillMaxWidth()
-                    .fillMaxHeight(fraction = 0.45f)
+                    .fillMaxHeight(fraction = 0.50f)
             } else {
                 Modifier
+                    .widthIn(min = 320.dp, max = 440.dp)
                     .fillMaxWidth(fraction = 0.45f)
                     .fillMaxHeight()
             },
@@ -119,22 +119,6 @@ fun BoxScope.OverlayView(
                 modifier = panelSizeModifier,
             ) {
                 panelBody()
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun PreviewOverlayView() {
-    PlayoraTheme {
-        Box(modifier = Modifier.fillMaxSize()) {
-            OverlayView(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                title = "Selector view",
-                show = true,
-            ) {
-                Text(text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum")
             }
         }
     }

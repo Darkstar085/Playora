@@ -82,7 +82,7 @@ fun TrackGroup.getName(trackType: @C.TrackType Int, index: Int): String {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
                 append(Locale.of(language).displayLanguage)
             } else {
-                append(Locale(language))
+                append(Locale(language).displayLanguage)
             }
         }
     }

@@ -7,9 +7,11 @@ import androidx.compose.foundation.indication
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -30,12 +32,10 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.sipun.playora.core.model.DoubleTapGesture
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.feature.player.state.TapGestureState
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -76,6 +76,9 @@ fun DoubleTapIndicator(modifier: Modifier = Modifier, tapGestureState: TapGestur
             contentAlignment = Alignment.Center,
         ) {
             Column(
+                modifier = Modifier
+                    .displayCutoutPadding()
+                    .padding(horizontal = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 DoubleTapSeekTriangles(isForward = tapGestureState.seekMillis > 0)
@@ -213,27 +216,4 @@ private fun DoubleTapArrow(alpha: Float) {
             .graphicsLayer { this.alpha = alpha },
         tint = Color.White,
     )
-}
-
-@Preview
-@Composable
-private fun OvalShapePreview() {
-    PlayoraTheme {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(weight = 1f)
-                    .clip(shape = LeftSideOvalShape())
-                    .background(Color.Blue),
-            ) {}
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(weight = 1f)
-                    .clip(shape = RightSideOvalShape())
-                    .background(Color.Blue),
-            ) {}
-        }
-    }
 }

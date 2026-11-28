@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -23,12 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.core.ui.theme.appGlassSurface
 import com.sipun.playora.feature.player.buttons.PlayerButtonBlackAlpha
 
@@ -37,7 +33,8 @@ private const val NORMAL_MAX_PERCENTAGE = 100
 @Composable
 fun VerticalProgressView(
     modifier: Modifier = Modifier,
-    width: Dp = 32.dp,
+    width: Dp = 28.dp,
+    maxBarHeight: Dp = 210.dp,
     icon: ImageVector,
     @IntRange(
         from = 0,
@@ -57,7 +54,7 @@ fun VerticalProgressView(
 
     Column(
         modifier = modifier
-            .heightIn(max = 250.dp)
+            .heightIn(min = 120.dp, max = maxBarHeight)
             .appGlassSurface(
                 shape = CircleShape,
                 clear = true,
@@ -65,7 +62,7 @@ fun VerticalProgressView(
                 forceDark = true,
                 fallbackBackground = PlayerButtonBlackAlpha,
             )
-            .padding(8.dp),
+            .padding(6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -75,11 +72,11 @@ fun VerticalProgressView(
         ) {
             BasicText(
                 text = normalizedValue.toString(),
-                style = MaterialTheme.typography.labelLarge.copy(
+                style = MaterialTheme.typography.labelMedium.copy(
                     color = contentTint,
                 ),
                 autoSize = TextAutoSize.StepBased(
-                    maxFontSize = MaterialTheme.typography.labelLarge.fontSize,
+                    maxFontSize = MaterialTheme.typography.labelMedium.fontSize,
                 ),
             )
         }
@@ -114,30 +111,8 @@ fun VerticalProgressView(
                 imageVector = icon,
                 contentDescription = null,
                 tint = contentTint,
+                modifier = Modifier.size(18.dp),
             )
         }
-    }
-}
-
-@Preview
-@Composable
-private fun VerticalProgressPreview() {
-    PlayoraTheme {
-        VerticalProgressView(
-            value = 50,
-            icon = Icons.AutoMirrored.Rounded.VolumeUp,
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun VerticalProgressBoostPreview() {
-    PlayoraTheme {
-        VerticalProgressView(
-            value = 150,
-            maxValue = 200,
-            icon = Icons.AutoMirrored.Rounded.VolumeUp,
-        )
     }
 }

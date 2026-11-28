@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,7 +22,6 @@ import androidx.compose.material.icons.rounded.LockOpen
 import androidx.compose.material.icons.rounded.PictureInPictureAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -32,19 +32,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util.getStringForTime
 import androidx.media3.ui.compose.state.ProgressStateWithTickInterval
-import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
+import com.sipun.playora.R
 import com.sipun.playora.core.model.VideoContentScale
 import com.sipun.playora.core.ui.extensions.copy
 import com.sipun.playora.core.ui.theme.LocalGlassBackdrop
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
-import com.sipun.playora.core.ui.theme.PlayoraTheme
 import com.sipun.playora.core.ui.theme.appGlassContainer
 import com.sipun.playora.feature.player.buttons.NextButton
 import com.sipun.playora.feature.player.buttons.PlayPauseButton
@@ -53,8 +52,6 @@ import com.sipun.playora.feature.player.buttons.PlayerButtonBlackAlpha
 import com.sipun.playora.feature.player.buttons.PreviousButton
 import com.sipun.playora.feature.player.extensions.imageVector
 import com.sipun.playora.feature.player.state.ChaptersState
-import com.sipun.playora.feature.player.state.rememberChaptersState
-import com.sipun.playora.feature.player.ui.preview.rememberPreviewPlayer
 
 private const val MILLISECONDS_PER_SECOND = 1_000L
 
@@ -110,7 +107,6 @@ fun ControlsBottomView(
             ),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        // Row 1: Seekbar with timers
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -153,114 +149,114 @@ fun ControlsBottomView(
         val configuration = LocalConfiguration.current
         val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-        // Row 2: Bottom controls row (Lock | Prev Play Next | Scale PiP)
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp),
-            contentAlignment = Alignment.Center,
         ) {
-            PlayerButton(
-                modifier = Modifier
-                    .size(40.dp)
-                    .align(Alignment.CenterStart),
-                onClick = onLockControlsClick,
-                containerColor = PlayerButtonBlackAlpha,
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.LockOpen,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .appGlassContainer(enabled = useGlass),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(if (isLandscape) 24.dp else 10.dp),
-            ) {
-                PreviousButton(
-                    modifier = Modifier.size(if (isLandscape) 48.dp else 40.dp),
-                    player = player,
-                    iconSize = if (isLandscape) 28.dp else 24.dp,
-                )
-                PlayPauseButton(
-                    modifier = Modifier.size(if (isLandscape) 56.dp else 48.dp),
-                    player = player,
-                    iconSize = if (isLandscape) 36.dp else 30.dp,
-                )
-                NextButton(
-                    modifier = Modifier.size(if (isLandscape) 48.dp else 40.dp),
-                    player = player,
-                    iconSize = if (isLandscape) 28.dp else 24.dp,
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .appGlassContainer(enabled = useGlass),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(if (isLandscape) 12.dp else 16.dp),
-            ) {
+            val isNarrow = maxWidth < 360.dp
+            val lockButton: @Composable (Modifier) -> Unit = { buttonModifier ->
                 PlayerButton(
-                    modifier = Modifier.size(40.dp),
-                    onClick = onVideoContentScaleClick,
-                    onLongClick = onVideoContentScaleLongClick,
+                    modifier = buttonModifier.size(40.dp),
+                    onClick = onLockControlsClick,
                     containerColor = PlayerButtonBlackAlpha,
                 ) {
                     Icon(
-                        imageVector = videoContentScale.imageVector(),
-                        contentDescription = null,
+                        imageVector = Icons.Rounded.LockOpen,
+                        contentDescription = stringResource(R.string.lock_controls),
                         modifier = Modifier.size(20.dp),
                     )
                 }
-                if (isPipSupported) {
+            }
+            val transportControls: @Composable (Modifier) -> Unit = { rowModifier ->
+                Row(
+                    modifier = rowModifier.appGlassContainer(enabled = useGlass),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(
+                        when {
+                            isNarrow -> 4.dp
+                            isLandscape -> 24.dp
+                            else -> 10.dp
+                        },
+                    ),
+                ) {
+                    PreviousButton(
+                        modifier = Modifier.size(if (isLandscape) 48.dp else 40.dp),
+                        player = player,
+                        iconSize = if (isLandscape) 28.dp else 24.dp,
+                    )
+                    PlayPauseButton(
+                        modifier = Modifier.size(if (isLandscape) 56.dp else 48.dp),
+                        player = player,
+                        iconSize = if (isLandscape) 36.dp else 30.dp,
+                    )
+                    NextButton(
+                        modifier = Modifier.size(if (isLandscape) 48.dp else 40.dp),
+                        player = player,
+                        iconSize = if (isLandscape) 28.dp else 24.dp,
+                    )
+                }
+            }
+            val rightControls: @Composable (Modifier) -> Unit = { rowModifier ->
+                Row(
+                    modifier = rowModifier.appGlassContainer(enabled = useGlass),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(
+                        when {
+                            isNarrow -> 6.dp
+                            isLandscape -> 12.dp
+                            else -> 16.dp
+                        },
+                    ),
+                ) {
                     PlayerButton(
                         modifier = Modifier.size(40.dp),
-                        onClick = onPictureInPictureClick,
+                        onClick = onVideoContentScaleClick,
+                        onLongClick = onVideoContentScaleLongClick,
                         containerColor = PlayerButtonBlackAlpha,
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.PictureInPictureAlt,
-                            contentDescription = null,
+                            imageVector = videoContentScale.imageVector(),
+                            contentDescription = stringResource(R.string.video_zoom),
                             modifier = Modifier.size(20.dp),
                         )
                     }
+                    if (isPipSupported) {
+                        PlayerButton(
+                            modifier = Modifier.size(40.dp),
+                            onClick = onPictureInPictureClick,
+                            containerColor = PlayerButtonBlackAlpha,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.PictureInPictureAlt,
+                                contentDescription = stringResource(R.string.pip_settings),
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
                 }
             }
-        }
-    }
-}
 
-@OptIn(UnstableApi::class)
-@Preview
-@Composable
-private fun ControlsBottomViewPreview() {
-    val player = rememberPreviewPlayer()
-    val progressState = rememberProgressStateWithTickInterval(player = player)
-    PlayoraTheme(darkTheme = true) {
-        Surface {
-            ControlsBottomView(
-                player = player,
-                progressState = progressState,
-                chaptersState = rememberChaptersState(
-                    player = player,
-                    progressState = progressState,
-                ),
-                videoContentScale = VideoContentScale.BEST_FIT,
-                isPipSupported = true,
-                showRemainingTime = false,
-                onToggleTimeDisplay = {},
-                onVideoContentScaleClick = {},
-                onVideoContentScaleLongClick = {},
-                onLockControlsClick = {},
-                onPictureInPictureClick = {},
-                onSeek = {},
-                onSeekEnd = {},
-            )
+            if (isNarrow) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    lockButton(Modifier)
+                    transportControls(Modifier)
+                    rightControls(Modifier)
+                }
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    lockButton(Modifier.align(Alignment.CenterStart))
+                    transportControls(Modifier.align(Alignment.Center))
+                    rightControls(Modifier.align(Alignment.CenterEnd))
+                }
+            }
         }
     }
 }

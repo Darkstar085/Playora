@@ -41,17 +41,17 @@ fun rememberPictureInPictureState(
     autoEnter: Boolean = true,
 ): PictureInPictureState {
     val activity = LocalActivity.current
-    val pictureInPictureState = remember {
+    val pictureInPictureState = remember(player, activity, autoEnter) {
         PictureInPictureState(
             player = player,
             activity = activity as ComponentActivity,
             autoEnter = autoEnter,
         )
     }
-    DisposableEffect(key1 = activity) {
+    DisposableEffect(key1 = activity, key2 = pictureInPictureState) {
         pictureInPictureState.handleListeners(disposableEffectScope = this)
     }
-    LaunchedEffect(key1 = player) { pictureInPictureState.observe() }
+    LaunchedEffect(key1 = player, key2 = pictureInPictureState) { pictureInPictureState.observe() }
     return pictureInPictureState
 }
 
@@ -68,6 +68,8 @@ class PictureInPictureState(
         private const val PIP_ACTION_PAUSE = 2
         private const val PIP_ACTION_NEXT = 3
         private const val PIP_ACTION_PREVIOUS = 4
+        private const val MIN_ASPECT_RATIO = 0.4184f
+        private const val MAX_ASPECT_RATIO = 2.39f
     }
 
     val isPipSupported: Boolean = activity.isPipFeatureSupported
@@ -114,8 +116,7 @@ class PictureInPictureState(
         val newAspectRatio = Rational(
             newSourceRectHint.width(),
             newSourceRectHint.height(),
-        )
-            .takeIf { it.toFloat() in 0.5f..2.39f }
+        ).takeIf { it.toFloat() in MIN_ASPECT_RATIO..MAX_ASPECT_RATIO }
 
         var changed = false
         if (newAspectRatio != null && newAspectRatio != aspectRatio) {
@@ -131,43 +132,30 @@ class PictureInPictureState(
     }
 
     fun enterPictureInPictureMode(): Boolean {
-        android.util.Log.d(
-            "PlayoraPip",
-            "enterPictureInPictureMode: isInPip=$isInPictureInPictureMode, activity=$activity"
-        )
         return !isInPictureInPictureMode && try {
             val builder = android.app.PictureInPictureParams.Builder()
             val r = aspectRatio
-            if (r != null && r.numerator > 0 && r.denominator > 0) {
-                val ratioFloat = r.toFloat()
-                if (ratioFloat in 0.42f..2.39f) {
-                    builder.setAspectRatio(r)
-                }
+            if (r != null && r.numerator > 0 && r.denominator > 0 &&
+                r.toFloat() in MIN_ASPECT_RATIO..MAX_ASPECT_RATIO
+            ) {
+                builder.setAspectRatio(r)
+            }
+            sourceRectHint?.let(builder::setSourceRectHint)
+            if (actions.isNotEmpty()) {
+                builder.setActions(actions)
             }
             builder.setSeamlessResizeEnabled(true)
             try {
-                val entered = activity.enterPictureInPictureMode(builder.build())
-                android.util.Log.d(
-                    "PlayoraPip",
-                    "enterPictureInPictureMode(builder) returned $entered"
+                activity.enterPictureInPictureMode(builder.build())
+            } catch (_: Exception) {
+                activity.enterPictureInPictureMode(
+                    android.app.PictureInPictureParams.Builder().build(),
                 )
-                entered
-            } catch (e1: Exception) {
-                android.util.Log.e("PlayoraPip", "builder failed", e1)
-                val entered = activity.enterPictureInPictureMode(
-                    android.app.PictureInPictureParams.Builder().build()
-                )
-                android.util.Log.d(
-                    "PlayoraPip",
-                    "enterPictureInPictureMode(empty) returned $entered"
-                )
-                entered
             }
-        } catch (e: Exception) {
-            android.util.Log.e("PlayoraPip", "enterPictureInPictureMode top catch", e)
+        } catch (_: Exception) {
             try {
                 activity.enterPictureInPictureMode(
-                    android.app.PictureInPictureParams.Builder().build()
+                    android.app.PictureInPictureParams.Builder().build(),
                 )
             } catch (_: Exception) {
                 false

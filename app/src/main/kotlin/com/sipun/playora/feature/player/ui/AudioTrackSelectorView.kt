@@ -101,7 +101,6 @@ fun BoxScope.AudioTrackSelectorView(
         enter = fadeIn(animationSpec = tween(150)),
         exit = fadeOut(animationSpec = tween(150)),
     ) {
-        // Full screen scrim
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -163,7 +162,6 @@ fun BoxScope.AudioTrackSelectorView(
                             .padding(if (isPortrait) 20.dp else 20.dp),
                         verticalArrangement = Arrangement.spacedBy(if (isPortrait) 16.dp else 14.dp),
                     ) {
-                        // Header: Icon box + Title/Subtitle
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -184,7 +182,7 @@ fun BoxScope.AudioTrackSelectorView(
                             }
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
-                                    text = "Audio track",
+                                    text = stringResource(R.string.audio_track_title),
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 17.sp,
@@ -192,14 +190,13 @@ fun BoxScope.AudioTrackSelectorView(
                                     color = Color.White,
                                 )
                                 Text(
-                                    text = "Select audio track",
+                                    text = stringResource(R.string.select_audio_track),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color(0xFF90A4AE),
                                 )
                             }
                         }
 
-                        // Track list
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -231,7 +228,6 @@ fun BoxScope.AudioTrackSelectorView(
                                 )
                             }
 
-                            // Disable option
                             AudioTrackRow(
                                 name = stringResource(R.string.disable),
                                 isSelected = audioTracksState.tracks.none { it.isSelected },
@@ -243,7 +239,6 @@ fun BoxScope.AudioTrackSelectorView(
                             )
                         }
 
-                        // Open local audio button
                         Surface(
                             shape = RoundedCornerShape(20.dp),
                             color = Color(0xFF18222B),

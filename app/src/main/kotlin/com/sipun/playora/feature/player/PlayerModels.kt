@@ -5,7 +5,6 @@ import androidx.annotation.StringRes
 import com.sipun.playora.R
 import com.sipun.nextlib.media3ext.ffdecoder.DecoderMode as NextDecoderMode
 
-/** Extraction and decoder preferences presented by Playora. */
 enum class DecoderMode {
     AUTO,
     HARDWARE,
@@ -39,7 +38,7 @@ val DecoderMode.labelRes: Int
 @get:StringRes
 val DecoderMode.descriptionRes: Int
     get() = when (this) {
-        DecoderMode.AUTO -> R.string.auto
+        DecoderMode.AUTO -> R.string.decoder_auto_description
         DecoderMode.HARDWARE -> R.string.decoder_system_description
         DecoderMode.HW_PLUS -> R.string.decoder_hardware_plus_description
         DecoderMode.FFMPEG -> R.string.decoder_app_software_description
@@ -66,6 +65,8 @@ data class DecoderRecoveryState(
 data class DecoderServiceState(
     val videoMode: DecoderMode? = null,
     val audioMode: DecoderMode? = null,
+    val activeVideoMode: DecoderMode? = null,
+    val activeAudioMode: DecoderMode? = null,
     val recoveryState: DecoderRecoveryState = DecoderRecoveryState(),
 )
 

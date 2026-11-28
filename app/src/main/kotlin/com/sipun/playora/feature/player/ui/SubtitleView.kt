@@ -122,8 +122,10 @@ fun SubtitleView(
                 }
                 setApplyEmbeddedStyles(configuration.applyEmbeddedStyles)
                 addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
-                    positionState.textBounds =
-                        if (currentCanReposition) measureDrawnBounds(view) else null
+                    if (!currentCanReposition) {
+                        view.tag = null
+                        positionState.textBounds = null
+                    }
                 }
             }
         },
@@ -145,9 +147,17 @@ fun SubtitleView(
                     configuration.textSize.toFloat(),
                 )
             }
-            subtitleView.doOnPreDraw {
-                positionState.textBounds =
-                    if (currentCanReposition) measureDrawnBounds(it) else null
+            if (!currentCanReposition || displayedCues.isNullOrEmpty()) {
+                subtitleView.tag = null
+                positionState.textBounds = null
+            } else {
+                subtitleView.doOnPreDraw { view ->
+                    val cacheKey = Triple(displayedCues, view.width, view.height)
+                    if (view.tag != cacheKey) {
+                        view.tag = cacheKey
+                        positionState.textBounds = measureDrawnBounds(view)
+                    }
+                }
             }
         },
     )

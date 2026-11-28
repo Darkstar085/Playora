@@ -57,6 +57,8 @@ enum class CustomCommands(val customAction: String) {
         const val IS_LOUDNESS_GAIN_SUPPORTED_KEY = "is_loudness_gain_supported"
         const val VIDEO_DECODER_MODE_KEY = "video_decoder_mode"
         const val AUDIO_DECODER_MODE_KEY = "audio_decoder_mode"
+        const val ACTIVE_VIDEO_DECODER_MODE_KEY = "active_video_decoder_mode"
+        const val ACTIVE_AUDIO_DECODER_MODE_KEY = "active_audio_decoder_mode"
         const val DECODER_RECOVERY_STATUS_KEY = "decoder_recovery_status"
         const val DECODER_RECOVERY_TRACK_TYPE_KEY = "decoder_recovery_track_type"
         const val UNSUPPORTED_DECODER_MODE_KEY = "unsupported_decoder_mode"
@@ -223,6 +225,8 @@ suspend fun MediaController.setAudioDecoderMode(mode: DecoderMode): Boolean {
 internal fun Bundle.decoderServiceState(): DecoderServiceState {
     val videoMode = decoderMode(CustomCommands.VIDEO_DECODER_MODE_KEY)
     val audioMode = decoderMode(CustomCommands.AUDIO_DECODER_MODE_KEY)
+    val activeVideoMode = decoderMode(CustomCommands.ACTIVE_VIDEO_DECODER_MODE_KEY)
+    val activeAudioMode = decoderMode(CustomCommands.ACTIVE_AUDIO_DECODER_MODE_KEY)
     val status = getString(CustomCommands.DECODER_RECOVERY_STATUS_KEY)
         ?.let { value -> DecoderRecoveryStatus.entries.find { it.name == value } }
         ?: DecoderRecoveryStatus.NONE
@@ -231,6 +235,8 @@ internal fun Bundle.decoderServiceState(): DecoderServiceState {
     return DecoderServiceState(
         videoMode = videoMode,
         audioMode = audioMode,
+        activeVideoMode = activeVideoMode,
+        activeAudioMode = activeAudioMode,
         recoveryState = DecoderRecoveryState(
             status = status,
             trackType = trackType,

@@ -66,6 +66,8 @@ fun BoxScope.DecoderSelectorView(
     show: Boolean,
     videoMode: DecoderMode?,
     audioMode: DecoderMode?,
+    activeVideoMode: DecoderMode? = null,
+    activeAudioMode: DecoderMode? = null,
     onVideoModeSelected: (DecoderMode) -> Unit,
     onAudioModeSelected: (DecoderMode) -> Unit,
     onDismiss: () -> Unit = {},
@@ -79,7 +81,6 @@ fun BoxScope.DecoderSelectorView(
         enter = fadeIn(animationSpec = tween(150)),
         exit = fadeOut(animationSpec = tween(150)),
     ) {
-        // Full screen scrim
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -138,10 +139,9 @@ fun BoxScope.DecoderSelectorView(
                     Column(
                         modifier = Modifier
                             .then(if (isPortrait) Modifier.fillMaxWidth() else Modifier.fillMaxSize())
-                            .padding(if (isPortrait) 20.dp else 20.dp),
-                        verticalArrangement = Arrangement.spacedBy(if (isPortrait) 16.dp else 16.dp),
+                            .padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        // Header: Green Chip Icon Box + Title/Subtitle (NO drag handle indicator!)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -162,7 +162,7 @@ fun BoxScope.DecoderSelectorView(
                             }
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
-                                    text = "Decoders",
+                                    text = stringResource(R.string.decoder),
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 17.sp,
@@ -170,14 +170,13 @@ fun BoxScope.DecoderSelectorView(
                                     color = Color.White,
                                 )
                                 Text(
-                                    text = "Choose video and audio decoders",
+                                    text = stringResource(R.string.select_decoders),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color(0xFF90A4AE),
                                 )
                             }
                         }
 
-                        // Segmented Pill Tab Switcher: Video vs Audio
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -191,7 +190,6 @@ fun BoxScope.DecoderSelectorView(
                                 modifier = Modifier.fillMaxSize(),
                                 horizontalArrangement = Arrangement.spacedBy(2.dp),
                             ) {
-                                // Video Tab
                                 val isVideoSelected = selectedTrackType == DecoderTrackType.VIDEO
                                 Box(
                                     modifier = Modifier
@@ -213,9 +211,7 @@ fun BoxScope.DecoderSelectorView(
                                         Icon(
                                             imageVector = Icons.Rounded.PlayArrow,
                                             contentDescription = null,
-                                            tint = if (isVideoSelected) Color.White else Color(
-                                                0xFF90A4AE
-                                            ),
+                                            tint = if (isVideoSelected) Color.White else Color(0xFF90A4AE),
                                             modifier = Modifier.size(18.dp),
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
@@ -225,14 +221,11 @@ fun BoxScope.DecoderSelectorView(
                                                 fontWeight = if (isVideoSelected) FontWeight.Bold else FontWeight.Medium,
                                                 fontSize = 14.sp,
                                             ),
-                                            color = if (isVideoSelected) Color.White else Color(
-                                                0xFF90A4AE
-                                            ),
+                                            color = if (isVideoSelected) Color.White else Color(0xFF90A4AE),
                                         )
                                     }
                                 }
 
-                                // Audio Tab
                                 val isAudioSelected = selectedTrackType == DecoderTrackType.AUDIO
                                 Box(
                                     modifier = Modifier
@@ -254,9 +247,7 @@ fun BoxScope.DecoderSelectorView(
                                         Icon(
                                             imageVector = Icons.Rounded.MusicNote,
                                             contentDescription = null,
-                                            tint = if (isAudioSelected) Color.White else Color(
-                                                0xFF90A4AE
-                                            ),
+                                            tint = if (isAudioSelected) Color.White else Color(0xFF90A4AE),
                                             modifier = Modifier.size(18.dp),
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
@@ -266,19 +257,20 @@ fun BoxScope.DecoderSelectorView(
                                                 fontWeight = if (isAudioSelected) FontWeight.Bold else FontWeight.Medium,
                                                 fontSize = 14.sp,
                                             ),
-                                            color = if (isAudioSelected) Color.White else Color(
-                                                0xFF90A4AE
-                                            ),
+                                            color = if (isAudioSelected) Color.White else Color(0xFF90A4AE),
                                         )
                                     }
                                 }
                             }
                         }
 
-                        // Decoder Options List
                         val currentMode = when (selectedTrackType) {
-                            DecoderTrackType.VIDEO -> videoMode ?: DecoderMode.HARDWARE
-                            DecoderTrackType.AUDIO -> audioMode ?: DecoderMode.HARDWARE
+                            DecoderTrackType.VIDEO -> videoMode ?: DecoderMode.AUTO
+                            DecoderTrackType.AUDIO -> audioMode ?: DecoderMode.AUTO
+                        }
+                        val activeMode = when (selectedTrackType) {
+                            DecoderTrackType.VIDEO -> activeVideoMode
+                            DecoderTrackType.AUDIO -> activeAudioMode
                         }
                         val onSelectMode = when (selectedTrackType) {
                             DecoderTrackType.VIDEO -> onVideoModeSelected
@@ -288,12 +280,14 @@ fun BoxScope.DecoderSelectorView(
                         val modes = remember(selectedTrackType) {
                             when (selectedTrackType) {
                                 DecoderTrackType.VIDEO -> listOf(
+                                    DecoderMode.AUTO,
                                     DecoderMode.HARDWARE,
                                     DecoderMode.HW_PLUS,
                                     DecoderMode.FFMPEG,
                                 )
 
                                 DecoderTrackType.AUDIO -> listOf(
+                                    DecoderMode.AUTO,
                                     DecoderMode.HARDWARE,
                                     DecoderMode.FFMPEG,
                                 )
@@ -306,15 +300,23 @@ fun BoxScope.DecoderSelectorView(
                                 .then(
                                     if (isPortrait) Modifier else Modifier.weight(
                                         1f,
-                                        fill = false
-                                    )
+                                        fill = false,
+                                    ),
                                 )
                                 .verticalScroll(state = rememberScrollState()),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             modes.forEach { mode ->
+                                val label = if (mode == DecoderMode.AUTO && activeMode != null) {
+                                    stringResource(
+                                        R.string.decoder_mode_auto_active,
+                                        stringResource(activeMode.labelRes),
+                                    )
+                                } else {
+                                    stringResource(mode.labelRes)
+                                }
                                 DecoderModeRow(
-                                    label = stringResource(mode.labelRes),
+                                    label = label,
                                     description = stringResource(mode.descriptionRes),
                                     isSelected = currentMode == mode,
                                     onClick = { onSelectMode(mode) },
@@ -347,7 +349,6 @@ private fun DecoderModeRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            // Radio button
             Box(
                 modifier = Modifier
                     .size(20.dp)

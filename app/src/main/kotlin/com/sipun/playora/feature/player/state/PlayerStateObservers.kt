@@ -2,7 +2,6 @@ package com.sipun.playora.feature.player.state
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -45,32 +44,6 @@ class ErrorState(private val player: Player) {
                 events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)
             ) {
                 playbackError = player.playerError
-            }
-        }
-    }
-}
-
-@UnstableApi
-@Composable
-fun rememberMediaPresentationState(player: Player?): MediaPresentationState {
-    val mediaPresentationState = remember(player) { MediaPresentationState(player = player) }
-    LaunchedEffect(key1 = player) { mediaPresentationState.observe() }
-    return mediaPresentationState
-}
-
-@Stable
-class MediaPresentationState(private val player: Player?) {
-    var isBuffering: Boolean by mutableStateOf(value = false)
-        private set
-
-    @androidx.annotation.OptIn(UnstableApi::class)
-    suspend fun observe() {
-        isBuffering = player?.playbackState == Player.STATE_BUFFERING
-
-        player?.listen { events ->
-            if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)) {
-                this@MediaPresentationState.isBuffering =
-                    player.playbackState == Player.STATE_BUFFERING
             }
         }
     }

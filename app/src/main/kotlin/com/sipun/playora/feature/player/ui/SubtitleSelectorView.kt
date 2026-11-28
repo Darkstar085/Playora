@@ -97,7 +97,6 @@ fun BoxScope.SubtitleSelectorView(
         enter = fadeIn(animationSpec = tween(150)),
         exit = fadeOut(animationSpec = tween(150)),
     ) {
-        // Scrim backdrop
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -159,7 +158,6 @@ fun BoxScope.SubtitleSelectorView(
                             .padding(if (isPortrait) 20.dp else 20.dp),
                         verticalArrangement = Arrangement.spacedBy(if (isPortrait) 14.dp else 12.dp),
                     ) {
-                        // Header: Purple CC Box + Title/Subtitle
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -180,7 +178,7 @@ fun BoxScope.SubtitleSelectorView(
                             }
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
-                                    text = "Subtitle track",
+                                    text = stringResource(R.string.subtitle_track),
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 17.sp,
@@ -188,14 +186,13 @@ fun BoxScope.SubtitleSelectorView(
                                     color = Color.White,
                                 )
                                 Text(
-                                    text = "Select subtitle and adjust settings",
+                                    text = stringResource(R.string.select_subtitle_and_adjust),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color(0xFF90A4AE),
                                 )
                             }
                         }
 
-                        // Subtitle Tracks List
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -223,7 +220,6 @@ fun BoxScope.SubtitleSelectorView(
                                 )
                             }
 
-                            // Disable row
                             SubtitleTrackRow(
                                 name = stringResource(R.string.disable),
                                 isSelected = subtitleTracksState.tracks.none { it.isSelected },
@@ -240,9 +236,7 @@ fun BoxScope.SubtitleSelectorView(
                             modifier = Modifier.padding(vertical = 2.dp),
                         )
 
-                        // Adjustments: Delay and Speed
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            // Delay stepper row
                             StepperRow(
                                 icon = Icons.Rounded.Schedule,
                                 title = stringResource(R.string.delay),
@@ -261,7 +255,6 @@ fun BoxScope.SubtitleSelectorView(
                                 },
                             )
 
-                            // Speed stepper row
                             StepperRow(
                                 icon = Icons.Rounded.Speed,
                                 title = stringResource(R.string.speed),
@@ -287,7 +280,6 @@ fun BoxScope.SubtitleSelectorView(
                             )
                         }
 
-                        // Open local subtitle button (with subtle purple tint matching subtitles)
                         Surface(
                             shape = RoundedCornerShape(20.dp),
                             color = Color(0xFF221A2C),
@@ -346,7 +338,6 @@ private fun SubtitleTrackRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            // Radio button icon
             Box(
                 modifier = Modifier
                     .size(20.dp)
@@ -416,7 +407,6 @@ private fun StepperRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            // Minus button
             IconButton(
                 onClick = onMinusClick,
                 modifier = Modifier
@@ -425,13 +415,12 @@ private fun StepperRow(
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Remove,
-                    contentDescription = "Decrease",
+                    contentDescription = stringResource(R.string.decrease),
                     tint = Color.White,
                     modifier = Modifier.size(18.dp),
                 )
             }
 
-            // Value pill
             Box(
                 modifier = Modifier
                     .width(86.dp)
@@ -450,7 +439,6 @@ private fun StepperRow(
                 )
             }
 
-            // Plus button
             IconButton(
                 onClick = onPlusClick,
                 modifier = Modifier
@@ -459,7 +447,7 @@ private fun StepperRow(
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Add,
-                    contentDescription = "Increase",
+                    contentDescription = stringResource(R.string.increase),
                     tint = Color.White,
                     modifier = Modifier.size(18.dp),
                 )
