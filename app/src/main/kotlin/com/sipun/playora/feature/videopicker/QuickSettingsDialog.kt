@@ -14,14 +14,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ViewList
 import androidx.compose.material.icons.rounded.AccountTree
@@ -86,15 +83,13 @@ fun QuickSettingsDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 580.dp)
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState())
-                .then(if (useGlass) Modifier else Modifier.navigationBarsPadding()),
+                .heightIn(max = 680.dp)
+                .padding(horizontal = 20.dp),
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
+                    .padding(bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
@@ -108,150 +103,149 @@ fun QuickSettingsDialog(
                 )
             }
 
-            SectionHeader(
-                icon = Icons.Rounded.Folder,
-                title = stringResource(R.string.media_view_mode),
-            )
-            SegmentedPillRow(
-                items = listOf(
-                    MediaViewMode.FOLDER_TREE,
-                    MediaViewMode.FOLDERS,
-                    MediaViewMode.VIDEOS,
-                ),
-                selectedItem = preferences.mediaViewMode,
-                onItemSelected = { preferences = preferences.copy(mediaViewMode = it) },
-                itemLabel = { it.name() },
-                itemIcon = { mode ->
-                    when (mode) {
-                        MediaViewMode.FOLDER_TREE -> Icons.Rounded.AccountTree
-                        MediaViewMode.FOLDERS -> Icons.Rounded.Folder
-                        MediaViewMode.VIDEOS -> Icons.Rounded.SmartDisplay
-                    }
-                },
-            )
-
-            SectionHeader(
-                icon = Icons.Rounded.GridView,
-                title = stringResource(R.string.media_layout),
-            )
-            SegmentedPillRow(
-                items = listOf(MediaLayoutMode.LIST, MediaLayoutMode.GRID),
-                selectedItem = preferences.mediaLayoutMode,
-                onItemSelected = { preferences = preferences.copy(mediaLayoutMode = it) },
-                itemLabel = {
-                    when (it) {
-                        MediaLayoutMode.LIST -> stringResource(R.string.list)
-                        MediaLayoutMode.GRID -> stringResource(R.string.grid)
-                    }
-                },
-                itemIcon = { mode ->
-                    when (mode) {
-                        MediaLayoutMode.LIST -> Icons.AutoMirrored.Rounded.ViewList
-                        MediaLayoutMode.GRID -> Icons.Rounded.GridView
-                    }
-                },
-            )
-
-            SectionHeader(
-                icon = Icons.Rounded.SwapVert,
-                title = stringResource(R.string.sort),
-            )
-            SortCriteriaRow(
-                selectedBy = preferences.sortBy,
-                onSelectBy = { preferences = preferences.copy(sortBy = it) },
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            SegmentedPillRow(
-                items = listOf(Sort.Order.ASCENDING, Sort.Order.DESCENDING),
-                selectedItem = preferences.sortOrder,
-                onItemSelected = { preferences = preferences.copy(sortOrder = it) },
-                itemLabel = { order ->
-                    val arrow = if (order == Sort.Order.ASCENDING) "↑  " else "↓  "
-                    arrow + order.name(preferences.sortBy)
-                },
-            )
-
-            SectionHeader(
-                icon = Icons.Rounded.Layers,
-                title = stringResource(R.string.fields),
-            )
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                QuickSettingFieldChip(
-                    label = stringResource(R.string.duration),
-                    selected = preferences.showDurationField,
-                    onClick = {
-                        preferences =
-                            preferences.copy(showDurationField = !preferences.showDurationField)
+            Column {
+                SectionHeader(
+                    icon = Icons.Rounded.Folder,
+                    title = stringResource(R.string.media_view_mode),
+                )
+                SegmentedPillRow(
+                    items = listOf(
+                        MediaViewMode.FOLDER_TREE,
+                        MediaViewMode.FOLDERS,
+                        MediaViewMode.VIDEOS,
+                    ),
+                    selectedItem = preferences.mediaViewMode,
+                    onItemSelected = { preferences = preferences.copy(mediaViewMode = it) },
+                    itemLabel = { it.name() },
+                    itemIcon = { mode ->
+                        when (mode) {
+                            MediaViewMode.FOLDER_TREE -> Icons.Rounded.AccountTree
+                            MediaViewMode.FOLDERS -> Icons.Rounded.Folder
+                            MediaViewMode.VIDEOS -> Icons.Rounded.SmartDisplay
+                        }
                     },
                 )
-                QuickSettingFieldChip(
-                    label = stringResource(R.string.folder_duration),
-                    selected = preferences.showFolderDurationField,
-                    onClick = {
-                        preferences = preferences.copy(
-                            showFolderDurationField = !preferences.showFolderDurationField,
-                        )
+                SectionHeader(
+                    icon = Icons.Rounded.GridView,
+                    title = stringResource(R.string.media_layout),
+                )
+                SegmentedPillRow(
+                    items = listOf(MediaLayoutMode.LIST, MediaLayoutMode.GRID),
+                    selectedItem = preferences.mediaLayoutMode,
+                    onItemSelected = { preferences = preferences.copy(mediaLayoutMode = it) },
+                    itemLabel = {
+                        when (it) {
+                            MediaLayoutMode.LIST -> stringResource(R.string.list)
+                            MediaLayoutMode.GRID -> stringResource(R.string.grid)
+                        }
+                    },
+                    itemIcon = { mode ->
+                        when (mode) {
+                            MediaLayoutMode.LIST -> Icons.AutoMirrored.Rounded.ViewList
+                            MediaLayoutMode.GRID -> Icons.Rounded.GridView
+                        }
                     },
                 )
-                QuickSettingFieldChip(
-                    label = stringResource(R.string.extension),
-                    selected = preferences.showExtensionField,
-                    onClick = {
-                        preferences =
-                            preferences.copy(showExtensionField = !preferences.showExtensionField)
+                SectionHeader(
+                    icon = Icons.Rounded.SwapVert,
+                    title = stringResource(R.string.sort),
+                )
+                SortCriteriaRow(
+                    selectedBy = preferences.sortBy,
+                    onSelectBy = { preferences = preferences.copy(sortBy = it) },
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                SegmentedPillRow(
+                    items = listOf(Sort.Order.ASCENDING, Sort.Order.DESCENDING),
+                    selectedItem = preferences.sortOrder,
+                    onItemSelected = { preferences = preferences.copy(sortOrder = it) },
+                    itemLabel = { order ->
+                        val arrow = if (order == Sort.Order.ASCENDING) "↑  " else "↓  "
+                        arrow + order.name(preferences.sortBy)
                     },
                 )
-                QuickSettingFieldChip(
-                    label = stringResource(R.string.path),
-                    selected = preferences.showPathField,
-                    onClick = {
-                        preferences = preferences.copy(showPathField = !preferences.showPathField)
-                    },
+                SectionHeader(
+                    icon = Icons.Rounded.Layers,
+                    title = stringResource(R.string.fields),
                 )
-                QuickSettingFieldChip(
-                    label = stringResource(R.string.played_progress),
-                    selected = preferences.showPlayedProgress,
-                    onClick = {
-                        preferences = preferences.copy(
-                            showPlayedProgress = !preferences.showPlayedProgress,
-                        )
-                    },
-                )
-                QuickSettingFieldChip(
-                    label = stringResource(R.string.resolution),
-                    selected = preferences.showResolutionField,
-                    onClick = {
-                        preferences = preferences.copy(
-                            showResolutionField = !preferences.showResolutionField,
-                        )
-                    },
-                )
-                QuickSettingFieldChip(
-                    label = stringResource(R.string.size),
-                    selected = preferences.showSizeField,
-                    onClick = {
-                        preferences = preferences.copy(showSizeField = !preferences.showSizeField)
-                    },
-                )
-                QuickSettingFieldChip(
-                    label = stringResource(R.string.thumbnail),
-                    selected = preferences.showThumbnailField,
-                    onClick = {
-                        preferences = preferences.copy(
-                            showThumbnailField = !preferences.showThumbnailField,
-                        )
-                    },
-                )
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    QuickSettingFieldChip(
+                        label = stringResource(R.string.duration),
+                        selected = preferences.showDurationField,
+                        onClick = {
+                            preferences =
+                                preferences.copy(showDurationField = !preferences.showDurationField)
+                        },
+                    )
+                    QuickSettingFieldChip(
+                        label = stringResource(R.string.folder_duration),
+                        selected = preferences.showFolderDurationField,
+                        onClick = {
+                            preferences = preferences.copy(
+                                showFolderDurationField = !preferences.showFolderDurationField,
+                            )
+                        },
+                    )
+                    QuickSettingFieldChip(
+                        label = stringResource(R.string.extension),
+                        selected = preferences.showExtensionField,
+                        onClick = {
+                            preferences =
+                                preferences.copy(showExtensionField = !preferences.showExtensionField)
+                        },
+                    )
+                    QuickSettingFieldChip(
+                        label = stringResource(R.string.path),
+                        selected = preferences.showPathField,
+                        onClick = {
+                            preferences = preferences.copy(showPathField = !preferences.showPathField)
+                        },
+                    )
+                    QuickSettingFieldChip(
+                        label = stringResource(R.string.played_progress),
+                        selected = preferences.showPlayedProgress,
+                        onClick = {
+                            preferences = preferences.copy(
+                                showPlayedProgress = !preferences.showPlayedProgress,
+                            )
+                        },
+                    )
+                    QuickSettingFieldChip(
+                        label = stringResource(R.string.resolution),
+                        selected = preferences.showResolutionField,
+                        onClick = {
+                            preferences = preferences.copy(
+                                showResolutionField = !preferences.showResolutionField,
+                            )
+                        },
+                    )
+                    QuickSettingFieldChip(
+                        label = stringResource(R.string.size),
+                        selected = preferences.showSizeField,
+                        onClick = {
+                            preferences = preferences.copy(showSizeField = !preferences.showSizeField)
+                        },
+                    )
+                    QuickSettingFieldChip(
+                        label = stringResource(R.string.thumbnail),
+                        selected = preferences.showThumbnailField,
+                        onClick = {
+                            preferences = preferences.copy(
+                                showThumbnailField = !preferences.showThumbnailField,
+                            )
+                        },
+                    )
+                }
             }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 22.dp, bottom = 14.dp),
+                    .padding(top = 14.dp, bottom = 8.dp),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -381,7 +375,7 @@ private fun SectionHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 14.dp, bottom = 8.dp),
+            .padding(top = 10.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -466,7 +460,7 @@ private fun <T> SegmentedPillRow(
                         interactionSource = pillInteraction,
                         indication = if (isSelected && useGlass) null else androidx.compose.material3.ripple(),
                     ) { onItemSelected(item) }
-                    .padding(vertical = 9.dp),
+                    .padding(vertical = 7.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 val contentColor = when {
@@ -578,7 +572,7 @@ private fun SortCriteriaRow(
                     modifier = Modifier
                         .padding(horizontal = 4.dp)
                         .fillMaxWidth()
-                        .height(46.dp)
+                        .height(42.dp)
                         .then(
                             if (isSelected && useGlass) {
                                 Modifier.appGlassSurface(
@@ -686,7 +680,7 @@ fun QuickSettingFieldChip(
                 shape = RoundedCornerShape(20.dp),
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = 10.dp, vertical = 6.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

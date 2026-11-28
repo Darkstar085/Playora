@@ -401,12 +401,7 @@ fun AppGlassModalOverlay(
                         scaleX = scale
                         scaleY = scale
                     }
-                    .clip(shape)
-                    .clickable(
-                        interactionSource = noOpInteraction,
-                        indication = null,
-                        onClick = {},
-                    ),
+                    .clip(shape),
             ) {
                 Box(
                     modifier = Modifier
@@ -494,7 +489,7 @@ fun AppGlassBottomSheetOverlay(
                     ),
             )
 
-            Column(
+            Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .widthIn(max = 640.dp)
@@ -507,60 +502,69 @@ fun AppGlassBottomSheetOverlay(
                     .graphicsLayer {
                         alpha = progress.value
                         translationY = ((1f - progress.value) * 160f) + dragOffset.value
-                    }
-                    .appGlassSurface(
-                        shape = sheetShape,
-                        tint = glassTint,
-                        blurRadius = 18.dp,
-                        fallbackBackground = containerColor,
-                    )
-                    .border(glassBorder, sheetShape)
-                    .draggable(
-                        orientation = Orientation.Vertical,
-                        state = rememberDraggableState { delta ->
-                            scope.launch {
-                                dragOffset.snapTo((dragOffset.value + delta).coerceAtLeast(0f))
-                            }
-                        },
-                        onDragStopped = { velocity ->
-                            if (dragOffset.value > dismissThresholdPx || velocity > 1200f) {
-                                onDismissRequest()
-                            } else {
-                                scope.launch {
-                                    dragOffset.animateTo(
-                                        targetValue = 0f,
-                                        animationSpec = spring(
-                                            dampingRatio = Spring.DampingRatioNoBouncy,
-                                            stiffness = 420f,
-                                        ),
-                                    )
-                                }
-                            }
-                        },
-                    )
-                    .clickable(
-                        interactionSource = noOpInteraction,
-                        indication = null,
-                        onClick = {},
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    },
             ) {
                 Box(
                     modifier = Modifier
-                        .padding(top = 10.dp, bottom = 6.dp)
-                        .width(36.dp)
-                        .height(4.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.36f)),
+                        .matchParentSize()
+                        .appGlassSurface(
+                            shape = sheetShape,
+                            tint = glassTint,
+                            blurRadius = 18.dp,
+                            fallbackBackground = containerColor,
+                        )
+                        .border(glassBorder, sheetShape),
                 )
-                CompositionLocalProvider(
-                    LocalContentColor provides MaterialTheme.colorScheme.onSurface,
-                    LocalInsideGlassBackdrop provides true,
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        content = content,
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(28.dp)
+                            .draggable(
+                                orientation = Orientation.Vertical,
+                                state = rememberDraggableState { delta ->
+                                    scope.launch {
+                                        dragOffset.snapTo((dragOffset.value + delta).coerceAtLeast(0f))
+                                    }
+                                },
+                                onDragStopped = { velocity ->
+                                    if (dragOffset.value > dismissThresholdPx || velocity > 1200f) {
+                                        onDismissRequest()
+                                    } else {
+                                        scope.launch {
+                                            dragOffset.animateTo(
+                                                targetValue = 0f,
+                                                animationSpec = spring(
+                                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                                    stiffness = 420f,
+                                                ),
+                                            )
+                                        }
+                                    }
+                                },
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(36.dp)
+                                .height(4.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.36f)),
+                        )
+                    }
+                    CompositionLocalProvider(
+                        LocalContentColor provides MaterialTheme.colorScheme.onSurface,
+                        LocalInsideGlassBackdrop provides true,
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            content = content,
+                        )
+                    }
                 }
             }
         }
@@ -595,7 +599,6 @@ fun AppDarkGlassSheet(
     content: @Composable () -> Unit,
 ) {
     val useGlass = LocalLiquidGlassEnabled.current && LocalGlassBackdrop.current != null
-    val noOpInteraction = remember { MutableInteractionSource() }
     if (useGlass) {
         Box(
             modifier = modifier
@@ -619,11 +622,6 @@ fun AppDarkGlassSheet(
                         ),
                     ),
                     shape = shape,
-                )
-                .clickable(
-                    interactionSource = noOpInteraction,
-                    indication = null,
-                    onClick = {},
                 ),
         ) {
             CompositionLocalProvider(LocalInsideGlassBackdrop provides true) {
@@ -636,11 +634,7 @@ fun AppDarkGlassSheet(
             color = fallbackColor,
             border = fallbackBorder,
             shadowElevation = shadowElevation,
-            modifier = modifier.clickable(
-                interactionSource = noOpInteraction,
-                indication = null,
-                onClick = {},
-            ),
+            modifier = modifier,
             content = content,
         )
     }
