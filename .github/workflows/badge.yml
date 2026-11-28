@@ -22,7 +22,7 @@ jobs:
 
       - name: Commit and push badge update
         run: |
-          if git diff --quiet -- .github/badges/downloads.json; then
+          if [[ -z "$(git status --porcelain -- .github/badges/downloads.json)" ]]; then
             echo "No changes to the APK download count."
             exit 0
           fi
