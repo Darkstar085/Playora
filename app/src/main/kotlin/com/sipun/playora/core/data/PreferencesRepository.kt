@@ -5,14 +5,19 @@ import com.sipun.playora.core.datastore.datasource.AppPreferencesDataSource
 import com.sipun.playora.core.datastore.datasource.PlayerPreferencesDataSource
 import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.PlayerPreferences
+import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.stateIn
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
 
 interface PreferencesRepository {
+
+    val applicationPreferencesFlow: Flow<ApplicationPreferences>
 
     val applicationPreferences: StateFlow<ApplicationPreferences>
 
@@ -34,8 +39,13 @@ class LocalPreferencesRepository(
     @Named(DiQualifiers.APPLICATION_SCOPE) private val applicationScope: CoroutineScope,
 ) : PreferencesRepository {
 
+    override val applicationPreferencesFlow: Flow<ApplicationPreferences> =
+        appPreferencesDataSource.preferences.catch { exception ->
+            if (exception is IOException) emit(ApplicationPreferences()) else throw exception
+        }
+
     override val applicationPreferences: StateFlow<ApplicationPreferences> =
-        appPreferencesDataSource.preferences.stateIn(
+        applicationPreferencesFlow.stateIn(
             scope = applicationScope,
             started = SharingStarted.Eagerly,
             initialValue = ApplicationPreferences(),

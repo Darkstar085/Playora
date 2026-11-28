@@ -19,7 +19,7 @@ class MainViewModel(private val preferencesRepository: PreferencesRepository) :
 
     init {
         viewModelScope.launch {
-            preferencesRepository.applicationPreferences.collect { preferences ->
+            preferencesRepository.applicationPreferencesFlow.collect { preferences ->
                 stateInternal.update { MainActivityUiState.Success(preferences = preferences) }
             }
         }
