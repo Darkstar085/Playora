@@ -244,7 +244,14 @@ class LocalPrivacyRepository(
                 null,
                 null,
             )
-            privacyFile.delete()
+            if (!privacyFile.delete()) {
+                resolver.delete(
+                    inserted.uri,
+                    null,
+                    null,
+                )
+                return null
+            }
             inserted.relocated
         } catch (_: Exception) {
             resolver.delete(
@@ -259,7 +266,7 @@ class LocalPrivacyRepository(
     private fun insertPendingItem(entity: HiddenVideoEntity): InsertedItem? {
         val resolver = context.contentResolver
         val mimeType = MimeTypeMap.getSingleton()
-            .getMimeTypeFromExtension(File(entity.privacyPath).extension.lowercase()) ?: "video/*"
+            .getMimeTypeFromExtension(File(entity.privacyPath).extension.lowercase()) ?: "video/mp4"
 
         val collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         val originalDir = relativePathFor(entity.originalPath)
@@ -317,12 +324,19 @@ class LocalPrivacyRepository(
         privacyMutationMutex.withLock {
             val entities = entitiesFor(videos = videos)
             if (entities.isEmpty()) return@withLock
-            entities.forEach { File(it.privacyPath).delete() }
-            hiddenVideoDao.deleteByIds(entities.map { it.id })
+            val deletedIds = withContext(Dispatchers.IO) {
+                entities.mapNotNull { entity ->
+                    val file = File(entity.privacyPath)
+                    if (!file.exists() || file.delete()) entity.id else null
+                }
+            }
+            if (deletedIds.isNotEmpty()) {
+                hiddenVideoDao.deleteByIds(deletedIds)
+            }
         }
 
-    override suspend fun getHiddenVideoInfo(id: Long): MediaInfo? {
-        val entity = hiddenVideoDao.getById(id = id) ?: return null
+    override suspend fun getHiddenVideoInfo(id: Long): MediaInfo? = withContext(Dispatchers.IO) {
+        val entity = hiddenVideoDao.getById(id = id) ?: return@withContext null
         val video = entity.toVideo()
         val mediaInfo = runCatching {
             MediaInfoBuilder().from(
@@ -331,7 +345,7 @@ class LocalPrivacyRepository(
             ).build()
         }.getOrNull()
 
-        return MediaInfo(
+        MediaInfo(
             video = video.copy(format = mediaInfo?.format),
             videoStream = mediaInfo?.videoStream?.toVideoStreamInfo(),
             audioStreams = mediaInfo?.audioStreams?.map { it.toAudioStreamInfo() } ?: emptyList(),

@@ -32,7 +32,6 @@ import org.koin.core.annotation.Single
 interface MediaSynchronizer {
     suspend fun refresh(path: String? = null): Boolean
     fun startSync()
-    fun stopSync()
 }
 
 @Single
@@ -61,10 +60,6 @@ class LocalMediaSynchronizer(
             .launchIn(scope = applicationScope)
     }
 
-    override fun stopSync() {
-        mediaSyncingJob?.cancel()
-    }
-
     private fun Context.hasStoragePermission(): Boolean = ContextCompat.checkSelfPermission(
         this,
         storagePermission,
@@ -77,9 +72,14 @@ class LocalMediaSynchronizer(
         val currentMediaUris = media.mapTo(destination = mutableSetOf()) { it.uri.toString() }
 
         val (wantedMediaStates, unwantedMediaStates) = mediumStateDao.getAll().first().partition {
+            val uri = it.uriString.toUri()
             it.uriString in currentMediaUris ||
                     !ContentResolver.SCHEME_CONTENT.equals(
-                        it.uriString.toUri().scheme,
+                        uri.scheme,
+                        ignoreCase = true,
+                    ) ||
+                    !android.provider.MediaStore.AUTHORITY.equals(
+                        uri.authority,
                         ignoreCase = true,
                     )
         }

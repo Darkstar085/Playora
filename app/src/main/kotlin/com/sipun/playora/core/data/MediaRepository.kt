@@ -49,7 +49,6 @@ interface MediaRepository {
     suspend fun getVideoByUri(uri: String): Video?
     suspend fun getVideoState(uri: String): VideoState?
     suspend fun getMediaInfo(uri: String): MediaInfo?
-    suspend fun clearPlaybackHistory()
     suspend fun updateMediumLastPlayedTime(
         uri: String,
         lastPlayedTime: Long,
@@ -153,10 +152,6 @@ class LocalMediaRepository(
         )
         mediaInfo?.release()
         return@withContext result
-    }
-
-    override suspend fun clearPlaybackHistory() {
-        mediumStateDao.clearPlaybackHistory()
     }
 
     override suspend fun updateMediumLastPlayedTime(

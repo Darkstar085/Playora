@@ -164,8 +164,6 @@ class MediaPickerViewModel(
 
             is MediaPickerAction.CompleteBiometricSetup -> completeBiometricSetup(action.enabled)
 
-            is MediaPickerAction.ConfirmHidePendingItems -> confirmHidePendingItems()
-
             is MediaPickerAction.DismissHideFlow -> stateInternal.update {
                 it.copy(hideFlow = HideFlowState.Idle)
             }
@@ -392,7 +390,6 @@ class MediaPickerViewModel(
         viewModelScope.launch {
             privacyPinRepository.setPin(pin = pin)
             hideVideoItems(videos = pending)
-            privacyPinRepository.setHideConfirmationShown()
             stateInternal.update { it.copy(hideFlow = HideFlowState.BiometricSetup) }
         }
     }
@@ -409,33 +406,16 @@ class MediaPickerViewModel(
         }
     }
 
-    private fun confirmHidePendingItems() {
-        val pending = (stateInternal.value.hideFlow as? HideFlowState.ConfirmHide)?.items ?: return
-        viewModelScope.launch {
-            val hasPin = privacyPinRepository.hasPinSet()
-            if (!hasPin) {
-                stateInternal.update {
-                    it.copy(hideFlow = HideFlowState.SetupPin(items = pending))
-                }
-            } else {
-                hideVideoItems(videos = pending)
-                privacyPinRepository.setHideConfirmationShown()
-                stateInternal.update {
-                    it.copy(
-                        hideFlow = HideFlowState.Idle,
-                    )
-                }
-            }
-        }
-    }
-
     private suspend fun hideVideoItems(videos: List<Video>) {
         stateInternal.update { it.copy(hideFlow = HideFlowState.Processing) }
-        privacyRepository.hideVideos(videos = videos)
-        stateInternal.update {
-            it.copy(
-                hideFlow = HideFlowState.Idle,
-            )
+        try {
+            privacyRepository.hideVideos(videos = videos)
+        } finally {
+            stateInternal.update {
+                it.copy(
+                    hideFlow = HideFlowState.Idle,
+                )
+            }
         }
     }
 
@@ -491,7 +471,6 @@ sealed interface TransferFlowState {
 
 sealed interface HideFlowState {
     data object Idle : HideFlowState
-    data class ConfirmHide(val items: List<Video>) : HideFlowState
     data class SetupPin(val items: List<Video>) : HideFlowState
     data object BiometricSetup : HideFlowState
 
@@ -524,7 +503,6 @@ sealed interface MediaPickerAction {
     data class RequestHideSelectedItems(val selectionItems: Set<SelectionItem>) : MediaPickerAction
     data class SetPrivacyPinAndHide(val pin: String) : MediaPickerAction
     data class CompleteBiometricSetup(val enabled: Boolean) : MediaPickerAction
-    data object ConfirmHidePendingItems : MediaPickerAction
     data object DismissHideFlow : MediaPickerAction
     data class MarkSelectedItems(
         val selectionItems: Set<SelectionItem>,

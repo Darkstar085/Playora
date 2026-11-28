@@ -366,8 +366,11 @@ class PrivacyViewModel(
     private fun unhideVideos(selectionItems: Set<SelectionItem>) {
         viewModelScope.launch {
             stateInternal.update { it.copy(isUnhiding = true) }
-            val result = privacyRepository.unhideVideos(selectionItems.toVideos())
-            stateInternal.update { it.copy(isUnhiding = false) }
+            val result = try {
+                privacyRepository.unhideVideos(selectionItems.toVideos())
+            } finally {
+                stateInternal.update { it.copy(isUnhiding = false) }
+            }
             if (result.relocatedCount > 0) {
                 eventsInternal.send(PrivacyEvent.VideosRelocated(result.relocatedCount))
             }

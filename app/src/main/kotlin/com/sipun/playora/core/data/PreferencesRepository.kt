@@ -61,7 +61,12 @@ class LocalPreferencesRepository(
     }
 
     override suspend fun resetPreferences() {
-        appPreferencesDataSource.update { ApplicationPreferences() }
+        appPreferencesDataSource.update { current ->
+            ApplicationPreferences(
+                hasCompletedOnboarding = current.hasCompletedOnboarding,
+                hasSeenVaultHint = current.hasSeenVaultHint,
+            )
+        }
         playerPreferencesDataSource.update { PlayerPreferences() }
     }
 }

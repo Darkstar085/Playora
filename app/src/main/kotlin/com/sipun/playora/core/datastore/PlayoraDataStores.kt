@@ -3,6 +3,7 @@ package com.sipun.playora.core.datastore
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStoreFile
 import com.sipun.playora.core.datastore.serializer.ApplicationPreferencesSerializer
 import com.sipun.playora.core.datastore.serializer.PlayerPreferencesSerializer
@@ -21,6 +22,7 @@ object PlayoraDataStores {
         scope: CoroutineScope,
     ): DataStore<ApplicationPreferences> = DataStoreFactory.create(
         serializer = ApplicationPreferencesSerializer,
+        corruptionHandler = ReplaceFileCorruptionHandler { ApplicationPreferences() },
         scope = CoroutineScope(context = scope.coroutineContext + ioDispatcher),
         produceFile = { context.dataStoreFile(fileName = APP_PREFERENCES_DATASTORE_FILE) },
     )
@@ -31,6 +33,7 @@ object PlayoraDataStores {
         scope: CoroutineScope,
     ): DataStore<PlayerPreferences> = DataStoreFactory.create(
         serializer = PlayerPreferencesSerializer,
+        corruptionHandler = ReplaceFileCorruptionHandler { PlayerPreferences() },
         scope = CoroutineScope(context = scope.coroutineContext + ioDispatcher),
         produceFile = { context.dataStoreFile(fileName = PLAYER_PREFERENCES_DATASTORE_FILE) },
     )

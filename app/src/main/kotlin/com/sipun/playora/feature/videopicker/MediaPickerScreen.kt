@@ -124,8 +124,6 @@ import com.sipun.playora.feature.videopicker.composables.MediaInfoDialog
 import com.sipun.playora.feature.videopicker.composables.MediaView
 import com.sipun.playora.feature.videopicker.composables.NoVideosFound
 import com.sipun.playora.feature.videopicker.composables.QuickSettingsDialog
-import io.github.itshedimisawi.vitro.rememberGlassBackdrop
-import io.github.itshedimisawi.vitro.rememberGlassEffectState
 import com.sipun.playora.feature.videopicker.composables.RenameDialog
 import com.sipun.playora.feature.videopicker.composables.SelectionAction
 import com.sipun.playora.feature.videopicker.composables.privacy.PinDotsIndicator
@@ -137,6 +135,8 @@ import com.sipun.playora.feature.videopicker.state.SelectionItem
 import com.sipun.playora.feature.videopicker.state.rememberSelectionManager
 import com.sipun.playora.feature.videopicker.state.toSelectedFolder
 import com.sipun.playora.feature.videopicker.state.toSelectedVideo
+import io.github.itshedimisawi.vitro.rememberGlassBackdrop
+import io.github.itshedimisawi.vitro.rememberGlassEffectState
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
@@ -968,7 +968,6 @@ internal fun MediaPickerScreenContent(
 
     HideFlowDialogs(
         hideFlow = state.hideFlow,
-        onConfirmHide = { onAction(MediaPickerAction.ConfirmHidePendingItems) },
         onSetPinAndHide = { onAction(MediaPickerAction.SetPrivacyPinAndHide(pin = it)) },
         onBiometricSetupComplete = {
             onAction(MediaPickerAction.CompleteBiometricSetup(enabled = it))
@@ -1173,7 +1172,6 @@ private fun DeleteConfirmationDialog(
 @Composable
 private fun HideFlowDialogs(
     hideFlow: HideFlowState,
-    onConfirmHide: () -> Unit,
     onSetPinAndHide: (String) -> Unit,
     onBiometricSetupComplete: (Boolean) -> Unit,
     onDismiss: () -> Unit,
@@ -1183,41 +1181,6 @@ private fun HideFlowDialogs(
 
         HideFlowState.Processing -> {
             PrivacyProgressDialog(message = stringResource(R.string.hiding_videos_in_progress))
-        }
-
-        is HideFlowState.ConfirmHide -> {
-            val count = hideFlow.items.size
-            AppDialog(
-                onDismissRequest = onDismiss,
-                title = {
-                    Text(
-                        text = if (count == 1) {
-                            stringResource(R.string.hide_one_video_confirmation)
-                        } else {
-                            stringResource(
-                                R.string.hide_videos_confirmation,
-                                count,
-                            )
-                        },
-                    )
-                },
-                content = {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(text = stringResource(R.string.hide_video_info))
-                        Text(
-                            text = stringResource(R.string.hide_video_uninstall_warning),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = onConfirmHide) {
-                        Text(text = stringResource(R.string.hide))
-                    }
-                },
-                dismissButton = { CancelButton(onClick = onDismiss) },
-            )
         }
 
         is HideFlowState.SetupPin -> {

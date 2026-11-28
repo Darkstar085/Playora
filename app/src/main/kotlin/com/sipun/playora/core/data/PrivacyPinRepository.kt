@@ -81,10 +81,6 @@ interface PrivacyPinRepository {
     suspend fun isBiometricEnabled(): Boolean
 
     suspend fun setBiometricEnabled(enabled: Boolean)
-
-    suspend fun hasShownHideConfirmation(): Boolean
-
-    suspend fun setHideConfirmationShown()
 }
 
 @Single
@@ -167,13 +163,6 @@ class LocalPrivacyPinRepository(private val context: Context) : PrivacyPinReposi
             }
         }
 
-    override suspend fun hasShownHideConfirmation(): Boolean = withContext(Dispatchers.IO) {
-        preferences.getBoolean(
-            KEY_HIDE_CONFIRMATION_SHOWN,
-            false,
-        )
-    }
-
     override suspend fun isBiometricEnabled(): Boolean = withContext(Dispatchers.IO) {
         preferences.getBoolean(
             KEY_BIOMETRIC_ENABLED,
@@ -186,15 +175,6 @@ class LocalPrivacyPinRepository(private val context: Context) : PrivacyPinReposi
             putBoolean(
                 KEY_BIOMETRIC_ENABLED,
                 enabled,
-            )
-        }
-    }
-
-    override suspend fun setHideConfirmationShown() = withContext(Dispatchers.IO) {
-        preferences.edit {
-            putBoolean(
-                KEY_HIDE_CONFIRMATION_SHOWN,
-                true,
             )
         }
     }
@@ -223,7 +203,6 @@ class LocalPrivacyPinRepository(private val context: Context) : PrivacyPinReposi
         private const val KEY_PIN_HASH = "privacy_pin_hash"
         private const val KEY_SALT = "privacy_pin_salt"
         private const val KEY_BIOMETRIC_ENABLED = "privacy_biometric_enabled"
-        private const val KEY_HIDE_CONFIRMATION_SHOWN = "privacy_hide_confirmation_shown"
         private const val KEY_FAILED_ATTEMPTS = "privacy_pin_failed_attempts"
         private const val KEY_LOCKOUT_UNTIL_MS = "privacy_pin_lockout_until_ms"
         const val MAX_FAILED_ATTEMPTS = 5
