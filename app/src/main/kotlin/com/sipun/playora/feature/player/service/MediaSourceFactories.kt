@@ -88,8 +88,7 @@ internal fun MediaItem.withVideoDecoder(
     ffmpegExtraction = when (mode) {
         DecoderMode.HW_PLUS -> true
         DecoderMode.FFMPEG -> useFfmpegForSoftware
-        DecoderMode.HARDWARE -> false
-        DecoderMode.AUTO -> mediaMetadata.ffmpegExtraction
+        DecoderMode.HARDWARE, DecoderMode.AUTO -> false
     },
 )
 

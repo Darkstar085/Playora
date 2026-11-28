@@ -368,4 +368,20 @@ class DecoderRecoveryManagerTest {
             DecoderMode.AUTO.systemDecoderMode
         )
     }
+
+    @Test
+    fun mediaItemChangeResetsManualSelectionToAutoWithoutConfirmation() {
+        val manager = DecoderRecoveryManager()
+        manager.onUserSelection(video, DecoderMode.HARDWARE)
+        manager.onUserSelection(audio, DecoderMode.HARDWARE)
+
+        manager.onMediaItemChanged()
+
+        val videoRetry = manager.onDecoderFailure(video, DecoderMode.AUTO)
+        val audioRetry = manager.onDecoderFailure(audio, DecoderMode.AUTO)
+
+        assertEquals(DecoderRetry(video, DecoderMode.FFMPEG), videoRetry)
+        assertEquals(DecoderRetry(audio, DecoderMode.FFMPEG), audioRetry)
+        assertEquals(DecoderRecoveryStatus.RECOVERING, manager.state.status)
+    }
 }

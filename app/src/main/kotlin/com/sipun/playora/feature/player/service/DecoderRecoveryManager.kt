@@ -16,8 +16,15 @@ internal class DecoderRecoveryManager {
             audioRecovery.state,
         ).maxBy { it.status }
 
-    fun onMediaItemChanged(audioMode: DecoderMode = DecoderMode.AUTO) {
+    fun onMediaItemChanged(
+        videoMode: DecoderMode = DecoderMode.AUTO,
+        audioMode: DecoderMode = DecoderMode.AUTO,
+    ) {
         videoRecovery.reset()
+        onUserSelection(
+            DecoderTrackType.VIDEO,
+            mode = videoMode,
+        )
         onUserSelection(
             DecoderTrackType.AUDIO,
             mode = audioMode,
