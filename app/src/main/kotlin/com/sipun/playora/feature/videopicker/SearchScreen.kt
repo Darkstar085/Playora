@@ -33,15 +33,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -91,7 +88,6 @@ fun SearchScreen(viewModel: SearchViewModel) {
 internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent) -> Unit) {
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
-    var isSearchFocused by remember { mutableStateOf(value = false) }
     val liquidGlassEnabled = LocalLiquidGlassEnabled.current
     val backdrop = rememberGlassBackdrop()
 
@@ -122,8 +118,7 @@ internal fun SearchScreenContent(state: SearchUiState, onAction: (SearchUiEvent)
                                         Modifier
                                     },
                                 )
-                                .focusRequester(focusRequester = focusRequester)
-                                .onFocusChanged { isSearchFocused = it.hasFocus },
+                                .focusRequester(focusRequester = focusRequester),
                             placeholder = {
                                 Text(
                                     text = stringResource(R.string.search_videos_and_folders),
@@ -398,6 +393,7 @@ private fun SearchResultsContent(
                     folders = searchResults.folders,
                 ),
                 preferences = preferences,
+                selectionEnabled = false,
                 onFolderClick = onFolderClick,
                 onVideoClick = onVideoClick,
                 showHeaders = true,

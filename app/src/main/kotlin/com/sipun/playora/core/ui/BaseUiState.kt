@@ -12,21 +12,7 @@ sealed class DataState<out T> {
     val error: Throwable? get() = (this as? Error)?.value
 }
 
-sealed class ActionState {
-    data object Success : ActionState()
-    data class Failed(val value: Throwable) : ActionState()
-
-    val error: Throwable? get() = (this as? Failed)?.value
-}
-
 abstract class MviViewModel<State, Action> : ViewModel() {
     abstract val state: StateFlow<State>
     abstract fun onAction(action: Action)
-}
-
-sealed class ScreenState {
-    data object Loading : ScreenState()
-    data object Success : ScreenState()
-
-    val isLoading: Boolean get() = this is Loading
 }

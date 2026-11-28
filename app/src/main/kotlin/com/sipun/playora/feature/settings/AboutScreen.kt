@@ -467,7 +467,7 @@ internal fun AboutScreenContent(navigateUp: () -> Unit) {
                                     }
                                 updateFlowState = UpdateFlowState.Installing(selectedUpdate)
                                 updateFlowState = if (UpdateManager.install(context, apk)) {
-                                    UpdateFlowState.Success(selectedUpdate.version)
+                                    null
                                 } else {
                                     UpdateFlowState.Error(updateInstallPermissionText)
                                 }

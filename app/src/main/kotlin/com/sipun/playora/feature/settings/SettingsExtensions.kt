@@ -5,8 +5,6 @@ import androidx.compose.ui.res.stringResource
 import com.sipun.playora.R
 import com.sipun.playora.core.model.DoubleTapGesture
 import com.sipun.playora.core.model.Font
-import com.sipun.playora.core.model.Resume
-import com.sipun.playora.core.model.ThemeConfig
 
 @Composable
 fun DoubleTapGesture.name(): String {
@@ -27,27 +25,6 @@ fun Font.name(): String {
         Font.MONOSPACE -> R.string.monospace
         Font.SANS_SERIF -> R.string.sans_serif
         Font.SERIF -> R.string.serif
-    }
-
-    return stringResource(id = stringRes)
-}
-
-@Composable
-fun Resume.name(): String {
-    val stringRes = when (this) {
-        Resume.YES -> R.string.yes
-        Resume.NO -> R.string.no
-    }
-
-    return stringResource(id = stringRes)
-}
-
-@Composable
-fun ThemeConfig.name(): String {
-    val stringRes = when (this) {
-        ThemeConfig.SYSTEM -> R.string.system_default
-        ThemeConfig.OFF -> R.string.off
-        ThemeConfig.ON -> R.string.on
     }
 
     return stringResource(id = stringRes)

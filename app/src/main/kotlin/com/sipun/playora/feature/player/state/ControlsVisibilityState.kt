@@ -24,7 +24,7 @@ import kotlin.time.Duration
 fun rememberControlsVisibilityState(player: Player, hideAfter: Duration): ControlsVisibilityState {
     val activity = LocalActivity.current
     val coroutineScope = rememberCoroutineScope()
-    val controlsVisibilityState = remember {
+    val controlsVisibilityState = remember(player, hideAfter) {
         ControlsVisibilityState(
             player = player,
             hideAfter = hideAfter,

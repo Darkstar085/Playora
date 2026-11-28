@@ -158,7 +158,6 @@ class SeekGestureState(
         if (!player.isCurrentMediaItemSeekable) return
         if (player.currentPosition <= 0L && dragAmount < 0) return
         if (player.currentPosition >= duration && dragAmount > 0) return
-        if (change.isConsumed) return
 
         val newPosition =
             seekStartPosition!! + ((change.position.x - seekStartX) * (sensitivity * 100)).toInt()

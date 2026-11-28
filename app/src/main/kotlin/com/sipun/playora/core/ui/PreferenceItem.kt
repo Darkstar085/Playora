@@ -18,7 +18,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
@@ -311,31 +310,7 @@ fun PreferenceSlider(
     val inSectionCard = LocalInPreferenceSectionCard.current
 
     AppSegmentedListItem(
-        modifier = modifier.onPreviewKeyEvent { event ->
-            if (!enabled || event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-            when (event.key) {
-                Key.DirectionLeft -> {
-                    onValueChange(nudged(direction = -1))
-                    onValueChangeFinished()
-                    true
-                }
-
-                Key.DirectionRight -> {
-                    onValueChange(nudged(direction = 1))
-                    onValueChangeFinished()
-                    true
-                }
-
-                Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
-                    onReset?.let {
-                        it()
-                        true
-                    } ?: false
-                }
-
-                else -> false
-            }
-        },
+        modifier = modifier,
         onClick = {},
         onLongClick = null,
         enabled = enabled,
@@ -359,7 +334,43 @@ fun PreferenceSlider(
                     AppGlassSlider(
                         value = value,
                         onValueChange = onValueChange,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .onPreviewKeyEvent { event ->
+                                if (!enabled || event.type != KeyEventType.KeyDown) {
+                                    return@onPreviewKeyEvent false
+                                }
+                                when (event.key) {
+                                    Key.DirectionLeft -> {
+                                        if (value <= valueRange.start) {
+                                            false
+                                        } else {
+                                            onValueChange(nudged(direction = -1))
+                                            onValueChangeFinished()
+                                            true
+                                        }
+                                    }
+
+                                    Key.DirectionRight -> {
+                                        if (value >= valueRange.endInclusive) {
+                                            false
+                                        } else {
+                                            onValueChange(nudged(direction = 1))
+                                            onValueChangeFinished()
+                                            true
+                                        }
+                                    }
+
+                                    Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
+                                        onReset?.let {
+                                            it()
+                                            true
+                                        } ?: false
+                                    }
+
+                                    else -> false
+                                }
+                            },
                         enabled = enabled,
                         valueRange = valueRange,
                         steps = steps,

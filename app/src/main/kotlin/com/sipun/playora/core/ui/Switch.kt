@@ -3,7 +3,6 @@ package com.sipun.playora.core.ui.components
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -135,7 +134,6 @@ fun AppSwitch(
                         interactive = enabled && onCheckedChange != null,
                         interactionSource = interactionSource,
                         fallbackBackground = thumbFallbackColor,
-                        fallbackBorder = BorderStroke(0.75.dp, thumbBorderColor),
                     )
                     .border(0.75.dp, thumbBorderColor, CircleShape),
                 contentAlignment = Alignment.Center,

@@ -140,7 +140,7 @@ suspend fun PointerInputScope.detectCustomHorizontalDragGestures(
             overSlop = over
         }
         if (drag != null && currentEvent.changes.count { it.pressed } == 1) {
-            onDragStart.invoke(drag.position)
+            onDragStart.invoke(drag.position - Offset(overSlop, 0f))
             try {
                 onHorizontalDrag(
                     drag,
@@ -148,11 +148,13 @@ suspend fun PointerInputScope.detectCustomHorizontalDragGestures(
                 )
                 if (
                     horizontalDrag(drag.id) {
-                        onHorizontalDrag(
-                            it,
-                            it.positionChange().x,
-                        )
-                        it.consume()
+                        if (!it.isConsumed) {
+                            onHorizontalDrag(
+                                it,
+                                it.positionChange().x,
+                            )
+                            it.consume()
+                        }
                     }
                 ) {
                     onDragEnd()
@@ -160,7 +162,6 @@ suspend fun PointerInputScope.detectCustomHorizontalDragGestures(
                     onDragCancel()
                 }
             } catch (e: CancellationException) {
-
                 onDragCancel()
                 throw e
             }
@@ -243,22 +244,30 @@ suspend fun PointerInputScope.detectCustomVerticalDragGestures(
             overSlop = over
         }
         if (drag != null && currentEvent.changes.count { it.pressed } == 1) {
-            onDragStart.invoke(drag.position)
-            onVerticalDrag.invoke(
-                drag,
-                overSlop,
-            )
-            if (verticalDrag(drag.id) {
-                    onVerticalDrag(
-                        it,
-                        it.positionChange().y,
-                    )
-                    it.consume()
+            onDragStart.invoke(drag.position - Offset(0f, overSlop))
+            try {
+                onVerticalDrag.invoke(
+                    drag,
+                    overSlop,
+                )
+                if (
+                    verticalDrag(drag.id) {
+                        if (!it.isConsumed) {
+                            onVerticalDrag(
+                                it,
+                                it.positionChange().y,
+                            )
+                            it.consume()
+                        }
+                    }
+                ) {
+                    onDragEnd()
+                } else {
+                    onDragCancel()
                 }
-            ) {
-                onDragEnd()
-            } else {
+            } catch (e: CancellationException) {
                 onDragCancel()
+                throw e
             }
         }
     }

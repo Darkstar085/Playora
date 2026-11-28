@@ -24,8 +24,6 @@ import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -52,13 +50,9 @@ import androidx.compose.ui.unit.dp
 import com.sipun.playora.R
 import com.sipun.playora.core.model.ThemeConfig
 import com.sipun.playora.core.ui.components.AppDialog
-import com.sipun.playora.core.ui.theme.LocalAccentBrush
+import com.sipun.playora.core.ui.components.PreferenceSectionCard
 import com.sipun.playora.core.ui.theme.LocalLiquidGlassEnabled
 import com.sipun.playora.core.ui.theme.appGlassSurface
-import com.sipun.playora.core.ui.theme.rememberGlassCardBorderBrush
-import com.sipun.playora.core.ui.theme.rememberGlassCardTint
-
-import com.sipun.playora.core.ui.components.PreferenceSectionCard
 
 @Composable
 internal fun AppearanceSectionCard(

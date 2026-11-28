@@ -6,7 +6,6 @@
     <string name="okay">Okay</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="enable">Enable</string>
     <string name="disable">Disable</string>
     <string name="on">On</string>
     <string name="off">Off</string>
@@ -168,6 +167,7 @@
     <string name="volume_boost_desc">Boost audio volume up to 200%</string>
     <string name="open_audio">Open local audio</string>
     <string name="error_opening_audio">Can’t open this audio file</string>
+    <string name="error_opening_subtitle">Can’t open this subtitle file</string>
 
     <string name="subtitle">Subtitle</string>
     <string name="subtitle_desc">Subtitle appearance, playback options</string>

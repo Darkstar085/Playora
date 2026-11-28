@@ -12,10 +12,14 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.ThemeConfig
 import io.github.itshedimisawi.vitro.LocalGlassDarkTheme
+
+private fun contrastColorFor(background: Color): Color =
+    if (background.luminance() > 0.5f) Color.Black else Color.White
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -124,19 +128,20 @@ fun PlayoraTheme(
 
     val accentColor = baseDynamicScheme?.primary ?: Color(preferences.customColor)
     val accentBrush = Brush.horizontalGradient(listOf(accentColor, accentColor))
+    val onAccentColor = contrastColorFor(accentColor)
 
     val colorScheme = when {
         isDark && highContrastDarkTheme -> (baseDynamicScheme ?: darkScheme).copy(
             primary = accentColor,
-            onPrimary = Color.White,
+            onPrimary = onAccentColor,
             primaryContainer = accentColor.copy(alpha = 0.35f),
             onPrimaryContainer = Color.White,
             secondary = accentColor,
-            onSecondary = Color.White,
+            onSecondary = onAccentColor,
             secondaryContainer = accentColor.copy(alpha = 0.28f),
             onSecondaryContainer = Color.White,
             tertiary = accentColor,
-            onTertiary = Color.White,
+            onTertiary = onAccentColor,
             tertiaryContainer = accentColor.copy(alpha = 0.28f),
             onTertiaryContainer = Color.White,
             inversePrimary = accentColor,
@@ -156,15 +161,15 @@ fun PlayoraTheme(
 
         isDark -> darkScheme.copy(
             primary = accentColor,
-            onPrimary = Color.White,
+            onPrimary = onAccentColor,
             primaryContainer = accentColor.copy(alpha = 0.35f),
             onPrimaryContainer = Color.White,
             secondary = accentColor,
-            onSecondary = Color.White,
+            onSecondary = onAccentColor,
             secondaryContainer = accentColor.copy(alpha = 0.28f),
             onSecondaryContainer = Color.White,
             tertiary = accentColor,
-            onTertiary = Color.White,
+            onTertiary = onAccentColor,
             tertiaryContainer = accentColor.copy(alpha = 0.28f),
             onTertiaryContainer = Color.White,
             inversePrimary = accentColor,
@@ -172,17 +177,29 @@ fun PlayoraTheme(
 
         else -> lightScheme.copy(
             primary = accentColor,
-            onPrimary = Color.White,
+            onPrimary = onAccentColor,
             primaryContainer = accentColor.copy(alpha = 0.15f),
-            onPrimaryContainer = accentColor,
+            onPrimaryContainer = if (accentColor.luminance() > 0.65f) {
+                onPrimaryContainerLight
+            } else {
+                accentColor
+            },
             secondary = accentColor,
-            onSecondary = Color.White,
+            onSecondary = onAccentColor,
             secondaryContainer = accentColor.copy(alpha = 0.15f),
-            onSecondaryContainer = accentColor,
+            onSecondaryContainer = if (accentColor.luminance() > 0.65f) {
+                onSecondaryContainerLight
+            } else {
+                accentColor
+            },
             tertiary = accentColor,
-            onTertiary = Color.White,
+            onTertiary = onAccentColor,
             tertiaryContainer = accentColor.copy(alpha = 0.15f),
-            onTertiaryContainer = accentColor,
+            onTertiaryContainer = if (accentColor.luminance() > 0.65f) {
+                onTertiaryContainerLight
+            } else {
+                accentColor
+            },
             inversePrimary = accentColor,
         )
     }

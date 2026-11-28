@@ -49,7 +49,7 @@ import kotlin.time.Duration.Companion.seconds
 @Composable
 fun rememberBrightnessState(): BrightnessState {
     val activity = LocalActivity.current
-    val brightnessState = remember { BrightnessState(activity = activity as PlayerActivity) }
+    val brightnessState = remember(activity) { BrightnessState(activity = activity as PlayerActivity) }
     DisposableEffect(key1 = activity) {
         brightnessState.handleListeners(disposableEffectScope = this)
     }
@@ -149,7 +149,7 @@ class BrightnessState(private val activity: PlayerActivity) {
 fun rememberVolumeState(player: Player?, showVolumePanelIfHeadsetIsOn: Boolean): VolumeState {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val volumeState = remember(player) {
+    val volumeState = remember(player, showVolumePanelIfHeadsetIsOn) {
         VolumeState(
             player = player,
             context = context,
@@ -157,8 +157,8 @@ fun rememberVolumeState(player: Player?, showVolumePanelIfHeadsetIsOn: Boolean):
             scope = scope,
         )
     }
-    LaunchedEffect(key1 = player) { volumeState.initialize() }
-    DisposableEffect(key1 = context) { volumeState.handleLifecycle(disposableEffectScope = this) }
+    LaunchedEffect(key1 = volumeState) { volumeState.initialize() }
+    DisposableEffect(key1 = volumeState) { volumeState.handleLifecycle(disposableEffectScope = this) }
     return volumeState
 }
 
@@ -377,12 +377,6 @@ class VolumeAndBrightnessGestureState(
     var activeGesture: VerticalGesture? by mutableStateOf(value = null)
         private set
 
-    var volumeChangePercentage: Int by mutableIntStateOf(value = 0)
-        private set
-
-    var brightnessChangePercentage: Int by mutableIntStateOf(value = 0)
-        private set
-
     private var startingY = 0f
     private var startVolumePercentage = 0
     private var startBrightnessPercentage = 0
@@ -403,18 +397,11 @@ class VolumeAndBrightnessGestureState(
 
     fun onDrag(change: PointerInputChange, dragAmount: Float) {
         val activeGesture = activeGesture ?: return
-        if (change.isConsumed) return
 
         when (activeGesture) {
             VerticalGesture.VOLUME -> {
-                val maxVolumePercentage = volumeState.maxVolumePercentage
                 val volumeChange = (startingY - change.position.y) * (volumeGestureSensitivity / 10)
                 val newVolume = startVolumePercentage + volumeChange.toInt()
-                volumeChangePercentage = (newVolume - startVolumePercentage).coerceIn(
-                    minimumValue = 0 - startVolumePercentage,
-                    maximumValue = maxVolumePercentage - startVolumePercentage,
-                )
-                brightnessChangePercentage = 0
                 volumeState.updateVolumePercentage(percentage = newVolume)
             }
 
@@ -422,11 +409,6 @@ class VolumeAndBrightnessGestureState(
                 val brightnessChange =
                     (startingY - change.position.y) * (brightnessGestureSensitivity / 10)
                 val newBrightness = startBrightnessPercentage + brightnessChange.toInt()
-                brightnessChangePercentage = (newBrightness - startBrightnessPercentage).coerceIn(
-                    minimumValue = 0 - startBrightnessPercentage,
-                    maximumValue = MAX_BRIGHTNESS_PERCENTAGE - startBrightnessPercentage,
-                )
-                volumeChangePercentage = 0
                 brightnessState.updateBrightnessPercentage(percentage = newBrightness)
             }
         }
@@ -441,13 +423,7 @@ class VolumeAndBrightnessGestureState(
         job = coroutineScope.launch {
             delay(1.seconds)
             activeGesture = null
-            volumeChangePercentage = 0
-            brightnessChangePercentage = 0
         }
-    }
-
-    companion object {
-        private const val MAX_BRIGHTNESS_PERCENTAGE = 100
     }
 }
 

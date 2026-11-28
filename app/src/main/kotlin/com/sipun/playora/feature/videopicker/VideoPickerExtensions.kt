@@ -3,15 +3,8 @@ package com.sipun.playora.feature.videopicker.extensions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.sipun.playora.R
-import com.sipun.playora.core.model.MediaLayoutMode
 import com.sipun.playora.core.model.MediaViewMode
 import com.sipun.playora.core.model.Sort
-
-@Composable
-fun MediaLayoutMode.name(): String = when (this) {
-    MediaLayoutMode.LIST -> stringResource(id = R.string.list)
-    MediaLayoutMode.GRID -> stringResource(id = R.string.grid)
-}
 
 @Composable
 fun MediaViewMode.name(): String = when (this) {

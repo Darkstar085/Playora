@@ -157,8 +157,10 @@ class PlayerActivity : ComponentActivity() {
         }
 
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-            if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM &&
-                mediaController?.repeatMode == Player.REPEAT_MODE_OFF
+            if (!playWhenReady &&
+                reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM &&
+                mediaController?.repeatMode == Player.REPEAT_MODE_OFF &&
+                mediaController?.hasNextMediaItem() != true
             ) {
                 isPlaybackFinished = true
                 finishAndStopPlayerSession()
@@ -347,11 +349,19 @@ class PlayerActivity : ComponentActivity() {
                     initialUri = currentMediaDirectory(),
                 ),
             ) ?: return@launch
-            contentResolver.takePersistableUriPermission(
-                uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION,
-            )
-            snapshotFlow { mediaController }.filterNotNull().first().addSubtitleTrack(uri = uri)
+            try {
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+                snapshotFlow { mediaController }.filterNotNull().first().addSubtitleTrack(uri = uri)
+            } catch (_: SecurityException) {
+                Toast.makeText(
+                    this@PlayerActivity,
+                    coreUiR.string.error_opening_subtitle,
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
         }
     }
 
@@ -408,7 +418,11 @@ class PlayerActivity : ComponentActivity() {
             }
             if (isInPictureInPictureMode) {
                 finish()
-                if (!shouldPlayInBackground) stopPlayerSession()
+                if (!shouldPlayInBackground) {
+                    clearMediaItems()
+                    stop()
+                    stopService(Intent(this@PlayerActivity, PlayerService::class.java))
+                }
             }
         }
         mediaController = null
@@ -420,15 +434,23 @@ class PlayerActivity : ComponentActivity() {
         if (!isIntentNew &&
             (controller.currentMediaItem == null || controller.playbackState == Player.STATE_ENDED)
         ) {
-
             isPlaybackFinished = true
             finishAndStopPlayerSession()
             return
         }
-        val uri = intent.data ?: return
+        val currentUri = controller.currentMediaItem?.localConfiguration?.uri
+        val uri = intent.data ?: currentUri ?: return
+        if (intent.data == null) {
+            intent.data = uri
+            isIntentNew = false
+            viewModel.onAction(PlayerAction.UpdatePlayWhenReady(controller.playWhenReady))
+            if (controller.playbackState == Player.STATE_IDLE) {
+                controller.prepare()
+            }
+            return
+        }
 
         val returningFromBackground = !isIntentNew
-        val currentUri = controller.currentMediaItem?.localConfiguration?.uri
         val hasExplicitPlaylist =
             playerApi.isApiAccess || intent.hasExtra(PlayerApi.API_PLAYLIST)
         isIntentNew = false
@@ -440,8 +462,14 @@ class PlayerActivity : ComponentActivity() {
                 hasNextMediaItem = controller.hasNextMediaItem(),
             )
         ) {
-            controller.prepare()
-            controller.playWhenReady = viewModel.state.value.playWhenReady
+            if (controller.playbackState == Player.STATE_IDLE) {
+                controller.prepare()
+            }
+            if (returningFromBackground) {
+                viewModel.onAction(PlayerAction.UpdatePlayWhenReady(controller.playWhenReady))
+            } else {
+                controller.playWhenReady = viewModel.state.value.playWhenReady
+            }
             return
         }
 

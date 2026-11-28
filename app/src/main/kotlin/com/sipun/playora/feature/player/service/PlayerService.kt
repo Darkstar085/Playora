@@ -459,16 +459,18 @@ class PlayerService : MediaSessionService() {
                 reason,
             )
 
-            if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM) {
-                if (mediaSession?.player?.repeatMode != Player.REPEAT_MODE_OFF) {
-                    mediaSession?.player?.seekTo(0)
-                    mediaSession?.player?.play()
+            if (!playWhenReady && reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM) {
+                val player = mediaSession?.player ?: return
+                if (player.repeatMode != Player.REPEAT_MODE_OFF) {
+                    player.seekTo(0)
+                    player.play()
                     return
                 }
-                mediaSession?.run {
-                    player.clearMediaItems()
-                    player.stop()
+                if (player.hasNextMediaItem()) {
+                    return
                 }
+                player.clearMediaItems()
+                player.stop()
                 stopSelf()
             }
         }
@@ -1023,8 +1025,10 @@ class PlayerService : MediaSessionService() {
                         Intent(
                             this@PlayerService,
                             PlayerActivity::class.java,
+                        ).addFlags(
+                            Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP,
                         ),
-                        PendingIntent.FLAG_IMMUTABLE,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                     ),
                 )
                 setCallback(mediaSessionCallback)

@@ -50,6 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sipun.playora.R
+import com.sipun.playora.core.common.Utils
 import com.sipun.playora.core.model.ApplicationPreferences
 import com.sipun.playora.core.model.Folder
 import com.sipun.playora.core.model.MediaLayoutMode
@@ -359,6 +360,13 @@ private fun FolderListItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                     )
                 }
+                if (preferences.showFolderDurationField && folder.totalDuration > 0) {
+                    Text(
+                        text = Utils.formatDurationMillis(folder.totalDuration),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                    )
+                }
             }
         },
     )
@@ -444,19 +452,19 @@ private fun FolderGridItem(
                     } else {
                         null
                     }
+                    val folderDuration = if (
+                        preferences.showFolderDurationField && folder.totalDuration > 0
+                    ) {
+                        Utils.formatDurationMillis(folder.totalDuration)
+                    } else {
+                        null
+                    }
 
                     Text(
-                        text = buildString {
-                            mediaCount?.let {
-                                append(it)
-                                folderCount?.let {
-                                    append(", ")
-                                    append("\u00A0")
-                                }
-                            }
-                            folderCount?.let { append(it) }
-                        },
+                        text = listOfNotNull(mediaCount, folderCount, folderDuration)
+                            .joinToString(separator = ",\u00A0"),
                         maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Normal,
                             fontSize = 11.sp,

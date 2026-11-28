@@ -84,8 +84,8 @@ import io.github.itshedimisawi.vitro.glassBackdrop
 import io.github.itshedimisawi.vitro.glassEffect
 import io.github.itshedimisawi.vitro.glassEffectContainer
 import io.github.itshedimisawi.vitro.scrollEdgeEffect
-import kotlin.math.abs
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 val LocalLiquidGlassEnabled = staticCompositionLocalOf { true }
 val LocalGlassBackdrop = compositionLocalOf<GlassBackdrop?> { null }
@@ -416,7 +416,6 @@ fun AppGlassModalOverlay(
                             tint = glassTint,
                             blurRadius = 18.dp,
                             fallbackBackground = containerColor,
-                            fallbackBorder = glassBorder,
                         )
                         .border(glassBorder, shape),
                 )
@@ -514,7 +513,6 @@ fun AppGlassBottomSheetOverlay(
                         tint = glassTint,
                         blurRadius = 18.dp,
                         fallbackBackground = containerColor,
-                        fallbackBorder = glassBorder,
                     )
                     .border(glassBorder, sheetShape)
                     .draggable(
@@ -833,7 +831,6 @@ fun AppGlassSlider(
                             interactive = enabled,
                             interactionSource = interactionSource,
                             fallbackBackground = thumbFallback,
-                            fallbackBorder = BorderStroke(0.75.dp, thumbBorder),
                         )
                         .border(0.75.dp, thumbBorder, CircleShape),
                 )

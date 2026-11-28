@@ -76,9 +76,6 @@ internal fun MediaPlayerControls(
         dpadUpDown = dpadUpDown,
     )
     var overlayView by remember { mutableStateOf<OverlayView?>(value = null) }
-    LaunchedEffect(metadataState.mediaId) {
-        if (overlayView == OverlayView.CHAPTERS) overlayView = null
-    }
 
     fun showOverlay(overlay: OverlayView) {
         controlsVisibilityState.hideControls()
@@ -164,15 +161,6 @@ internal fun MediaPlayerControls(
             OverlayShowView(
                 player = player,
                 overlayView = overlayView,
-                chapters = chaptersState.chapters,
-                currentChapterIndex = chaptersState.currentChapterIndex,
-                onChapterSelected = { chapter ->
-                    if (player.isCurrentMediaItemSeekable) {
-                        player.seekTo(chapter.startTimeMs)
-                        overlayView = null
-                        controlsVisibilityState.showControls()
-                    }
-                },
                 videoDecoderMode = state.decoderServiceState.videoMode,
                 audioDecoderMode = state.decoderServiceState.audioMode,
                 activeVideoDecoderMode = state.decoderServiceState.activeVideoMode,

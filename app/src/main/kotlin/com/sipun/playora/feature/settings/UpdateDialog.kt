@@ -69,7 +69,6 @@ sealed interface UpdateFlowState {
     ) : UpdateFlowState
 
     data class Installing(val update: AppUpdate) : UpdateFlowState
-    data class Success(val version: String) : UpdateFlowState
     data class UpToDate(val version: String) : UpdateFlowState
     data class Error(val message: String) : UpdateFlowState
 }
@@ -78,7 +77,6 @@ private enum class UpdateStep {
     AVAILABLE,
     DOWNLOADING,
     INSTALLING,
-    SUCCESS,
     UP_TO_DATE,
     ERROR,
 }
@@ -88,7 +86,6 @@ private val UpdateFlowState.step: UpdateStep
         is UpdateFlowState.Available -> UpdateStep.AVAILABLE
         is UpdateFlowState.Downloading -> UpdateStep.DOWNLOADING
         is UpdateFlowState.Installing -> UpdateStep.INSTALLING
-        is UpdateFlowState.Success -> UpdateStep.SUCCESS
         is UpdateFlowState.UpToDate -> UpdateStep.UP_TO_DATE
         is UpdateFlowState.Error -> UpdateStep.ERROR
     }
@@ -151,13 +148,6 @@ fun UpdateDialog(
                 }
 
                 UpdateStep.INSTALLING -> UpdateInstallingContent()
-
-                UpdateStep.SUCCESS -> (state as? UpdateFlowState.Success)?.let {
-                    UpdateSuccessContent(
-                        version = it.version,
-                        onDismiss = onDismiss,
-                    )
-                }
 
                 UpdateStep.UP_TO_DATE -> (state as? UpdateFlowState.UpToDate)?.let {
                     UpdateUpToDateContent(
@@ -674,61 +664,6 @@ private fun UpdateInstallingContent() {
             text = stringResource(R.string.update_installing_desc),
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun UpdateSuccessContent(
-    version: String,
-    onDismiss: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(SuccessGreen.copy(alpha = 0.15f))
-                .border(2.dp, SuccessGreen, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = AppIcons.Check,
-                contentDescription = null,
-                tint = SuccessGreen,
-                modifier = Modifier.size(32.dp),
-            )
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        Text(
-            text = stringResource(R.string.update_success_title),
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-            ),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-
-        Spacer(Modifier.height(6.dp))
-
-        Text(
-            text = stringResource(R.string.update_success_desc, version),
-            style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Spacer(Modifier.height(24.dp))
-
-        UpdatePrimaryButton(
-            text = stringResource(R.string.okay),
-            onClick = onDismiss,
         )
     }
 }

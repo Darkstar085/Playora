@@ -45,6 +45,7 @@ fun MediaView(
     showHeaders: Boolean = preferences.mediaViewMode == MediaViewMode.FOLDER_TREE,
     contentPadding: PaddingValues = PaddingValues(),
     selectionManager: SelectionManager = rememberSelectionManager(),
+    selectionEnabled: Boolean = true,
     lazyGridState: LazyGridState = rememberLazyGridState(),
     modifier: Modifier = Modifier,
     onFolderClick: (String) -> Unit,
@@ -125,7 +126,9 @@ fun MediaView(
                 span = { _, _ -> GridItemSpan(currentLineSpan = singleFolderSpan) },
             ) { index, folder ->
                 val selected by remember {
-                    derivedStateOf { selectionManager.isFolderSelected(folder = folder) }
+                    derivedStateOf {
+                        selectionEnabled && selectionManager.isFolderSelected(folder = folder)
+                    }
                 }
                 FolderItem(
                     folder = folder,
@@ -135,16 +138,20 @@ fun MediaView(
                     isFirstItem = index == 0,
                     isLastItem = index == mediaHolder.folders.lastIndex,
                     onClick = {
-                        if (selectionManager.isInSelectionMode) {
+                        if (selectionEnabled && selectionManager.isInSelectionMode) {
                             haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                             selectionManager.toggleFolderSelection(folder = folder)
                         } else {
                             onFolderClick(folder.path)
                         }
                     },
-                    onLongClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        selectionManager.toggleFolderSelection(folder = folder)
+                    onLongClick = if (selectionEnabled) {
+                        {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            selectionManager.toggleFolderSelection(folder = folder)
+                        }
+                    } else {
+                        null
                     },
                 )
             }
@@ -172,7 +179,9 @@ fun MediaView(
                 span = { _, _ -> GridItemSpan(currentLineSpan = singleVideoSpan) },
             ) { index, video ->
                 val selected by remember {
-                    derivedStateOf { selectionManager.isVideoSelected(video = video) }
+                    derivedStateOf {
+                        selectionEnabled && selectionManager.isVideoSelected(video = video)
+                    }
                 }
                 VideoItem(
                     video = video,
@@ -182,16 +191,20 @@ fun MediaView(
                     isLastItem = index == mediaHolder.videos.lastIndex,
                     selected = selected,
                     onClick = {
-                        if (selectionManager.isInSelectionMode) {
+                        if (selectionEnabled && selectionManager.isInSelectionMode) {
                             haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                             selectionManager.toggleVideoSelection(video = video)
                         } else {
                             onVideoClick(video.uriString.toUri())
                         }
                     },
-                    onLongClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        selectionManager.toggleVideoSelection(video = video)
+                    onLongClick = if (selectionEnabled) {
+                        {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            selectionManager.toggleVideoSelection(video = video)
+                        }
+                    } else {
+                        null
                     },
                 )
             }

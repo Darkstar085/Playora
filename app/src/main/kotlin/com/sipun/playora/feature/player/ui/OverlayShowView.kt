@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.extractor.metadata.Chapter
 import com.sipun.playora.core.model.VideoContentScale
 import com.sipun.playora.feature.player.extensions.noRippleClickable
 import com.sipun.playora.feature.player.model.DecoderMode
@@ -24,9 +23,6 @@ fun BoxScope.OverlayShowView(
     activeVideoDecoderMode: DecoderMode? = null,
     activeAudioDecoderMode: DecoderMode? = null,
     videoContentScale: VideoContentScale,
-    chapters: List<Chapter>,
-    currentChapterIndex: Int,
-    onChapterSelected: (Chapter) -> Unit,
     onDismiss: () -> Unit = {},
     onVideoDecoderModeSelected: (DecoderMode) -> Unit = {},
     onAudioDecoderModeSelected: (DecoderMode) -> Unit = {},
@@ -85,18 +81,6 @@ fun BoxScope.OverlayShowView(
         onVideoContentScaleChanged = onVideoContentScaleChanged,
         onDismiss = onDismiss,
     )
-
-    PlaylistView(
-        show = overlayView == OverlayView.PLAYLIST,
-        player = player,
-    )
-
-    ChaptersView(
-        show = overlayView == OverlayView.CHAPTERS,
-        chapters = chapters,
-        currentChapterIndex = currentChapterIndex,
-        onChapterSelected = onChapterSelected,
-    )
 }
 
 val Configuration.isPortrait: Boolean
@@ -108,6 +92,4 @@ enum class OverlayView {
     SUBTITLE_SELECTOR,
     PLAYBACK_SPEED,
     VIDEO_CONTENT_SCALE,
-    PLAYLIST,
-    CHAPTERS,
 }

@@ -104,6 +104,8 @@ class MainActivity : FragmentActivity() {
             val preferences =
                 (state as? MainActivityUiState.Success)?.preferences ?: ApplicationPreferences()
             val shouldUseDarkTheme = shouldUseDarkTheme(state = state)
+            val shouldUseHighContrastDarkTheme = shouldUseHighContrastDarkTheme(state = state)
+            val isEffectiveDarkTheme = shouldUseDarkTheme || shouldUseHighContrastDarkTheme
 
             val scope = rememberCoroutineScope()
             var autoUpdateFlowState by remember { mutableStateOf<UpdateFlowState?>(null) }
@@ -125,14 +127,14 @@ class MainActivity : FragmentActivity() {
                 }
             }
 
-            LaunchedEffect(key1 = shouldUseDarkTheme) {
-                darkSystemBars = shouldUseDarkTheme
+            LaunchedEffect(key1 = isEffectiveDarkTheme) {
+                darkSystemBars = isEffectiveDarkTheme
                 WindowCompat.getInsetsController(
                     window,
                     window.decorView,
                 ).apply {
-                    isAppearanceLightStatusBars = !shouldUseDarkTheme
-                    isAppearanceLightNavigationBars = !shouldUseDarkTheme
+                    isAppearanceLightStatusBars = !isEffectiveDarkTheme
+                    isAppearanceLightNavigationBars = !isEffectiveDarkTheme
                 }
             }
 
@@ -140,20 +142,22 @@ class MainActivity : FragmentActivity() {
             PlayoraTheme(
                 preferences = preferences,
                 darkTheme = shouldUseDarkTheme,
-                highContrastDarkTheme = shouldUseHighContrastDarkTheme(state = state),
+                highContrastDarkTheme = shouldUseHighContrastDarkTheme,
                 dynamicColor = shouldUseDynamicTheming(state = state),
             ) {
-                if (!preferences.hasCompletedOnboarding) {
-                    WelcomeScreen(
-                        onFinish = {
-                            scope.launch {
-                                preferencesRepository.updateApplicationPreferences {
-                                    it.copy(hasCompletedOnboarding = true)
+                when (val currentState = state) {
+                    MainActivityUiState.Loading -> Unit
+                    is MainActivityUiState.Success -> if (!currentState.preferences.hasCompletedOnboarding) {
+                        WelcomeScreen(
+                            onFinish = {
+                                scope.launch {
+                                    preferencesRepository.updateApplicationPreferences {
+                                        it.copy(hasCompletedOnboarding = true)
+                                    }
                                 }
-                            }
-                        },
-                    )
-                } else {
+                            },
+                        )
+                    } else {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.surfaceContainer,
@@ -277,8 +281,7 @@ class MainActivity : FragmentActivity() {
                                             autoUpdateFlowState =
                                                 UpdateFlowState.Installing(selectedUpdate)
                                             if (UpdateManager.install(this@MainActivity, apk)) {
-                                                autoUpdateFlowState =
-                                                    UpdateFlowState.Success(selectedUpdate.version)
+                                                autoUpdateFlowState = null
                                             } else {
                                                 autoUpdateFlowState = UpdateFlowState.Error(
                                                     getString(R.string.update_install_permission),
@@ -306,6 +309,7 @@ class MainActivity : FragmentActivity() {
             }
         }
     }
+}
 }
 
 @Composable

@@ -16,7 +16,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
@@ -39,7 +41,7 @@ class SearchViewModel(
     private val stateInternal = MutableStateFlow(value = SearchUiState())
     override val state: StateFlow<SearchUiState> = stateInternal.asStateFlow()
 
-    private val searchQuery = MutableStateFlow(value = "")
+    private val searchRequests = MutableStateFlow(value = "" to false)
 
     init {
         collectPopularFolders()
@@ -69,8 +71,10 @@ class SearchViewModel(
     )
     private fun collectSearchResults() {
         viewModelScope.launch {
-            searchQuery
-                .debounce(timeoutMillis = SEARCH_DEBOUNCE_MS)
+            searchRequests
+                .debounce { (_, immediate) -> if (immediate) 0L else SEARCH_DEBOUNCE_MS }
+                .map { (query, _) -> query }
+                .distinctUntilChanged()
                 .flatMapLatest { query -> searchMediaUseCase(query) }
                 .collect { results ->
                     stateInternal.update {
@@ -89,7 +93,7 @@ class SearchViewModel(
             is SearchUiEvent.PlayVideo -> output.playVideo(action.uri, action.playlist)
             is SearchUiEvent.OpenFolder -> output.openFolder(action.path)
             is SearchUiEvent.OnQueryChange -> onQueryChange(action.query)
-            is SearchUiEvent.OnSearch -> {}
+            is SearchUiEvent.OnSearch -> onSearch(action.query)
         }
     }
 
@@ -100,7 +104,20 @@ class SearchViewModel(
                 isSearching = query.isNotBlank(),
             )
         }
-        searchQuery.value = query
+        searchRequests.value = query to false
+    }
+
+    private fun onSearch(query: String) {
+        val alreadyLoadedForQuery = !stateInternal.value.isSearching &&
+            stateInternal.value.query == query &&
+            searchRequests.value.first == query
+        stateInternal.update {
+            it.copy(
+                query = query,
+                isSearching = query.isNotBlank() && !alreadyLoadedForQuery,
+            )
+        }
+        searchRequests.value = query to true
     }
 
     companion object {

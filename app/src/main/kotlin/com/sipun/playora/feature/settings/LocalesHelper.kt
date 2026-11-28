@@ -5,13 +5,17 @@ import java.util.Locale
 object LocalesHelper {
 
     fun getAvailableLocales(): List<Pair<String, String>> = try {
-        Locale.getAvailableLocales().map {
-            val key = it.isO3Language
-            val language = it.displayLanguage
-            Pair(
-                first = language,
-                second = key,
-            )
+        Locale.getAvailableLocales().mapNotNull { locale ->
+            val key = runCatching { locale.isO3Language }.getOrNull()?.trim().orEmpty()
+            val language = locale.displayLanguage.trim()
+            if (key.isBlank() || language.isBlank()) {
+                null
+            } else {
+                Pair(
+                    first = language,
+                    second = key,
+                )
+            }
         }.distinctBy { it.second }.sortedBy { it.first }
     } catch (e: Exception) {
         e.printStackTrace()
