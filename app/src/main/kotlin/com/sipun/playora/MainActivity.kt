@@ -110,15 +110,17 @@ class MainActivity : FragmentActivity() {
             var autoDownloadJob by remember { mutableStateOf<Job?>(null) }
 
             LaunchedEffect(preferences.hasCompletedOnboarding) {
-                if (preferences.hasCompletedOnboarding) {
+                if (preferences.hasCompletedOnboarding &&
+                    UpdateManager.shouldAutoCheckForUpdates(this@MainActivity)
+                ) {
                     delay(2500)
+                    UpdateManager.markAutoUpdateChecked(this@MainActivity)
                     try {
                         val latest = UpdateManager.findLatestUpdate(this@MainActivity)
                         if (latest != null) {
                             autoUpdateFlowState = UpdateFlowState.Available(latest)
                         }
                     } catch (_: Exception) {
-                        // Silently ignore network failures on automatic background check
                     }
                 }
             }

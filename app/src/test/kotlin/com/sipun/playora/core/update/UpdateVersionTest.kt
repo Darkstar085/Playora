@@ -18,12 +18,10 @@ class UpdateVersionTest {
 
     @Test
     fun handlesVPrefixAndEqualVersions() {
-        // v prefix handling
         assertTrue(UpdateManager.isNewerVersion("v1.0.0", "v1.0.1"))
         assertTrue(UpdateManager.isNewerVersion("1.0.0", "v1.1.0"))
         assertTrue(UpdateManager.isNewerVersion("v0.5.0", "0.6.0"))
 
-        // Equal versions should be false
         assertFalse(UpdateManager.isNewerVersion("1.0.0", "1.0.0"))
         assertFalse(UpdateManager.isNewerVersion("v1.0.0", "1.0.0"))
         assertFalse(UpdateManager.isNewerVersion("1.0.0", "v1.0.0"))

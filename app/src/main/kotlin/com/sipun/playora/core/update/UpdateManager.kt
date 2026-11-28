@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
 import androidx.core.content.FileProvider
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -80,8 +81,23 @@ object UpdateManager {
         "https://github.com/$REPOSITORY/releases/latest/download/app-release.json"
     private const val RELEASE_API =
         "https://api.github.com/repos/$REPOSITORY/releases/latest"
+    private const val UPDATE_PREFS_NAME = "playora_update_prefs"
+    private const val KEY_LAST_AUTO_CHECK_MS = "last_auto_check_ms"
+    private const val AUTO_CHECK_INTERVAL_MS = 24L * 60L * 60L * 1000L
     private val TRUSTED_DOWNLOAD_HOSTS = setOf("github.com", "api.github.com")
     private val json = Json { ignoreUnknownKeys = true }
+
+    fun shouldAutoCheckForUpdates(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(UPDATE_PREFS_NAME, Context.MODE_PRIVATE)
+        val lastCheckMs = prefs.getLong(KEY_LAST_AUTO_CHECK_MS, 0L)
+        return System.currentTimeMillis() - lastCheckMs >= AUTO_CHECK_INTERVAL_MS
+    }
+
+    fun markAutoUpdateChecked(context: Context) {
+        context.getSharedPreferences(UPDATE_PREFS_NAME, Context.MODE_PRIVATE).edit {
+            putLong(KEY_LAST_AUTO_CHECK_MS, System.currentTimeMillis())
+        }
+    }
 
     internal sealed interface ManifestLookupResult {
         data class Success(val update: AppUpdate?) : ManifestLookupResult
