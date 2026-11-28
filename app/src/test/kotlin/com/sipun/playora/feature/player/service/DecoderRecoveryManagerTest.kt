@@ -112,6 +112,20 @@ class DecoderRecoveryManagerTest {
     }
 
     @Test
+    fun automaticAudioFailureRetriesFfmpegWithoutConfirmation() {
+        val manager = DecoderRecoveryManager()
+
+        val retry = manager.onDecoderFailure(
+            audio,
+            DecoderMode.AUTO,
+        )
+
+        assertEquals(DecoderRetry(audio, DecoderMode.FFMPEG), retry)
+        assertTrue(manager.takeRetry(checkNotNull(retry)))
+        assertEquals(DecoderRecoveryStatus.RECOVERING, manager.state.status)
+    }
+
+    @Test
     fun automaticFailureRetriesFfmpegOnce() {
         val manager = DecoderRecoveryManager()
         val retry = checkNotNull(
